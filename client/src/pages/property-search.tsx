@@ -251,16 +251,17 @@ export default function PropertySearch() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold flex items-center gap-2">
-          <MapPin className="w-8 h-8 text-blue-600" />
-          Property Intelligence
-        </h1>
-        <p className="text-text-secondary mt-2">
-          Search and analyze property data from multiple real estate sources
-        </p>
-      </div>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold flex items-center gap-2">
+            <MapPin className="w-8 h-8 text-blue-600" />
+            Property Intelligence
+          </h1>
+          <p className="text-text-secondary mt-2">
+            Search and analyze property data from multiple real estate sources
+          </p>
+        </div>
 
       {/* Search Section */}
       <Card className="mb-8">
@@ -393,7 +394,7 @@ export default function PropertySearch() {
 
       {/* Property Data Results */}
       {propertyData && !error && (
-        <div className="space-y-6">
+        <div className="space-y-6 max-h-screen overflow-y-auto">
           {/* Property Overview */}
           <Card>
             <CardHeader>
@@ -1046,6 +1047,7 @@ export default function PropertySearch() {
           </CardContent>
         </Card>
       )}
+      </div>
     </div>
   );
 }
