@@ -107,13 +107,16 @@ export default function PropertySearch() {
 
   const searchMutation = useMutation({
     mutationFn: async (searchAddress: string) => {
+      console.log('Searching for:', searchAddress, 'Type:', searchType);
       const response = await fetch(`/api/property-data?address=${encodeURIComponent(searchAddress)}&searchType=${searchType}`);
       if (!response.ok) {
-        throw new Error("Failed to fetch property data");
+        const errorData = await response.text();
+        throw new Error(`Failed to fetch property data: ${response.status} - ${errorData}`);
       }
       return response.json();
     },
     onSuccess: (data) => {
+      console.log('Property data received:', data);
       setPropertyData(data);
       setShowSuggestions(false);
       toast({
@@ -122,6 +125,7 @@ export default function PropertySearch() {
       });
     },
     onError: (error) => {
+      console.error('Search error:', error);
       toast({
         title: "Search Failed",
         description: error.message,
@@ -139,8 +143,9 @@ export default function PropertySearch() {
       });
       return;
     }
+    console.log('Starting search for:', address);
     setShowSuggestions(false);
-    searchMutation.mutate(address);
+    searchMutation.mutate(address.trim());
   };
 
   // Address autocomplete with Google Places API
