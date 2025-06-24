@@ -110,7 +110,7 @@ export class PropertyDataService {
 
   private async getFromGoogleMaps(address: string, searchType: 'unit' | 'building' = 'unit'): Promise<PropertyData | null> {
     try {
-      const apiKey = process.env.GOOGLE_MAPS_API_KEY || "AIzaSyBBBEZc_XLQXrCOs4Y4VgpOQdhUqFo4lCE";
+      const apiKey = process.env.GOOGLE_MAPS_API_KEY || "AIzaSyB_eOoP_huU27PjXO4LMQCnopqsGSLckBE";
       if (!apiKey) {
         console.log('No Google Maps API key found');
         return null;
