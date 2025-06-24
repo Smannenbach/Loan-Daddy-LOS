@@ -57,12 +57,17 @@ function Router() {
             const params = new URLSearchParams(window.location.search);
             const token = params.get('token');
             if (!token) {
-              return <NotFound />;
+              return (
+                <div className="p-8">
+                  <h1 className="text-2xl font-bold mb-4">Customer Portal Access Required</h1>
+                  <p className="text-text-secondary">This page requires a valid access token. Please use the link provided in your email or contact your loan officer.</p>
+                </div>
+              );
             }
             // Dynamically import CustomerPortal to avoid circular dependencies
             const CustomerPortal = React.lazy(() => import("@/pages/customer-portal"));
             return (
-              <React.Suspense fallback={<div>Loading...</div>}>
+              <React.Suspense fallback={<div className="p-8">Loading Customer Portal...</div>}>
                 <CustomerPortal token={token} />
               </React.Suspense>
             );
