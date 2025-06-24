@@ -553,35 +553,35 @@ export default function PropertySearch() {
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
                           <span>County:</span>
-                          <span className="font-bold">{propertyData.countyTaxData.county}</span>
+                          <span className="font-bold">{propertyData.countyTaxData?.county || 'N/A'}</span>
                         </div>
                         <div className="flex justify-between">
                           <span>Parcel Number:</span>
-                          <span className="font-mono text-xs">{propertyData.countyTaxData.parcelNumber}</span>
+                          <span className="font-mono text-xs">{propertyData.countyTaxData?.parcelNumber || 'N/A'}</span>
                         </div>
                         <div className="flex justify-between">
                           <span>Tax Year:</span>
-                          <span>{propertyData.countyTaxData.taxYear}</span>
+                          <span>{propertyData.countyTaxData?.taxYear || 'N/A'}</span>
                         </div>
                         <div className="flex justify-between">
                           <span>Assessed Value:</span>
-                          <span className="font-bold">{formatCurrency(propertyData.countyTaxData.assessedValue)}</span>
+                          <span className="font-bold">{formatCurrency(propertyData.countyTaxData?.assessedValue || 0)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span>Market Value:</span>
-                          <span className="font-bold">{formatCurrency(propertyData.countyTaxData.marketValue)}</span>
+                          <span className="font-bold">{formatCurrency(propertyData.countyTaxData?.marketValue || 0)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span>Tax Rate:</span>
-                          <span className="font-bold">{propertyData.countyTaxData.taxRate}%</span>
+                          <span className="font-bold">{propertyData.countyTaxData?.taxRate || 'N/A'}%</span>
                         </div>
                         <div className="flex justify-between">
                           <span>Millage Rate:</span>
-                          <span>{propertyData.countyTaxData.millageRate}</span>
+                          <span>{propertyData.countyTaxData?.millageRate || 'N/A'}</span>
                         </div>
                         <div className="flex justify-between">
                           <span>Annual Tax:</span>
-                          <span className="font-bold text-red-600">{formatCurrency(propertyData.countyTaxData.annualTax)}</span>
+                          <span className="font-bold text-red-600">{formatCurrency(propertyData.countyTaxData?.annualTax || 0)}</span>
                         </div>
                       </div>
                     </div>
@@ -595,7 +595,7 @@ export default function PropertySearch() {
                         <div>
                           <span className="font-medium">Payment Due Dates:</span>
                           <div className="ml-2">
-                            {propertyData.countyTaxData.paymentDueDates.map((date, index) => (
+                            {propertyData.countyTaxData?.paymentDueDates?.map((date, index) => (
                               <div key={index}>• {date}</div>
                             ))}
                           </div>
@@ -603,18 +603,18 @@ export default function PropertySearch() {
                         <div>
                           <span className="font-medium">Exemptions:</span>
                           <div className="ml-2">
-                            {propertyData.countyTaxData.exemptions.map((exemption, index) => (
+                            {propertyData.countyTaxData?.exemptions?.map((exemption, index) => (
                               <div key={index}>• {exemption}</div>
                             ))}
                           </div>
                         </div>
                         <div className="flex justify-between">
                           <span>Last Assessment:</span>
-                          <span>{propertyData.countyTaxData.lastAssessment}</span>
+                          <span>{propertyData.countyTaxData?.lastAssessment || 'N/A'}</span>
                         </div>
                         <div className="flex justify-between">
                           <span>Appeal Deadline:</span>
-                          <span className="font-bold text-orange-600">{propertyData.countyTaxData.appealDeadline}</span>
+                          <span className="font-bold text-orange-600">{propertyData.countyTaxData?.appealDeadline || 'N/A'}</span>
                         </div>
                       </div>
                     </div>
