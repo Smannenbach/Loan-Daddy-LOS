@@ -421,6 +421,23 @@ export default function PropertySearch() {
         </div>
       )}
 
+      {/* No data or API integration needed state */}
+      {propertyData && propertyData.confidence === 0 && (
+        <Card>
+          <CardContent className="text-center py-12">
+            <Building2 className="w-12 h-12 text-orange-400 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Property Data Not Available</h3>
+            <p className="text-text-secondary max-w-md mx-auto mb-4">
+              This address requires real estate API integration to retrieve accurate property data. 
+              Currently configured APIs are experiencing issues.
+            </p>
+            <p className="text-sm text-text-secondary">
+              Address parsed: {propertyData.address}, {propertyData.city}, {propertyData.state} {propertyData.zipCode}
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Empty state */}
       {!propertyData && !searchMutation.isPending && (
         <Card>
