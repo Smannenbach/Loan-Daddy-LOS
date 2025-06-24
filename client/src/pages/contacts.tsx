@@ -28,7 +28,8 @@ import {
   Filter,
   Star,
   Home,
-  MapPin
+  MapPin,
+  Camera
 } from "lucide-react";
 
 interface Contact {
