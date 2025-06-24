@@ -192,6 +192,60 @@ export const callLogs = pgTable("call_logs", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const contacts = pgTable("contacts", {
+  id: serial("id").primaryKey(),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone").notNull(),
+  profilePhoto: text("profile_photo"),
+  dateOfBirth: text("date_of_birth"),
+  ssn: text("ssn"),
+  relationshipStatus: text("relationship_status"),
+  company: text("company"),
+  title: text("title"),
+  contactType: text("contact_type").notNull(), // borrower, agent, vendor, lender, referral_partner
+  notes: text("notes"),
+  streetAddress: text("street_address"),
+  city: text("city"),
+  state: text("state"),
+  zipCode: text("zip_code"),
+  country: text("country").default("United States"),
+  linkedInUrl: text("linkedin_url"),
+  website: text("website"),
+  licenseNumber: text("license_number"),
+  mlsId: text("mls_id"),
+  source: text("source").notNull(),
+  tags: text("tags").array().default([]),
+  linkedInProfile: text("linkedin_profile"),
+  linkedInData: jsonb("linkedin_data").$type<{
+    headline?: string;
+    summary?: string;
+    experience?: Array<{
+      title: string;
+      company: string;
+      duration: string;
+      location: string;
+    }>;
+    education?: Array<{
+      school: string;
+      degree: string;
+      fieldOfStudy: string;
+    }>;
+    skills?: string[];
+    connections?: number;
+  }>(),
+  emailGuesses: jsonb("email_guesses").$type<Array<{
+    email: string;
+    confidence: number;
+    source: string;
+    isValid?: boolean;
+  }>>(),
+  lastLinkedInSync: timestamp("last_linkedin_sync"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Schemas
 export const insertBorrowerSchema = createInsertSchema(borrowers);
 export const insertPropertySchema = createInsertSchema(properties);
@@ -221,6 +275,11 @@ export const insertCallLogSchema = createInsertSchema(callLogs).omit({
   id: true,
   createdAt: true,
 });
+export const insertContactSchema = createInsertSchema(contacts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
 
 // Types
 export type User = typeof users.$inferSelect;
@@ -232,6 +291,7 @@ export type Task = typeof tasks.$inferSelect;
 export type Notification = typeof notifications.$inferSelect;
 export type Template = typeof templates.$inferSelect;
 export type CallLog = typeof callLogs.$inferSelect;
+export type Contact = typeof contacts.$inferSelect;
 
 export type InsertBorrower = z.infer<typeof insertBorrowerSchema>;
 export type InsertProperty = z.infer<typeof insertPropertySchema>;
@@ -241,6 +301,7 @@ export type InsertTask = z.infer<typeof insertTaskSchema>;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type InsertTemplate = z.infer<typeof insertTemplateSchema>;
 export type InsertCallLog = z.infer<typeof insertCallLogSchema>;
+export type InsertContact = z.infer<typeof insertContactSchema>;
 
 // Extended types for API responses
 export type LoanApplicationWithDetails = LoanApplication & {
