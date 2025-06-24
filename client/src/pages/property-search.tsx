@@ -103,6 +103,7 @@ export default function PropertySearch() {
   const [addressSuggestions, setAddressSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [searchType, setSearchType] = useState<'unit' | 'building'>('unit');
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   const searchMutation = useMutation({
@@ -117,12 +118,18 @@ export default function PropertySearch() {
     },
     onSuccess: (data) => {
       console.log('Property data received:', data);
-      setPropertyData(data);
-      setShowSuggestions(false);
-      toast({
-        title: "Property Found",
-        description: `Found data for ${data.address}`,
-      });
+      try {
+        setError(null);
+        setPropertyData(data);
+        setShowSuggestions(false);
+        toast({
+          title: "Property Found",
+          description: `Found data for ${data.address}`,
+        });
+      } catch (err) {
+        console.error('Error setting property data:', err);
+        setError('Failed to display property data');
+      }
     },
     onError: (error) => {
       console.error('Search error:', error);
@@ -330,8 +337,17 @@ export default function PropertySearch() {
         </CardContent>
       </Card>
 
+      {/* Error Display */}
+      {error && (
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="pt-6">
+            <div className="text-red-800">{error}</div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Property Data Results */}
-      {propertyData && (
+      {propertyData && !error && (
         <div className="space-y-6">
           {/* Property Overview */}
           <Card>
@@ -441,7 +457,7 @@ export default function PropertySearch() {
                         </div>
                         <div className="flex justify-between">
                           <span>Last Updated:</span>
-                          <span>{new Date(propertyData.lastUpdated).toLocaleDateString()}</span>
+                          <span>{propertyData.lastUpdated ? new Date(propertyData.lastUpdated).toLocaleDateString() : 'N/A'}</span>
                         </div>
                       </div>
                     </div>
@@ -948,7 +964,7 @@ export default function PropertySearch() {
                 </Badge>
               </div>
               <div className="text-xs text-muted-foreground">
-                Last updated: {new Date(propertyData.lastUpdated).toLocaleDateString()} • Data aggregated from {propertyData.dataSource.length} sources
+                Last updated: {propertyData.lastUpdated ? new Date(propertyData.lastUpdated).toLocaleDateString() : 'N/A'} • Data aggregated from {propertyData.dataSource.length} sources
               </div>
             </CardContent>
           </Card>
