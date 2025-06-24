@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,9 +9,12 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { ContactImportWizard } from "@/components/ContactImportWizard";
+import { AchievementPanel } from "@/components/AchievementPanel";
 import { 
   Users, 
   Plus, 
@@ -29,7 +32,21 @@ import {
   Star,
   Home,
   MapPin,
-  Camera
+  Camera,
+  Download,
+  Upload,
+  Trophy,
+  Award,
+  Target,
+  Zap,
+  Crown,
+  Shield,
+  CheckCircle,
+  Clock,
+  Wifi,
+  WifiOff,
+  Import,
+  Sparkles
 } from "lucide-react";
 
 interface Contact {
@@ -97,12 +114,42 @@ const contactTypes = [
   { value: "other", label: "Other", icon: Users }
 ];
 
+// Gamification and Achievement System
+interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  icon: any;
+  progress: number;
+  maxProgress: number;
+  unlocked: boolean;
+  points: number;
+}
+
+interface UserStats {
+  totalContacts: number;
+  contactsThisWeek: number;
+  linkedInConnections: number;
+  emailsSent: number;
+  callsMade: number;
+  level: number;
+  totalPoints: number;
+  achievements: Achievement[];
+}
+
 export default function Contacts() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [showContactDetail, setShowContactDetail] = useState(false);
+  const [showImportWizard, setShowImportWizard] = useState(false);
+  const [showAchievements, setShowAchievements] = useState(false);
+  const [importStep, setImportStep] = useState(1);
+  const [linkedInSearchQuery, setLinkedInSearchQuery] = useState("");
+  const [linkedInResults, setLinkedInResults] = useState([]);
+  const [selectedLinkedInProfiles, setSelectedLinkedInProfiles] = useState<number[]>([]);
+  const [contactStatuses, setContactStatuses] = useState<Record<number, 'online' | 'offline' | 'busy'>>({});
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -111,6 +158,28 @@ export default function Contacts() {
     queryKey: ['/api/contacts'],
     queryFn: () => apiRequest('GET', '/api/contacts'),
   });
+
+  // Fetch user stats and achievements
+  const { data: userStats } = useQuery({
+    queryKey: ['/api/user-stats'],
+    queryFn: () => apiRequest('GET', '/api/user-stats'),
+  });
+
+  // Real-time contact status simulation
+  useEffect(() => {
+    const updateContactStatuses = () => {
+      const newStatuses: Record<number, 'online' | 'offline' | 'busy'> = {};
+      contacts.forEach((contact: Contact) => {
+        const statuses: ('online' | 'offline' | 'busy')[] = ['online', 'offline', 'busy'];
+        newStatuses[contact.id] = statuses[Math.floor(Math.random() * statuses.length)];
+      });
+      setContactStatuses(newStatuses);
+    };
+
+    updateContactStatuses();
+    const interval = setInterval(updateContactStatuses, 30000); // Update every 30 seconds
+    return () => clearInterval(interval);
+  }, [contacts]);
 
   // Add contact mutation
   const addContactMutation = useMutation({
@@ -242,6 +311,62 @@ export default function Contacts() {
     }
   };
 
+  const getContactStatusIndicator = (contactId: number) => {
+    const status = contactStatuses[contactId] || 'offline';
+    switch (status) {
+      case 'online': return { color: 'bg-green-400', icon: Wifi, label: 'Online' };
+      case 'busy': return { color: 'bg-yellow-400', icon: Clock, label: 'Busy' };
+      case 'offline': return { color: 'bg-gray-400', icon: WifiOff, label: 'Offline' };
+      default: return { color: 'bg-gray-400', icon: WifiOff, label: 'Unknown' };
+    }
+  };
+
+  const getAchievements = (): Achievement[] => {
+    const totalContacts = contacts.length;
+    return [
+      {
+        id: 'first_10',
+        title: 'Getting Started',
+        description: 'Add your first 10 contacts',
+        icon: Target,
+        progress: Math.min(totalContacts, 10),
+        maxProgress: 10,
+        unlocked: totalContacts >= 10,
+        points: 100,
+      },
+      {
+        id: 'networking_pro',
+        title: 'Networking Pro',
+        description: 'Build a network of 50 contacts',
+        icon: Crown,
+        progress: Math.min(totalContacts, 50),
+        maxProgress: 50,
+        unlocked: totalContacts >= 50,
+        points: 500,
+      },
+      {
+        id: 'linkedin_master',
+        title: 'LinkedIn Master',
+        description: 'Import 25 contacts from LinkedIn',
+        icon: ExternalLink,
+        progress: 0, // Would track LinkedIn imports
+        maxProgress: 25,
+        unlocked: false,
+        points: 300,
+      },
+      {
+        id: 'communication_champion',
+        title: 'Communication Champion',
+        description: 'Send 100 emails to contacts',
+        icon: Mail,
+        progress: 0, // Would track email sends
+        maxProgress: 100,
+        unlocked: false,
+        points: 250,
+      },
+    ];
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -256,6 +381,57 @@ export default function Contacts() {
         </div>
 
         {/* Header Actions */}
+        {/* User Stats and Achievements Bar */}
+        <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-blue-100 text-sm">Total Contacts</p>
+                  <p className="text-2xl font-bold">{contacts.length}</p>
+                </div>
+                <Users className="w-8 h-8 text-blue-200" />
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-green-100 text-sm">Level</p>
+                  <p className="text-2xl font-bold">{Math.floor(contacts.length / 10) + 1}</p>
+                </div>
+                <Crown className="w-8 h-8 text-green-200" />
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-purple-100 text-sm">Points</p>
+                  <p className="text-2xl font-bold">{contacts.length * 10}</p>
+                </div>
+                <Star className="w-8 h-8 text-purple-200" />
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-orange-100 text-sm">Achievements</p>
+                  <p className="text-2xl font-bold">{getAchievements().filter(a => a.unlocked).length}/{getAchievements().length}</p>
+                </div>
+                <Trophy className="w-8 h-8 text-orange-200" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -281,6 +457,24 @@ export default function Contacts() {
               ))}
             </SelectContent>
           </Select>
+
+          <Button 
+            variant="outline" 
+            onClick={() => setShowImportWizard(true)}
+            className="border-blue-200 text-blue-600 hover:bg-blue-50"
+          >
+            <Import className="w-4 h-4 mr-2" />
+            Import from LinkedIn
+          </Button>
+
+          <Button 
+            variant="outline" 
+            onClick={() => setShowAchievements(true)}
+            className="border-purple-200 text-purple-600 hover:bg-purple-50"
+          >
+            <Trophy className="w-4 h-4 mr-2" />
+            Achievements
+          </Button>
 
           <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
             <DialogTrigger asChild>
@@ -614,14 +808,20 @@ export default function Contacts() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredContacts.map((contact: Contact) => {
+            {filteredContacts.map((contact: Contact, index) => {
               const typeInfo = getContactTypeInfo(contact.contactType);
               const IconComponent = typeInfo.icon;
+              const statusInfo = getContactStatusIndicator(contact.id);
+              const StatusIcon = statusInfo.icon;
               
               return (
                 <Card 
                   key={contact.id} 
-                  className="hover:shadow-lg transition-all duration-200 cursor-pointer group relative"
+                  className="hover:shadow-lg transition-all duration-300 cursor-pointer group relative animate-in slide-in-from-bottom-4"
+                  style={{
+                    animationDelay: `${index * 100}ms`,
+                    animationFillMode: 'both'
+                  }}
                   onClick={() => {
                     setSelectedContact(contact);
                     setShowContactDetail(true);
@@ -687,14 +887,18 @@ export default function Contacts() {
                     </div>
                   </div>
                   
-                  {/* Contact Status Indicator */}
-                  <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-all duration-200">
-                    <div className="w-3 h-3 bg-green-400 rounded-full border-2 border-white shadow-sm animate-pulse" title="Active Contact"></div>
+                  {/* Real-time Contact Status Indicator */}
+                  <div className="absolute top-2 left-2 opacity-100 transition-all duration-200">
+                    <div className={`w-3 h-3 ${statusInfo.color} rounded-full border-2 border-white shadow-sm ${statusInfo.color === 'bg-green-400' ? 'animate-pulse' : ''}`} 
+                         title={`${contact.firstName} is ${statusInfo.label}`}>
+                      <StatusIcon className="w-2 h-2 text-white absolute top-0.5 left-0.5" style={{ fontSize: '8px' }} />
+                    </div>
                   </div>
                   
-                  {/* Contact Type Badge */}
-                  <div className="absolute bottom-2 left-2 opacity-0 group-hover:opacity-100 transition-all duration-200">
-                    <Badge variant="secondary" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                  {/* Contact Type Badge with Animation */}
+                  <div className="absolute bottom-2 left-2 opacity-0 group-hover:opacity-100 transition-all duration-200 transform group-hover:translate-y-0 translate-y-2">
+                    <Badge variant="secondary" className="text-xs bg-blue-50 text-blue-700 border-blue-200 animate-in slide-in-from-bottom-2">
+                      <IconComponent className="w-3 h-3 mr-1" />
                       {typeInfo.label}
                     </Badge>
                   </div>

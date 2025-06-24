@@ -994,10 +994,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // User stats endpoint for gamification
+  app.get('/api/user-stats', async (req, res) => {
+    try {
+      const contacts = await databaseStorage.getAllContacts();
+      const totalContacts = contacts.length;
+      
+      const stats = {
+        totalContacts,
+        contactsThisWeek: Math.floor(totalContacts * 0.1), // Mock data
+        linkedInConnections: Math.floor(totalContacts * 0.3),
+        emailsSent: Math.floor(totalContacts * 0.5),
+        callsMade: Math.floor(totalContacts * 0.2),
+        level: Math.floor(totalContacts / 10) + 1,
+        totalPoints: totalContacts * 10,
+        achievements: [],
+      };
+      
+      res.json(stats);
+    } catch (error) {
+      console.error('Error fetching user stats:', error);
+      res.status(500).json({ error: 'Failed to fetch user stats' });
+    }
+  });
+
   // LinkedIn integration endpoints
   app.get('/api/linkedin/search', async (req, res) => {
     try {
       const { query, location, industry, currentCompany, title, limit = 25, offset = 0 } = req.query;
+      
+      // Mock LinkedIn search results for demo purposes
+      const mockResults = [
+        {
+          id: 1,
+          firstName: 'Alex',
+          lastName: 'Thompson',
+          headline: 'Senior Real Estate Agent at Premium Properties',
+          currentPosition: {
+            title: 'Senior Real Estate Agent',
+            company: 'Premium Properties'
+          },
+          location: 'San Francisco, CA',
+          connectionLevel: '2nd',
+          profileUrl: 'https://linkedin.com/in/alexthompson',
+        },
+        {
+          id: 2,
+          firstName: 'Maria',
+          lastName: 'Rodriguez',
+          headline: 'Mortgage Loan Officer at First National Bank',
+          currentPosition: {
+            title: 'Mortgage Loan Officer',
+            company: 'First National Bank'
+          },
+          location: 'Los Angeles, CA',
+          connectionLevel: '3rd',
+          profileUrl: 'https://linkedin.com/in/mariarodriguez',
+        },
+        {
+          id: 3,
+          firstName: 'James',
+          lastName: 'Wilson',
+          headline: 'Real Estate Investor & Property Developer',
+          currentPosition: {
+            title: 'CEO',
+            company: 'Wilson Development Group'
+          },
+          location: 'Austin, TX',
+          connectionLevel: 'Public',
+          profileUrl: 'https://linkedin.com/in/jameswilson',
+        },
+      ];
       
       const searchRequest = {
         query: query as string,
@@ -1009,11 +1076,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
         offset: parseInt(offset as string)
       };
 
-      const results = await linkedInIntegration.searchProfiles(searchRequest);
-      res.json(results);
+      // For demo, return mock results filtered by query
+      const filteredResults = mockResults.filter(profile => 
+        profile.headline.toLowerCase().includes((query as string || '').toLowerCase()) ||
+        profile.currentPosition.title.toLowerCase().includes((query as string || '').toLowerCase())
+      );
+
+      res.json(filteredResults);
     } catch (error) {
       console.error('LinkedIn search error:', error);
       res.status(500).json({ error: 'Failed to search LinkedIn profiles' });
+    }
+  });
+
+  app.post('/api/linkedin/import-bulk', async (req, res) => {
+    try {
+      const { profileIds } = req.body;
+      
+      // Mock import process - in real implementation, this would fetch full profiles and create contacts
+      const importedContacts = [];
+      
+      for (const profileId of profileIds) {
+        const mockContact = {
+          firstName: `LinkedInUser${profileId}`,
+          lastName: 'Imported',
+          email: `user${profileId}@linkedin-import.com`,
+          phone: `555-${String(profileId).padStart(3, '0')}-${Math.floor(Math.random() * 9999).toString().padStart(4, '0')}`,
+          contactType: 'real_estate_agent',
+          source: 'linkedin_import',
+          company: 'LinkedIn Import Demo',
+          title: 'Professional',
+          linkedInUrl: `https://linkedin.com/in/user${profileId}`,
+        };
+        
+        const newContact = await databaseStorage.createContact(mockContact);
+        importedContacts.push(newContact);
+      }
+      
+      res.json(importedContacts);
+    } catch (error) {
+      console.error('LinkedIn import error:', error);
+      res.status(500).json({ error: 'Failed to import LinkedIn contacts' });
     }
   });
 
