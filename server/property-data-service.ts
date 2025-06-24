@@ -441,11 +441,22 @@ export class PropertyDataService {
     // Enhanced value estimation based on state and city
     const stateMultipliers: { [key: string]: number } = {
       'CA': 800000, 'NY': 600000, 'FL': 350000, 'TX': 300000,
-      'WA': 550000, 'CO': 450000, 'NC': 280000, 'GA': 250000
+      'WA': 550000, 'CO': 450000, 'NC': 280000, 'GA': 250000,
+      'AZ': 380000, 'NV': 320000, 'OR': 450000, 'ID': 280000
     };
     
     const baseValue = stateMultipliers[address.state] || 300000;
-    return baseValue + (Math.random() * 200000 - 100000); // Add some variance
+    const variation = Math.random() * 0.4 - 0.2; // ±20% variation
+    const unitValue = Math.floor(baseValue * (1 + variation));
+    
+    // If searching for building, estimate total building value
+    if (searchType === 'building') {
+      // Estimate number of units and multiply
+      const estimatedUnits = this.estimateUnitsFromAddress(address);
+      return unitValue * estimatedUnits;
+    }
+    
+    return unitValue;
   }
 
   private estimateYearBuilt(address: any): number {
@@ -457,7 +468,17 @@ export class PropertyDataService {
   private estimateSquareFootage(value: number, address: any, searchType: 'unit' | 'building' = 'unit'): number {
     // Rough sqft based on value and location
     const pricePerSqft = this.getPricePerSqft(address.state);
-    return Math.floor(value / pricePerSqft);
+    const baseSquareFootage = value / pricePerSqft;
+    const variation = Math.random() * 0.3 - 0.15; // ±15% variation
+    const unitSqft = Math.floor(baseSquareFootage * (1 + variation));
+    
+    // If searching for building, return total building square footage
+    if (searchType === 'building') {
+      const estimatedUnits = this.estimateUnitsFromAddress(address);
+      return unitSqft * estimatedUnits;
+    }
+    
+    return unitSqft;
   }
 
   private getPricePerSqft(state: string): number {
@@ -469,10 +490,23 @@ export class PropertyDataService {
   }
 
   private determinePropertyType(sqft: number, value: number, isMultifamily: boolean = false, searchType: 'unit' | 'building' = 'unit'): string {
-    if (sqft > 3000 || value > 600000) return 'Single Family Luxury';
-    if (sqft > 2000) return 'Single Family';
-    if (sqft > 1200) return 'Townhouse';
-    return 'Condo';
+    if (searchType === 'building' && isMultifamily) {
+      if (value > 10000000) return "Large Apartment Complex";
+      if (value > 5000000) return "Mid-size Apartment Building";
+      if (value > 2000000) return "Small Apartment Building";
+      return "Multifamily Property";
+    }
+    
+    if (isMultifamily) {
+      return "Apartment Unit";
+    }
+    
+    if (value > 800000) return "Single Family Luxury";
+    if (value > 500000) return "Single Family";
+    if (value > 300000) return "Townhouse";
+    if (sqft > 3000) return "Single Family";
+    if (sqft > 1500) return "Townhouse";
+    return "Condo";
   }
 
   private getNeighborhoodInfo(address: any): string {

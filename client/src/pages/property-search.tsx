@@ -78,6 +78,105 @@ interface PropertyData {
 }
 
 export default function PropertySearch() {
+  const [address, setAddress] = useState("");
+  const [propertyData, setPropertyData] = useState<PropertyData | null>(null);
+  const [addressSuggestions, setAddressSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [searchType, setSearchType] = useState<'unit' | 'building'>('unit');
+  const { toast } = useToast();
+
+  // Address autocomplete with Google Places API
+  useEffect(() => {
+    if (address.length > 3) {
+      const timeoutId = setTimeout(() => {
+        fetchAddressSuggestions(address);
+      }, 300);
+      return () => clearTimeout(timeoutId);
+    } else {
+      setAddressSuggestions([]);
+      setShowSuggestions(false);
+    }
+  }, [address]);
+
+  const fetchAddressSuggestions = async (query: string) => {
+    try {
+      const response = await fetch(`https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(query)}&types=address&key=AIzaSyBBBEZc_XLQXrCOs4Y4VgpOQdhUqFo4lCE`);
+      const data = await response.json();
+      if (data.predictions) {
+        const suggestions = data.predictions.map((p: any) => p.description).slice(0, 5);
+        setAddressSuggestions(suggestions);
+        setShowSuggestions(true);
+      }
+    } catch (error) {
+      console.error('Error fetching address suggestions:', error);
+    }
+  };
+
+  const selectSuggestion = (suggestion: string) => {
+    setAddress(suggestion);
+    setShowSuggestions(false);
+    searchMutation.mutate(suggestion);
+  };
+
+  const searchMutation = useMutation({
+    mutationFn: async (searchAddress: string) => {
+      const response = await fetch(`/api/property-data?address=${encodeURIComponent(searchAddress)}&searchType=${searchType}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch property data");
+      }
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setPropertyData(data);
+      setShowSuggestions(false);
+      toast({
+        title: "Property Found",
+        description: `Found data for ${data.address}`,
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Search Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSearch = () => {
+    if (!address.trim()) {
+      toast({
+        title: "Address Required",
+        description: "Please enter a property address to search",
+        variant: "destructive",
+      });
+      return;
+    }
+    setShowSuggestions(false);
+    searchMutation.mutate(address);
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast({
+      title: "Copied",
+      description: "Address copied to clipboard",
+    });
+  };
+
+  const getPropertyLinks = (data: PropertyData) => {
+    const encodedAddress = encodeURIComponent(`${data.address}, ${data.city}, ${data.state} ${data.zipCode}`);
+    return {
+      zillow: `https://www.zillow.com/homes/${encodedAddress}_rb/`,
+      realtor: `https://www.realtor.com/realestateandhomes-search/${data.city}_${data.state}/address-${encodedAddress}`,
+      trulia: `https://www.trulia.com/for_sale/${data.city},${data.state}/`,
+      redfin: `https://www.redfin.com/stingray/do/location-search?location=${encodedAddress}`,
+      loopnet: `https://www.loopnet.com/search/commercial-real-estate/${data.city}-${data.state}/`,
+      apartments: `https://www.apartments.com/${data.city}-${data.state}/`,
+      rent: `https://www.rent.com/${data.city}-${data.state}/`,
+      googleMaps: `https://maps.google.com/maps?q=${encodedAddress}`
+    };
+  };
   const [searchAddress, setSearchAddress] = useState("");
   const [propertyData, setPropertyData] = useState<PropertyData | null>(null);
   const [isLoading, setIsLoading] = useState(false);

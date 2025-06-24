@@ -740,12 +740,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get property data by address
   app.get("/api/property-data", async (req, res) => {
     try {
-      const { address } = req.query;
+      const { address, searchType } = req.query;
       if (!address) {
         return res.status(400).json({ message: "Address parameter required" });
       }
 
-      const propertyData = await propertyDataService.getPropertyData(address as string);
+      const searchMode = (searchType === 'building') ? 'building' : 'unit';
+      const propertyData = await propertyDataService.getPropertyData(address as string, searchMode);
       if (!propertyData) {
         return res.status(404).json({ message: "Property data not found" });
       }
