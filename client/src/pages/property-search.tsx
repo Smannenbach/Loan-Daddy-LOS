@@ -59,6 +59,26 @@ interface PropertyData {
     saleDate: string;
     squareFootage: number;
   }>;
+  salesHistory: Array<{
+    date: string;
+    price: number;
+    type: string;
+    source: string;
+  }>;
+  countyTaxData: {
+    county: string;
+    taxYear: number;
+    assessedValue: number;
+    marketValue: number;
+    taxRate: string;
+    annualTax: number;
+    exemptions: string[];
+    millageRate: string;
+    paymentDueDates: string[];
+    lastAssessment: string;
+    appealDeadline: string;
+    parcelNumber: string;
+  };
   marketTrends: {
     priceChange30Days: number;
     priceChange90Days: number;
@@ -180,18 +200,6 @@ export default function PropertySearch() {
       rent: `https://www.rent.com/${data.city}-${data.state}/`,
       googleMaps: `https://maps.google.com/maps?q=${encodedAddress}`
     };
-  };
-      });
-      return;
-    }
-    searchMutation.mutate(searchAddress.trim());
-  };
-
-  const handleAddressChange = (value: string) => {
-    setSearchAddress(value);
-    // Clear suggestions since we don't have a geocoding service integrated
-    setAddressSuggestions([]);
-    setShowSuggestions(false);
   };
 
   const formatCurrency = (amount: number) => {
@@ -323,49 +331,347 @@ export default function PropertySearch() {
 
               <Separator className="my-6" />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h4 className="font-semibold mb-2">Property Details</h4>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span>Address:</span>
-                      <span>{propertyData.address}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Type:</span>
-                      <span>{propertyData.propertyType}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Neighborhood:</span>
-                      <span>{propertyData.neighborhood}</span>
-                    </div>
-                    {propertyData.lotSize && (
-                      <div className="flex justify-between">
-                        <span>Lot Size:</span>
-                        <span>{propertyData.lotSize.toLocaleString()} sq ft</span>
+              <Tabs defaultValue="overview" className="w-full">
+                <TabsList className="grid w-full grid-cols-6">
+                  <TabsTrigger value="overview">Overview</TabsTrigger>
+                  <TabsTrigger value="financial">Financial</TabsTrigger>
+                  <TabsTrigger value="tax">County Tax</TabsTrigger>
+                  <TabsTrigger value="history">Sales History</TabsTrigger>
+                  <TabsTrigger value="market">Market</TabsTrigger>
+                  <TabsTrigger value="neighborhood">Area</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="overview" className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <h4 className="font-semibold mb-2 flex items-center gap-2">
+                        <Home className="w-4 h-4" />
+                        Property Details
+                      </h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span>Type:</span>
+                          <span className="font-medium">{propertyData.propertyType}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Neighborhood:</span>
+                          <span>{propertyData.neighborhood}</span>
+                        </div>
+                        {propertyData.lotSize && (
+                          <div className="flex justify-between">
+                            <span>Lot Size:</span>
+                            <span>{propertyData.lotSize.toLocaleString()} sq ft</span>
+                          </div>
+                        )}
+                        {searchType === 'building' && propertyData.units && (
+                          <div className="flex justify-between">
+                            <span>Total Units:</span>
+                            <span className="font-bold text-orange-600">{propertyData.units}</span>
+                          </div>
+                        )}
+                        {propertyData.walkScore && (
+                          <div className="flex justify-between">
+                            <span>Walk Score:</span>
+                            <span>{propertyData.walkScore}/100</span>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                </div>
+                    </div>
 
-                <div>
-                  <h4 className="font-semibold mb-2">Monthly Expenses</h4>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span>Property Taxes:</span>
-                      <span>{formatCurrency(propertyData.monthlyPropertyTaxes)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Insurance:</span>
-                      <span>{formatCurrency(propertyData.monthlyInsurance)}</span>
-                    </div>
-                    <div className="flex justify-between font-semibold border-t pt-2">
-                      <span>Total PITI:</span>
-                      <span>{formatCurrency(propertyData.monthlyPropertyTaxes + propertyData.monthlyInsurance)}</span>
+                    <div>
+                      <h4 className="font-semibold mb-2 flex items-center gap-2">
+                        <DollarSign className="w-4 h-4" />
+                        Value Breakdown
+                      </h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span>Price per Sq Ft:</span>
+                          <span>{formatCurrency(propertyData.estimatedValue / propertyData.squareFootage)}</span>
+                        </div>
+                        {searchType === 'building' && propertyData.units && (
+                          <div className="flex justify-between">
+                            <span>Price per Unit:</span>
+                            <span className="font-bold">{formatCurrency(propertyData.estimatedValue / propertyData.units)}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between">
+                          <span>Data Sources:</span>
+                          <span>{propertyData.dataSource.length} APIs</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Last Updated:</span>
+                          <span>{propertyData.lastUpdated.toLocaleDateString()}</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
+                </TabsContent>
+
+                <TabsContent value="financial" className="space-y-4">
+                  {/* Enhanced Financial Analysis */}
+                  {searchType === 'building' && propertyData.rentalEstimates?.rentPerUnit ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <h4 className="font-semibold mb-2 flex items-center gap-2">
+                          <Building2 className="w-4 h-4" />
+                          Commercial Income Analysis
+                        </h4>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span>Rent per Unit:</span>
+                            <span className="font-bold">{formatCurrency(propertyData.rentalEstimates.rentPerUnit)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Total Monthly Rent:</span>
+                            <span className="font-bold text-green-600">{formatCurrency(propertyData.rentalEstimates.monthlyRent)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Gross Annual Income:</span>
+                            <span>{formatCurrency(propertyData.rentalEstimates.grossRentalIncome)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Net Operating Income:</span>
+                            <span className="font-bold">{formatCurrency(propertyData.rentalEstimates.netOperatingIncome)}</span>
+                          </div>
+                          <div className="flex justify-between border-t pt-2">
+                            <span>Cap Rate:</span>
+                            <span className="font-bold text-blue-600">{(propertyData.rentalEstimates.capRate * 100).toFixed(2)}%</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold mb-2 flex items-center gap-2">
+                          <Calculator className="w-4 h-4" />
+                          Operating Metrics
+                        </h4>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span>Occupancy Rate:</span>
+                            <span>{(propertyData.rentalEstimates.occupancyRate * 100).toFixed(1)}%</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Operating Expense Ratio:</span>
+                            <span>{(propertyData.rentalEstimates.operatingExpenseRatio * 100).toFixed(0)}%</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Rent-to-Value Ratio:</span>
+                            <span>{((propertyData.rentalEstimates.monthlyRent * 12 / propertyData.estimatedValue) * 100).toFixed(2)}%</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <h4 className="font-semibold mb-2 flex items-center gap-2">
+                          <Home className="w-4 h-4" />
+                          Residential Analysis
+                        </h4>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span>Estimated Monthly Rent:</span>
+                            <span className="font-bold text-green-600">{formatCurrency(propertyData.rentalEstimates?.monthlyRent || 0)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Rent per Sq Ft:</span>
+                            <span>{formatCurrency(propertyData.rentalEstimates?.rentPerSqFt || 0)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Cap Rate:</span>
+                            <span>{((propertyData.rentalEstimates?.capRate || 0) * 100).toFixed(2)}%</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="tax" className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <h4 className="font-semibold mb-2 flex items-center gap-2">
+                        <Banknote className="w-4 h-4" />
+                        County Tax Assessment
+                      </h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span>County:</span>
+                          <span className="font-bold">{propertyData.countyTaxData.county}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Parcel Number:</span>
+                          <span className="font-mono text-xs">{propertyData.countyTaxData.parcelNumber}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Tax Year:</span>
+                          <span>{propertyData.countyTaxData.taxYear}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Assessed Value:</span>
+                          <span className="font-bold">{formatCurrency(propertyData.countyTaxData.assessedValue)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Market Value:</span>
+                          <span className="font-bold">{formatCurrency(propertyData.countyTaxData.marketValue)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Tax Rate:</span>
+                          <span className="font-bold">{propertyData.countyTaxData.taxRate}%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Millage Rate:</span>
+                          <span>{propertyData.countyTaxData.millageRate}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Annual Tax:</span>
+                          <span className="font-bold text-red-600">{formatCurrency(propertyData.countyTaxData.annualTax)}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold mb-2 flex items-center gap-2">
+                        <Calendar className="w-4 h-4" />
+                        Tax Information
+                      </h4>
+                      <div className="space-y-2 text-sm">
+                        <div>
+                          <span className="font-medium">Payment Due Dates:</span>
+                          <div className="ml-2">
+                            {propertyData.countyTaxData.paymentDueDates.map((date, index) => (
+                              <div key={index}>• {date}</div>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <span className="font-medium">Exemptions:</span>
+                          <div className="ml-2">
+                            {propertyData.countyTaxData.exemptions.map((exemption, index) => (
+                              <div key={index}>• {exemption}</div>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Last Assessment:</span>
+                          <span>{propertyData.countyTaxData.lastAssessment}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Appeal Deadline:</span>
+                          <span className="font-bold text-orange-600">{propertyData.countyTaxData.appealDeadline}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="history" className="space-y-4">
+                  <div>
+                    <h4 className="font-semibold mb-3 flex items-center gap-2">
+                      <Activity className="w-4 h-4" />
+                      Property Sales History
+                    </h4>
+                    <div className="space-y-3">
+                      {propertyData.salesHistory.map((sale, index) => (
+                        <div key={index} className="flex justify-between items-center p-3 border rounded-lg">
+                          <div>
+                            <div className="font-medium">{sale.date}</div>
+                            <div className="text-sm text-muted-foreground flex items-center gap-2">
+                              {sale.type} • {sale.source}
+                              {sale.type === 'Sale' && <Badge variant="outline" className="text-xs">Public Record</Badge>}
+                              {sale.type === 'Current Estimate' && <Badge variant="secondary" className="text-xs">Estimated</Badge>}
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="font-bold text-lg">{formatCurrency(sale.price)}</div>
+                            {index > 0 && (
+                              <div className={`text-sm ${
+                                sale.price > propertyData.salesHistory[index - 1].price 
+                                  ? 'text-green-600' 
+                                  : 'text-red-600'
+                              }`}>
+                                {sale.price > propertyData.salesHistory[index - 1].price ? '+' : ''}
+                                {(((sale.price - propertyData.salesHistory[index - 1].price) / propertyData.salesHistory[index - 1].price) * 100).toFixed(1)}%
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="market" className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="text-center">
+                      <div className={`text-2xl font-bold ${getTrendColor(propertyData.marketTrends.priceChange30Days)}`}>
+                        {propertyData.marketTrends.priceChange30Days > 0 ? '+' : ''}
+                        {propertyData.marketTrends.priceChange30Days.toFixed(1)}%
+                      </div>
+                      <div className="text-sm text-text-secondary">30 Day Price Change</div>
+                    </div>
+                    <div className="text-center">
+                      <div className={`text-2xl font-bold ${getTrendColor(propertyData.marketTrends.priceChangeYearly)}`}>
+                        {propertyData.marketTrends.priceChangeYearly > 0 ? '+' : ''}
+                        {propertyData.marketTrends.priceChangeYearly.toFixed(1)}%
+                      </div>
+                      <div className="text-sm text-text-secondary">Yearly Change</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold">{propertyData.marketTrends.daysOnMarket}</div>
+                      <div className="text-sm text-text-secondary">Avg Days on Market</div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold mb-3">Market Inventory Level</h4>
+                    <Badge variant={propertyData.marketTrends.inventoryLevel === 'Low' ? 'destructive' : 
+                                 propertyData.marketTrends.inventoryLevel === 'High' ? 'default' : 'secondary'}>
+                      {propertyData.marketTrends.inventoryLevel} Inventory
+                    </Badge>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="neighborhood" className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <h4 className="font-semibold mb-2 flex items-center gap-2">
+                        <Car className="w-4 h-4" />
+                        Walkability & Transportation
+                      </h4>
+                      <div className="space-y-2 text-sm">
+                        {propertyData.walkScore && (
+                          <div className="flex justify-between">
+                            <span>Walk Score:</span>
+                            <span className="font-bold">{propertyData.walkScore}/100</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between">
+                          <span>Neighborhood:</span>
+                          <span>{propertyData.neighborhood}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold mb-2 flex items-center gap-2">
+                        <School className="w-4 h-4" />
+                        School Ratings
+                      </h4>
+                      <div className="space-y-2 text-sm">
+                        {propertyData.schoolRatings?.map((school, index) => (
+                          <div key={index} className="flex justify-between">
+                            <span>{school.type}:</span>
+                            <div className="flex items-center gap-1">
+                              <span>{school.rating}/10</span>
+                              <Star className="w-3 h-3 text-yellow-500 fill-current" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
             </CardContent>
           </Card>
 
