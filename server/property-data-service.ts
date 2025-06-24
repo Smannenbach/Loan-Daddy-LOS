@@ -110,8 +110,12 @@ export class PropertyDataService {
 
   private async getFromGoogleMaps(address: string): Promise<PropertyData | null> {
     try {
-      const apiKey = process.env.GOOGLE_MAPS_API_KEY;
-      if (!apiKey) return null;
+      const apiKey = process.env.GOOGLE_MAPS_API_KEY || "AIzaSyAJo50aKGinTPYC4B-8zVedrS8gyE5dRTM";
+      if (!apiKey) {
+        console.log('No Google Maps API key found');
+        return null;
+      }
+      console.log('Using Google Maps API key:', apiKey.substring(0, 10) + '...');
 
       // First, geocode the address to get coordinates and validated address
       const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${apiKey}`;
