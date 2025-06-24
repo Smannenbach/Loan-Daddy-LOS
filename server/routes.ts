@@ -748,6 +748,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Address autocomplete using Google Places API
+  app.get("/api/address-autocomplete", async (req, res) => {
+    try {
+      const { input } = req.query;
+      if (!input || typeof input !== 'string') {
+        return res.status(400).json({ message: "Input parameter required" });
+      }
+
+      const apiKey = "AIzaSyBBBEZc_XLQXrCOs4Y4VgpOQdhUqFo4lCE";
+      const response = await fetch(
+        `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(input)}&types=address&key=${apiKey}`
+      );
+      
+      const data = await response.json();
+      
+      if (data.predictions) {
+        const suggestions = data.predictions.map((p: any) => p.description).slice(0, 5);
+        res.json({ suggestions });
+      } else {
+        res.json({ suggestions: [] });
+      }
+    } catch (error) {
+      console.error("Address autocomplete error:", error);
+      res.status(500).json({ message: "Failed to fetch address suggestions" });
+    }
+  });
+
   // Property Data Routes
   
   // Get property data by address
