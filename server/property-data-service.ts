@@ -225,7 +225,7 @@ export class PropertyDataService {
         bedrooms: searchType === 'building' && isMultifamily ? null : Math.max(1, Math.floor(squareFootage / 500)),
         bathrooms: searchType === 'building' && isMultifamily ? null : Math.max(1, Math.ceil(squareFootage / 600)),
         lotSize: Math.floor(squareFootage * (parsedAddress.state === 'OR' ? 2.5 : 0.3)),
-        units: searchType === 'building' && isMultifamily ? this.estimateUnits(squareFootage, estimatedValue) : undefined,
+        units: searchType === 'building' && isMultifamily ? this.estimateUnitsFromAddress(parsedAddress) : undefined,
         annualPropertyTaxes: Math.floor(estimatedValue * this.getPropertyTaxRate(parsedAddress.state)),
         monthlyPropertyTaxes: Math.floor((estimatedValue * this.getPropertyTaxRate(parsedAddress.state)) / 12),
         estimatedInsurance: Math.floor(estimatedValue * 0.004),
@@ -451,9 +451,14 @@ export class PropertyDataService {
     
     // If searching for building, estimate total building value
     if (searchType === 'building') {
-      // Estimate number of units and multiply
+      // Estimate number of units and multiply by a higher per-unit building value
       const estimatedUnits = this.estimateUnitsFromAddress(address);
-      return unitValue * estimatedUnits;
+      const buildingPremium = 1.25; // 25% premium for building ownership vs individual units
+      const buildingValue = unitValue * estimatedUnits * buildingPremium;
+      
+      // Ensure minimum realistic building values
+      const minimumBuildingValue = Math.max(5000000, estimatedUnits * 200000); // Min $5M or $200k per unit
+      return Math.max(buildingValue, minimumBuildingValue);
     }
     
     return unitValue;
@@ -475,7 +480,9 @@ export class PropertyDataService {
     // If searching for building, return total building square footage
     if (searchType === 'building') {
       const estimatedUnits = this.estimateUnitsFromAddress(address);
-      return unitSqft * estimatedUnits;
+      const avgUnitSqft = 950; // Standard apartment size
+      const commonAreaMultiplier = 1.3; // 30% for hallways, lobbies, amenities
+      return Math.floor(estimatedUnits * avgUnitSqft * commonAreaMultiplier);
     }
     
     return unitSqft;
@@ -491,9 +498,10 @@ export class PropertyDataService {
 
   private determinePropertyType(sqft: number, value: number, isMultifamily: boolean = false, searchType: 'unit' | 'building' = 'unit'): string {
     if (searchType === 'building' && isMultifamily) {
-      if (value > 10000000) return "Large Apartment Complex";
-      if (value > 5000000) return "Mid-size Apartment Building";
-      if (value > 2000000) return "Small Apartment Building";
+      if (value > 50000000) return "Large Apartment Complex";
+      if (value > 20000000) return "Mid-size Apartment Complex";
+      if (value > 10000000) return "Small Apartment Complex";
+      if (value > 5000000) return "Apartment Building";
       return "Multifamily Property";
     }
     
@@ -578,31 +586,33 @@ export class PropertyDataService {
   }
 
   private estimateUnitsFromAddress(address: any): number {
-    // Basic estimation based on typical building sizes
+    // Realistic estimation based on typical apartment building sizes
     const city = address.city?.toLowerCase() || '';
     const state = address.state?.toLowerCase() || '';
     
-    // Major metro areas tend to have larger buildings
-    if (city.includes('new york') || city.includes('manhattan')) return 50 + Math.floor(Math.random() * 100);
-    if (city.includes('san francisco') || city.includes('seattle') || city.includes('chicago')) return 30 + Math.floor(Math.random() * 70);
-    if (city.includes('los angeles') || city.includes('miami') || city.includes('boston')) return 25 + Math.floor(Math.random() * 50);
-    if (state === 'ca' || state === 'ny' || state === 'wa') return 20 + Math.floor(Math.random() * 40);
+    // Major metro areas have larger apartment complexes
+    if (city.includes('new york') || city.includes('manhattan')) return 100 + Math.floor(Math.random() * 300); // 100-400 units
+    if (city.includes('san francisco') || city.includes('seattle') || city.includes('chicago')) return 80 + Math.floor(Math.random() * 220); // 80-300 units
+    if (city.includes('los angeles') || city.includes('miami') || city.includes('boston')) return 60 + Math.floor(Math.random() * 190); // 60-250 units
+    if (city.includes('scottsdale') || city.includes('phoenix')) return 50 + Math.floor(Math.random() * 150); // 50-200 units (Arizona)
+    if (state === 'ca' || state === 'ny' || state === 'wa') return 40 + Math.floor(Math.random() * 160); // 40-200 units
+    if (state === 'az' || state === 'fl' || state === 'tx') return 35 + Math.floor(Math.random() * 115); // 35-150 units
     
-    // Smaller markets
-    return 8 + Math.floor(Math.random() * 24); // 8-32 units
+    // Smaller markets still have substantial buildings
+    return 25 + Math.floor(Math.random() * 75); // 25-100 units
   }
 
   private estimateUnits(totalSqft: number, totalValue: number): number {
     // Estimate units based on total building metrics
-    const avgUnitSize = 850; // Average apartment size
+    const avgUnitSize = 950; // Average apartment size
     const estimatedUnits = Math.floor(totalSqft / avgUnitSize);
     
-    // Validate against value-based estimation
-    const avgUnitValue = 200000; // Average unit value
+    // Validate against value-based estimation with realistic apartment values
+    const avgUnitValue = 300000; // More realistic average unit value
     const valueBasedUnits = Math.floor(totalValue / avgUnitValue);
     
-    // Take the more conservative estimate
-    return Math.min(estimatedUnits, valueBasedUnits);
+    // Take the more realistic estimate
+    return Math.max(25, Math.min(estimatedUnits, valueBasedUnits));
   }
 
   async getPropertyForDSCR(address: string): Promise<{ rentEstimate: number; expenses: number } | null> {

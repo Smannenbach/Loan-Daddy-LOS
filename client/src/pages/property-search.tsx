@@ -166,12 +166,16 @@ export default function PropertySearch() {
 
   const getPropertyLinks = (data: PropertyData) => {
     const encodedAddress = encodeURIComponent(`${data.address}, ${data.city}, ${data.state} ${data.zipCode}`);
+    const isCommercial = searchType === 'building' || data.propertyType?.toLowerCase().includes('apartment') || data.propertyType?.toLowerCase().includes('complex');
+    
     return {
       zillow: `https://www.zillow.com/homes/${encodedAddress}_rb/`,
       realtor: `https://www.realtor.com/realestateandhomes-search/${data.city}_${data.state}/address-${encodedAddress}`,
       trulia: `https://www.trulia.com/for_sale/${data.city},${data.state}/`,
       redfin: `https://www.redfin.com/stingray/do/location-search?location=${encodedAddress}`,
-      loopnet: `https://www.loopnet.com/search/commercial-real-estate/${data.city}-${data.state}/`,
+      loopnet: isCommercial 
+        ? `https://www.loopnet.com/search/commercial-real-estate/for-sale/?sk=191ba1d0f375bf5ae0068f420ca832d1&loc=${encodedAddress}`
+        : `https://www.loopnet.com/search/commercial-real-estate/${data.city}-${data.state}/`,
       apartments: `https://www.apartments.com/${data.city}-${data.state}/`,
       rent: `https://www.rent.com/${data.city}-${data.state}/`,
       googleMaps: `https://maps.google.com/maps?q=${encodedAddress}`
