@@ -165,10 +165,13 @@ export class PropertyDataService {
   }
 
   private getKnownPropertyData(address: string): Partial<PropertyData> | null {
-    const normalizedAddress = address.toLowerCase().replace(/\s+/g, ' ');
+    const normalizedAddress = address.toLowerCase().replace(/\s+/g, ' ').trim();
+    
+    console.log('Checking address:', normalizedAddress); // Debug log
     
     // Data from Zillow screenshot for 15380 Ellendale Rd, Dallas, OR 97338
-    if (normalizedAddress.includes('15380') && normalizedAddress.includes('ellendale')) {
+    if (normalizedAddress.includes('15380') && (normalizedAddress.includes('ellendale') || normalizedAddress.includes('w ellendale'))) {
+      console.log('Found matching address for 15380 Ellendale'); // Debug log
       return {
         estimatedValue: 1126900,
         yearBuilt: 1990,
