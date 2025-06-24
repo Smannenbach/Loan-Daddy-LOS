@@ -357,6 +357,20 @@ export class PropertyDataService {
     };
   }
 
+  private estimateWalkScore(address: any): number {
+    // Estimate walk score based on location type
+    const state = address.state?.toLowerCase();
+    const city = address.city?.toLowerCase();
+    
+    if (city?.includes('new york') || city?.includes('manhattan')) return 85 + Math.floor(Math.random() * 15);
+    if (city?.includes('san francisco') || city?.includes('seattle')) return 75 + Math.floor(Math.random() * 20);
+    if (city?.includes('chicago') || city?.includes('boston')) return 70 + Math.floor(Math.random() * 20);
+    if (city?.includes('los angeles') || city?.includes('miami')) return 60 + Math.floor(Math.random() * 25);
+    if (state === 'ca' || state === 'ny' || state === 'wa') return 50 + Math.floor(Math.random() * 30);
+    
+    return 25 + Math.floor(Math.random() * 40); // Suburban/rural areas
+  }
+
   private estimateValueByLocation(address: any): number {
     // Basic value estimation based on state - would use real market data
     const stateMultipliers: { [key: string]: number } = {
