@@ -36,6 +36,7 @@ interface Contact {
   lastName: string;
   email?: string;
   phone?: string;
+  profilePhoto?: string;
   company?: string;
   title?: string;
   contactType: string;
@@ -133,6 +134,7 @@ export default function Contacts() {
     lastName: '',
     email: '',
     phone: '',
+    profilePhoto: '',
     company: '',
     title: '',
     contactType: '',
@@ -159,7 +161,14 @@ export default function Contacts() {
       return;
     }
 
-    addContactMutation.mutate(newContact);
+    // Clean up the contact data before sending
+    const contactData = {
+      ...newContact,
+      tags: newContact.tags || [],
+      status: 'active'
+    };
+
+    addContactMutation.mutate(contactData);
   };
 
   const filteredContacts = contacts.filter((contact: Contact) => {
@@ -243,6 +252,49 @@ export default function Contacts() {
               </DialogHeader>
               
               <div className="space-y-4">
+                {/* Profile Photo Section */}
+                <div className="flex items-center gap-6">
+                  <div className="relative">
+                    <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
+                      {newContact.profilePhoto ? (
+                        <img 
+                          src={newContact.profilePhoto} 
+                          alt="Profile" 
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <User className="w-8 h-8 text-gray-400" />
+                      )}
+                    </div>
+                    <Button 
+                      size="sm" 
+                      className="absolute -bottom-1 -right-1 rounded-full w-6 h-6 p-0"
+                      onClick={() => {
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = 'image/*';
+                        input.onchange = (e) => {
+                          const file = (e.target as HTMLInputElement).files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onload = (e) => {
+                              setNewContact({...newContact, profilePhoto: e.target?.result as string});
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        };
+                        input.click();
+                      }}
+                    >
+                      <Camera className="w-3 h-3" />
+                    </Button>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Contact Photo</h3>
+                    <p className="text-sm text-gray-600">Upload a profile photo for this contact</p>
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="firstName">First Name *</Label>
@@ -462,18 +514,32 @@ export default function Contacts() {
             {selectedContact && (
               <>
                 <DialogHeader>
-                  <DialogTitle className="flex items-center gap-2">
-                    {(() => {
-                      const typeInfo = getContactTypeInfo(selectedContact.contactType);
-                      const IconComponent = typeInfo.icon;
-                      return <IconComponent className="w-5 h-5" />;
-                    })()}
-                    {selectedContact.firstName} {selectedContact.lastName}
-                  </DialogTitle>
-                  <DialogDescription>
-                    {getContactTypeInfo(selectedContact.contactType).label}
-                    {selectedContact.company && ` at ${selectedContact.company}`}
-                  </DialogDescription>
+                  <div className="flex items-center gap-4">
+                    <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center overflow-hidden">
+                      {selectedContact.profilePhoto ? (
+                        <img 
+                          src={selectedContact.profilePhoto} 
+                          alt={`${selectedContact.firstName} ${selectedContact.lastName}`}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        (() => {
+                          const typeInfo = getContactTypeInfo(selectedContact.contactType);
+                          const IconComponent = typeInfo.icon;
+                          return <IconComponent className="w-8 h-8 text-blue-600" />;
+                        })()
+                      )}
+                    </div>
+                    <div>
+                      <DialogTitle className="text-xl">
+                        {selectedContact.firstName} {selectedContact.lastName}
+                      </DialogTitle>
+                      <DialogDescription>
+                        {getContactTypeInfo(selectedContact.contactType).label}
+                        {selectedContact.company && ` at ${selectedContact.company}`}
+                      </DialogDescription>
+                    </div>
+                  </div>
                 </DialogHeader>
                 
                 <Tabs defaultValue="details" className="w-full">

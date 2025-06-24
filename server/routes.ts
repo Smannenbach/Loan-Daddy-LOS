@@ -957,6 +957,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           lastName: 'Doe',
           email: 'jane.doe@email.com',
           phone: '(555) 987-6543',
+          profilePhoto: null,
           contactType: 'real_estate_agent',
           company: 'ABC Realty',
           title: 'Senior Agent',
