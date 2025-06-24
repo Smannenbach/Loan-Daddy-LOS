@@ -80,8 +80,11 @@ export default function PropertySearch() {
 
   const searchMutation = useMutation({
     mutationFn: async (address: string) => {
-      const response = await apiRequest(`/api/property-data?address=${encodeURIComponent(address)}`);
-      return response;
+      const response = await fetch(`/api/property-data?address=${encodeURIComponent(address)}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
     },
     onSuccess: (data) => {
       setPropertyData({
