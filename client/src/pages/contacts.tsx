@@ -98,8 +98,9 @@ export default function Contacts() {
   const queryClient = useQueryClient();
 
   // Fetch contacts
-  const { data: contacts = [], isLoading } = useQuery({
+  const { data: contacts = [], isLoading, error } = useQuery({
     queryKey: ['/api/contacts'],
+    queryFn: () => apiRequest('GET', '/api/contacts'),
   });
 
   // Add contact mutation
@@ -209,10 +210,10 @@ export default function Contacts() {
 
   const filteredContacts = contacts.filter((contact: Contact) => {
     const matchesSearch = 
-      contact.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      contact.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      contact.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      contact.company?.toLowerCase().includes(searchTerm.toLowerCase());
+      (contact.firstName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (contact.lastName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (contact.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (contact.company || '').toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesType = filterType === "all" || contact.contactType === filterType;
     
