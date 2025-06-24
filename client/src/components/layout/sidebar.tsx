@@ -29,6 +29,7 @@ const navigation = [
   { name: 'AI Advisor', href: '/ai-advisor', icon: Bot },
   { name: 'Marketing', href: '/marketing', icon: Share2 },
   { name: 'Property Search', href: '/property-search', icon: MapPin },
+  { name: 'Property Map', href: '/property-map', icon: MapPin },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 

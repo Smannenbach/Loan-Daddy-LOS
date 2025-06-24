@@ -58,14 +58,14 @@ export class PropertyDataService {
     return PropertyDataService.instance;
   }
 
-  async getPropertyData(address: string): Promise<PropertyData | null> {
+  async getPropertyData(address: string, searchType: 'unit' | 'building' = 'unit'): Promise<PropertyData | null> {
     try {
       // Try multiple data sources in order of preference
-      let propertyData = await this.getFromPublicSources(address);
+      let propertyData = await this.getFromPublicSources(address, searchType);
       
       if (!propertyData) {
         // Fallback to enhanced estimation based on known data
-        propertyData = await this.aggregatePropertyData(address);
+        propertyData = await this.aggregatePropertyData(address, searchType);
       }
       
       return propertyData;
@@ -75,10 +75,10 @@ export class PropertyDataService {
     }
   }
 
-  private async getFromPublicSources(address: string): Promise<PropertyData | null> {
+  private async getFromPublicSources(address: string, searchType: 'unit' | 'building' = 'unit'): Promise<PropertyData | null> {
     try {
       // Check for known properties with verified data first
-      const knownProperty = this.getKnownPropertyData(address);
+      const knownProperty = this.getKnownPropertyData(address, searchType);
       if (knownProperty) {
         const parsedAddress = this.parseAddress(address);
         return {
@@ -94,7 +94,7 @@ export class PropertyDataService {
       }
 
       // Try Google Maps APIs if available
-      const googleData = await this.getFromGoogleMaps(address);
+      const googleData = await this.getFromGoogleMaps(address, searchType);
       if (googleData) {
         console.log('Returning Google Maps data with confidence:', googleData.confidence);
         return googleData;
@@ -108,7 +108,7 @@ export class PropertyDataService {
     }
   }
 
-  private async getFromGoogleMaps(address: string): Promise<PropertyData | null> {
+  private async getFromGoogleMaps(address: string, searchType: 'unit' | 'building' = 'unit'): Promise<PropertyData | null> {
     try {
       const apiKey = process.env.GOOGLE_MAPS_API_KEY || "AIzaSyBBBEZc_XLQXrCOs4Y4VgpOQdhUqFo4lCE";
       if (!apiKey) {
@@ -205,10 +205,13 @@ export class PropertyDataService {
       }
 
       // Step 4: Generate comprehensive property data using Google APIs
-      const estimatedValue = this.estimateValueByLocation(parsedAddress);
+      const estimatedValue = this.estimateValueByLocation(parsedAddress, searchType);
       const yearBuilt = this.estimateYearBuilt(parsedAddress);
-      const squareFootage = this.estimateSquareFootage(estimatedValue, parsedAddress);
+      const squareFootage = this.estimateSquareFootage(estimatedValue, parsedAddress, searchType);
       const walkScore = this.estimateWalkScore(parsedAddress);
+      
+      // Detect if this is a multifamily building
+      const isMultifamily = this.detectMultifamilyProperty(result, nearbyPlaces, searchType);
 
       return {
         address: parsedAddress.street,
@@ -218,10 +221,11 @@ export class PropertyDataService {
         estimatedValue: estimatedValue,
         yearBuilt: yearBuilt,
         squareFootage: squareFootage,
-        propertyType: this.determinePropertyType(squareFootage, estimatedValue),
-        bedrooms: Math.max(1, Math.floor(squareFootage / 500)),
-        bathrooms: Math.max(1, Math.ceil(squareFootage / 600)),
+        propertyType: this.determinePropertyType(squareFootage, estimatedValue, isMultifamily, searchType),
+        bedrooms: searchType === 'building' && isMultifamily ? null : Math.max(1, Math.floor(squareFootage / 500)),
+        bathrooms: searchType === 'building' && isMultifamily ? null : Math.max(1, Math.ceil(squareFootage / 600)),
         lotSize: Math.floor(squareFootage * (parsedAddress.state === 'OR' ? 2.5 : 0.3)),
+        units: searchType === 'building' && isMultifamily ? this.estimateUnits(squareFootage, estimatedValue) : undefined,
         annualPropertyTaxes: Math.floor(estimatedValue * this.getPropertyTaxRate(parsedAddress.state)),
         monthlyPropertyTaxes: Math.floor((estimatedValue * this.getPropertyTaxRate(parsedAddress.state)) / 12),
         estimatedInsurance: Math.floor(estimatedValue * 0.004),
