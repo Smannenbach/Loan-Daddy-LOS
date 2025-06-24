@@ -123,6 +123,7 @@ export default function Contacts() {
         lastName: '',
         email: '',
         phone: '',
+        profilePhoto: '',
         dateOfBirth: '',
         ssn: '',
         relationshipStatus: '',
@@ -174,6 +175,7 @@ export default function Contacts() {
     lastName: '',
     email: '',
     phone: '',
+    profilePhoto: '',
     dateOfBirth: '',
     ssn: '',
     relationshipStatus: '',
@@ -295,7 +297,77 @@ export default function Contacts() {
               </DialogHeader>
               
               <div className="space-y-4">
-
+                {/* Profile Photo Section */}
+                <div className="flex items-center gap-6">
+                  <div className="relative">
+                    <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
+                      {newContact.profilePhoto ? (
+                        <img 
+                          src={newContact.profilePhoto} 
+                          alt="Profile" 
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <User className="w-8 h-8 text-gray-400" />
+                      )}
+                    </div>
+                    <Button 
+                      size="sm" 
+                      className="absolute -bottom-1 -right-1 rounded-full w-6 h-6 p-0"
+                      onClick={() => {
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = 'image/*';
+                        input.onchange = (e) => {
+                          const file = (e.target as HTMLInputElement).files?.[0];
+                          if (file) {
+                            // Compress image before converting to base64
+                            const canvas = document.createElement('canvas');
+                            const ctx = canvas.getContext('2d');
+                            const img = new Image();
+                            
+                            img.onload = () => {
+                              // Set max dimensions to reduce file size
+                              const maxWidth = 200;
+                              const maxHeight = 200;
+                              let { width, height } = img;
+                              
+                              if (width > height) {
+                                if (width > maxWidth) {
+                                  height = (height * maxWidth) / width;
+                                  width = maxWidth;
+                                }
+                              } else {
+                                if (height > maxHeight) {
+                                  width = (width * maxHeight) / height;
+                                  height = maxHeight;
+                                }
+                              }
+                              
+                              canvas.width = width;
+                              canvas.height = height;
+                              
+                              ctx?.drawImage(img, 0, 0, width, height);
+                              
+                              // Convert to base64 with compression
+                              const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                              setNewContact({...newContact, profilePhoto: compressedDataUrl});
+                            };
+                            
+                            img.src = URL.createObjectURL(file);
+                          }
+                        };
+                        input.click();
+                      }}
+                    >
+                      <Camera className="w-3 h-3" />
+                    </Button>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Contact Photo</h3>
+                    <p className="text-sm text-gray-600">Upload a profile photo for this contact</p>
+                  </div>
+                </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
