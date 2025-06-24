@@ -984,12 +984,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      const newContact = { 
-        id: Date.now(), 
-        ...contactData, 
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
+      // Create the contact in database
+      const newContact = await databaseStorage.createContact(contactData);
       
       res.json(newContact);
     } catch (error) {
