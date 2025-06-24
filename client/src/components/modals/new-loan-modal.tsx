@@ -48,7 +48,7 @@ const loanApplicationSchema = z.object({
   notes: z.string().optional(),
 });
 
-type LoanApplicationForm = z.infer<typeof loanApplicationSchema>;
+type ShortLoanApplicationForm = ShortLoanApplicationFormType;
 
 interface NewLoanModalProps {
   open: boolean;

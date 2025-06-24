@@ -96,7 +96,11 @@ The system manages five core entities:
 
 ```
 Changelog:
-- June 24, 2025. Initial setup
+- June 24, 2025. Initial setup with comprehensive loan origination system
+- June 24, 2025. Added multi-channel communication system (email, SMS, calling)
+- June 24, 2025. Implemented shorter loan application form to reduce applicant friction
+- June 24, 2025. Added LinkedIn integration for real estate investor lead generation
+- June 24, 2025. Created communication tracking and history features
 ```
 
 ## User Preferences

@@ -6,7 +6,10 @@ import {
   insertPropertySchema, 
   insertLoanApplicationSchema,
   insertDocumentSchema,
-  insertTaskSchema
+  insertTaskSchema,
+  insertNotificationSchema,
+  insertTemplateSchema,
+  insertCallLogSchema
 } from "@shared/schema";
 import multer from "multer";
 import path from "path";
@@ -281,6 +284,194 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(pipeline);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch pipeline data" });
+    }
+  });
+
+  // Notifications
+  app.get("/api/notifications", async (req, res) => {
+    try {
+      const { loanApplicationId } = req.query;
+      if (loanApplicationId) {
+        const notifications = await storage.getNotificationsByLoanApplication(Number(loanApplicationId));
+        res.json(notifications);
+      } else {
+        // Get all notifications for dashboard/communications view
+        const applications = await storage.getAllLoanApplicationsWithDetails();
+        const allNotifications = [];
+        for (const app of applications) {
+          const notifications = await storage.getNotificationsByLoanApplication(app.id);
+          allNotifications.push(...notifications);
+        }
+        // Sort by creation date, most recent first
+        allNotifications.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        res.json(allNotifications);
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch notifications" });
+    }
+  });
+
+  app.post("/api/notifications", async (req, res) => {
+    try {
+      const result = insertNotificationSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ error: "Invalid notification data", details: result.error.issues });
+      }
+
+      const notification = await storage.createNotification(result.data);
+      res.status(201).json(notification);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create notification" });
+    }
+  });
+
+  // Templates
+  app.get("/api/templates", async (req, res) => {
+    try {
+      const { type } = req.query;
+      if (type) {
+        const templates = await storage.getTemplatesByType(String(type));
+        res.json(templates);
+      } else {
+        const templates = await storage.getAllTemplates();
+        res.json(templates);
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch templates" });
+    }
+  });
+
+  app.post("/api/templates", async (req, res) => {
+    try {
+      const result = insertTemplateSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ error: "Invalid template data", details: result.error.issues });
+      }
+
+      const template = await storage.createTemplate(result.data);
+      res.status(201).json(template);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create template" });
+    }
+  });
+
+  // Call Logs
+  app.get("/api/call-logs", async (req, res) => {
+    try {
+      const { loanApplicationId, borrowerId } = req.query;
+      if (loanApplicationId) {
+        const callLogs = await storage.getCallLogsByLoanApplication(Number(loanApplicationId));
+        res.json(callLogs);
+      } else if (borrowerId) {
+        const callLogs = await storage.getCallLogsByBorrower(Number(borrowerId));
+        res.json(callLogs);
+      } else {
+        // Get all call logs for dashboard view
+        const applications = await storage.getAllLoanApplicationsWithDetails();
+        const allCallLogs = [];
+        for (const app of applications) {
+          const callLogs = await storage.getCallLogsByLoanApplication(app.id);
+          allCallLogs.push(...callLogs);
+        }
+        // Sort by creation date, most recent first
+        allCallLogs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        res.json(allCallLogs);
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch call logs" });
+    }
+  });
+
+  app.post("/api/call-logs", async (req, res) => {
+    try {
+      const result = insertCallLogSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ error: "Invalid call log data", details: result.error.issues });
+      }
+
+      const callLog = await storage.createCallLog(result.data);
+      res.status(201).json(callLog);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create call log" });
+    }
+  });
+
+  // Short loan application endpoint
+  app.post("/api/short-loan-applications", async (req, res) => {
+    try {
+      // Parse borrower name - could be individual or business entity
+      const fullName = req.body.borrowerName || '';
+      const nameParts = fullName.split(' ');
+      const firstName = nameParts[0] || fullName;
+      const lastName = nameParts.slice(1).join(' ') || '';
+
+      // Create borrower
+      const borrowerData = insertBorrowerSchema.parse({
+        firstName,
+        lastName,
+        email: req.body.email,
+        phone: req.body.phone,
+        company: fullName.includes('LLC') || fullName.includes('Inc') ? fullName : undefined,
+      });
+      const borrower = await storage.createBorrower(borrowerData);
+
+      // Parse property address
+      const addressParts = req.body.propertyAddress.split(',');
+      const address = addressParts[0]?.trim() || req.body.propertyAddress;
+      const city = addressParts[1]?.trim() || '';
+      const stateZip = addressParts[2]?.trim() || '';
+      const state = stateZip.split(' ')[0] || '';
+      const zipCode = stateZip.split(' ')[1] || '';
+
+      // Create property
+      const propertyData = insertPropertySchema.parse({
+        address,
+        city,
+        state,
+        zipCode,
+        propertyType: req.body.propertyType,
+        propertyValue: req.body.estimatedValue,
+        purchasePrice: req.body.purchasePrice || null,
+      });
+      const property = await storage.createProperty(propertyData);
+
+      // Calculate basic LTV
+      const requestedAmount = parseFloat(req.body.loanAmount.replace(/[$,]/g, ''));
+      const propertyValue = parseFloat(req.body.estimatedValue.replace(/[$,]/g, ''));
+      const ltv = propertyValue > 0 ? (requestedAmount / propertyValue) * 100 : 0;
+
+      // Create loan application
+      const applicationData = insertLoanApplicationSchema.parse({
+        borrowerId: borrower.id,
+        propertyId: property.id,
+        loanOfficerId: 1,
+        loanType: req.body.loanType,
+        requestedAmount: requestedAmount.toString(),
+        status: 'application',
+        ltv: ltv.toString(),
+        notes: `Exit Strategy: ${req.body.exitStrategy}\nExperience: ${req.body.isExperienced}\nCredit Score: ${req.body.creditScore}\nFlips: ${req.body.flipsCompleted}\nRentals: ${req.body.rentalsOwned}\nAdditional Info: ${req.body.additionalInfo || 'None'}`,
+      });
+
+      const application = await storage.createLoanApplication(applicationData);
+      
+      // Create initial task
+      await storage.createTask({
+        loanApplicationId: application.id,
+        assignedToId: 1,
+        title: "Review Short Application",
+        description: `Initial review for ${borrower.firstName} ${borrower.lastName} - ${req.body.loanType} loan`,
+        priority: "medium",
+        status: "pending",
+        dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000) // 1 day from now
+      });
+
+      const fullApplication = await storage.getLoanApplicationWithDetails(application.id);
+      res.status(201).json(fullApplication);
+    } catch (error) {
+      console.error("Error creating short loan application:", error);
+      res.status(400).json({ 
+        message: error instanceof Error ? error.message : "Invalid loan application data" 
+      });
     }
   });
 

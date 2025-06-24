@@ -24,6 +24,7 @@ function Router() {
           <Route path="/pipeline" component={Pipeline} />
           <Route path="/documents" component={Documents} />
           <Route path="/underwriting" component={Underwriting} />
+          <Route path="/communications" component={Communications} />
           <Route path="/reports" component={Reports} />
           <Route component={NotFound} />
         </Switch>
