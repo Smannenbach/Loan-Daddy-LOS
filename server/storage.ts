@@ -267,6 +267,17 @@ export class MemStorage implements IStorage {
     const newApplication: LoanApplication = { 
       ...application, 
       id,
+      status: application.status || 'application',
+      ltv: application.ltv || null,
+      dscr: application.dscr || null,
+      interestRate: application.interestRate || null,
+      termMonths: application.termMonths || null,
+      monthlyRent: application.monthlyRent || null,
+      monthlyExpenses: application.monthlyExpenses || null,
+      loanPurpose: application.loanPurpose || null,
+      exitStrategy: application.exitStrategy || null,
+      experienceLevel: application.experienceLevel || null,
+      notes: application.notes || null,
       createdAt: now,
       updatedAt: now
     };
@@ -328,6 +339,10 @@ export class MemStorage implements IStorage {
     const newTask: Task = { 
       ...task, 
       id,
+      status: task.status || 'pending',
+      description: task.description || null,
+      priority: task.priority || 'medium',
+      dueDate: task.dueDate || null,
       createdAt: new Date()
     };
     this.tasks.set(id, newTask);
@@ -386,6 +401,98 @@ export class MemStorage implements IStorage {
       totalFunded: `$${(totalFunded / 1000000).toFixed(1)}M`,
       pipelineStats
     };
+  }
+
+  // Notifications
+  async getNotification(id: number): Promise<Notification | undefined> {
+    return this.notifications.get(id);
+  }
+
+  async getNotificationsByLoanApplication(loanApplicationId: number): Promise<Notification[]> {
+    return Array.from(this.notifications.values()).filter(notif => notif.loanApplicationId === loanApplicationId);
+  }
+
+  async createNotification(notification: InsertNotification): Promise<Notification> {
+    const id = this.currentNotificationId++;
+    const newNotification: Notification = {
+      ...notification,
+      id,
+      status: notification.status || 'pending',
+      subject: notification.subject || null,
+      sentAt: null,
+      createdAt: new Date()
+    };
+    this.notifications.set(id, newNotification);
+    return newNotification;
+  }
+
+  async updateNotification(id: number, notification: Partial<InsertNotification>): Promise<Notification | undefined> {
+    const existing = this.notifications.get(id);
+    if (!existing) return undefined;
+    const updated = { ...existing, ...notification };
+    this.notifications.set(id, updated);
+    return updated;
+  }
+
+  // Templates
+  async getTemplate(id: number): Promise<Template | undefined> {
+    return this.templates.get(id);
+  }
+
+  async getAllTemplates(): Promise<Template[]> {
+    return Array.from(this.templates.values());
+  }
+
+  async getTemplatesByType(type: string): Promise<Template[]> {
+    return Array.from(this.templates.values()).filter(template => template.type === type);
+  }
+
+  async createTemplate(template: InsertTemplate): Promise<Template> {
+    const id = this.currentTemplateId++;
+    const newTemplate: Template = {
+      ...template,
+      id,
+      subject: template.subject || null,
+      isActive: template.isActive !== undefined ? template.isActive : true,
+      createdAt: new Date()
+    };
+    this.templates.set(id, newTemplate);
+    return newTemplate;
+  }
+
+  async updateTemplate(id: number, template: Partial<InsertTemplate>): Promise<Template | undefined> {
+    const existing = this.templates.get(id);
+    if (!existing) return undefined;
+    const updated = { ...existing, ...template };
+    this.templates.set(id, updated);
+    return updated;
+  }
+
+  // Call Logs
+  async getCallLog(id: number): Promise<CallLog | undefined> {
+    return this.callLogs.get(id);
+  }
+
+  async getCallLogsByLoanApplication(loanApplicationId: number): Promise<CallLog[]> {
+    return Array.from(this.callLogs.values()).filter(call => call.loanApplicationId === loanApplicationId);
+  }
+
+  async getCallLogsByBorrower(borrowerId: number): Promise<CallLog[]> {
+    return Array.from(this.callLogs.values()).filter(call => call.borrowerId === borrowerId);
+  }
+
+  async createCallLog(callLog: InsertCallLog): Promise<CallLog> {
+    const id = this.currentCallLogId++;
+    const newCallLog: CallLog = {
+      ...callLog,
+      id,
+      duration: callLog.duration || null,
+      notes: callLog.notes || null,
+      recordingUrl: callLog.recordingUrl || null,
+      createdAt: new Date()
+    };
+    this.callLogs.set(id, newCallLog);
+    return newCallLog;
   }
 }
 

@@ -8,6 +8,7 @@ import NewApplication from "@/pages/new-application";
 import Pipeline from "@/pages/pipeline";
 import Documents from "@/pages/documents";
 import Underwriting from "@/pages/underwriting";
+import Communications from "@/pages/communications";
 import Reports from "@/pages/reports";
 import NotFound from "@/pages/not-found";
 import Sidebar from "@/components/layout/sidebar";

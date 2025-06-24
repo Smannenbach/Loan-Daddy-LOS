@@ -7,6 +7,7 @@ import {
   FileText, 
   Calculator, 
   ChartBar, 
+  MessageSquare,
   Settings, 
   User,
   LogOut
@@ -18,6 +19,7 @@ const navigation = [
   { name: 'Loan Pipeline', href: '/pipeline', icon: FolderOpen },
   { name: 'Documents', href: '/documents', icon: FileText },
   { name: 'Underwriting', href: '/underwriting', icon: Calculator },
+  { name: 'Communications', href: '/communications', icon: MessageSquare },
   { name: 'Reports', href: '/reports', icon: ChartBar },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
