@@ -440,7 +440,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const propertyValue = parseFloat(req.body.estimatedValue.replace(/[$,]/g, ''));
       const ltv = propertyValue > 0 ? (requestedAmount / propertyValue) * 100 : 0;
 
-      // Create loan application
+      // Generate customer portal token
+      const customerPortalToken = `portal_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+      // Create loan application with initial intake data
       const applicationData = insertLoanApplicationSchema.parse({
         borrowerId: borrower.id,
         propertyId: property.id,
@@ -448,7 +451,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         loanType: req.body.loanType,
         requestedAmount: requestedAmount.toString(),
         status: 'application',
+        stage: 'initial_intake',
         ltv: ltv.toString(),
+        initialIntakeData: req.body,
+        customerPortalAccess: true,
+        customerPortalToken,
         notes: `Exit Strategy: ${req.body.exitStrategy}\nExperience: ${req.body.isExperienced}\nCredit Score: ${req.body.creditScore}\nFlips: ${req.body.flipsCompleted}\nRentals: ${req.body.rentalsOwned}\nAdditional Info: ${req.body.additionalInfo || 'None'}`,
       });
 
@@ -465,13 +472,202 @@ export async function registerRoutes(app: Express): Promise<Server> {
         dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000) // 1 day from now
       });
 
+      // Create customer portal session
+      await storage.createCustomerSession({
+        borrowerId: borrower.id,
+        loanApplicationId: application.id,
+        sessionToken: customerPortalToken,
+        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+        isActive: true
+      });
+
+      // Send welcome email with portal link
+      await storage.createNotification({
+        loanApplicationId: application.id,
+        borrowerId: borrower.id,
+        type: 'email',
+        recipient: borrower.email,
+        subject: 'Welcome to Your Loan Application Portal',
+        message: `Thank you for starting your loan application. Access your portal here: ${process.env.APP_URL || 'http://localhost:5000'}/customer-portal?token=${customerPortalToken}`,
+        status: 'sent'
+      });
+
       const fullApplication = await storage.getLoanApplicationWithDetails(application.id);
-      res.status(201).json(fullApplication);
+      res.status(201).json({
+        ...fullApplication,
+        customerPortalUrl: `${process.env.APP_URL || 'http://localhost:5000'}/customer-portal?token=${customerPortalToken}`
+      });
     } catch (error) {
       console.error("Error creating short loan application:", error);
       res.status(400).json({ 
         message: error instanceof Error ? error.message : "Invalid loan application data" 
       });
+    }
+  });
+
+  // Full loan application endpoint (URLA)
+  app.post("/api/full-loan-applications", async (req, res) => {
+    try {
+      const { loanApplicationId, ...urlaData } = req.body;
+      
+      // Update loan application with URLA data and stage
+      const updatedApplication = await storage.updateLoanApplicationStage(
+        loanApplicationId, 
+        'full_application', 
+        { urlaData }
+      );
+
+      // Create task for document collection
+      await storage.createTask({
+        loanApplicationId,
+        assignedToId: 1,
+        title: "Begin Document Collection",
+        description: "Full application received - start document collection process",
+        priority: "high",
+        status: "pending",
+        dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000) // 1 day from now
+      });
+
+      // Setup document reminders based on loan type
+      const documentRequirements = await storage.getDocumentRequirements(updatedApplication.loanType);
+      for (const req of documentRequirements) {
+        if (req.isRequired) {
+          // Schedule initial document reminder
+          await storage.createDocumentReminder({
+            loanApplicationId,
+            documentCategory: req.category,
+            reminderType: 'email',
+            reminderNumber: 1,
+            scheduledAt: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days from now
+            status: 'pending'
+          });
+        }
+      }
+
+      res.json(updatedApplication);
+    } catch (error) {
+      console.error("Error processing full loan application:", error);
+      res.status(400).json({ 
+        message: error instanceof Error ? error.message : "Failed to process full application" 
+      });
+    }
+  });
+
+  // Customer Portal Routes
+  app.get("/api/customer-portal/application", async (req, res) => {
+    try {
+      const { token } = req.query;
+      if (!token) {
+        return res.status(400).json({ message: "Token required" });
+      }
+
+      const session = await storage.getCustomerSession(String(token));
+      if (!session || !session.isActive || new Date() > session.expiresAt) {
+        return res.status(401).json({ message: "Invalid or expired token" });
+      }
+
+      const application = await storage.getLoanApplicationWithDetails(session.loanApplicationId);
+      const bankAccounts = await storage.getBankAccounts(session.borrowerId);
+
+      res.json({
+        ...application,
+        bankAccounts
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch application data" });
+    }
+  });
+
+  app.get("/api/customer-portal/documents", async (req, res) => {
+    try {
+      const { token } = req.query;
+      const session = await storage.getCustomerSession(String(token));
+      if (!session) {
+        return res.status(401).json({ message: "Invalid token" });
+      }
+
+      const documents = await storage.getDocumentsByLoanApplication(session.loanApplicationId);
+      res.json(documents);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch documents" });
+    }
+  });
+
+  app.get("/api/customer-portal/document-requirements", async (req, res) => {
+    try {
+      const { token } = req.query;
+      const session = await storage.getCustomerSession(String(token));
+      if (!session) {
+        return res.status(401).json({ message: "Invalid token" });
+      }
+
+      const application = await storage.getLoanApplication(session.loanApplicationId);
+      const requirements = await storage.getDocumentRequirements(application.loanType);
+      res.json(requirements);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch document requirements" });
+    }
+  });
+
+  app.post("/api/customer-portal/upload-document", upload.single('file'), async (req, res) => {
+    try {
+      const { token, category } = req.body;
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      const session = await storage.getCustomerSession(token);
+      if (!session) {
+        return res.status(401).json({ message: "Invalid token" });
+      }
+
+      const documentData = insertDocumentSchema.parse({
+        loanApplicationId: session.loanApplicationId,
+        fileName: req.file.filename,
+        originalName: req.file.originalname,
+        category,
+        fileSize: req.file.size,
+        mimeType: req.file.mimetype,
+        isRequired: true,
+        isReceived: true,
+        uploadedBy: 'borrower'
+      });
+
+      const document = await storage.createDocument(documentData);
+
+      // Send notification to loan officer
+      await storage.createNotification({
+        loanApplicationId: session.loanApplicationId,
+        borrowerId: session.borrowerId,
+        type: 'email',
+        recipient: 'loan.officer@company.com',
+        subject: 'New Document Uploaded',
+        message: `Borrower has uploaded ${req.file.originalname} for category: ${category}`,
+        status: 'sent'
+      });
+
+      res.status(201).json(document);
+    } catch (error) {
+      res.status(400).json({ message: "Failed to upload document" });
+    }
+  });
+
+  app.post("/api/customer-portal/connect-bank", async (req, res) => {
+    try {
+      const { token } = req.body;
+      const session = await storage.getCustomerSession(token);
+      if (!session) {
+        return res.status(401).json({ message: "Invalid token" });
+      }
+
+      // In a real implementation, this would create a Plaid Link token
+      // For now, we'll return a mock response
+      res.json({
+        linkUrl: `https://plaid.com/link?token=mock_token_${session.loanApplicationId}`,
+        message: "Bank connection initiated"
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to initiate bank connection" });
     }
   });
 

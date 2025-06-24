@@ -1,3 +1,4 @@
+import React from "react";
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -26,6 +27,20 @@ function Router() {
           <Route path="/underwriting" component={Underwriting} />
           <Route path="/communications" component={Communications} />
           <Route path="/reports" component={Reports} />
+          <Route path="/customer-portal" component={() => {
+            const params = new URLSearchParams(window.location.search);
+            const token = params.get('token');
+            if (!token) {
+              return <NotFound />;
+            }
+            // Dynamically import CustomerPortal to avoid circular dependencies
+            const CustomerPortal = React.lazy(() => import("@/pages/customer-portal"));
+            return (
+              <React.Suspense fallback={<div>Loading...</div>}>
+                <CustomerPortal token={token} />
+              </React.Suspense>
+            );
+          }} />
           <Route component={NotFound} />
         </Switch>
       </div>

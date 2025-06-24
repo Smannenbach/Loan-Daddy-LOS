@@ -1,6 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { documentPreFill } from "@/lib/document-prefill";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -154,12 +155,18 @@ type UrlaForm = z.infer<typeof urlaFormSchema>;
 interface UrlaFormProps {
   onSubmit: (data: UrlaForm) => void;
   isLoading?: boolean;
+  defaultValues?: any;
 }
 
-export default function UrlaForm({ onSubmit, isLoading }: UrlaFormProps) {
+export default function UrlaForm({ onSubmit, isLoading, defaultValues }: UrlaFormProps) {
+  // Get pre-filled data and merge with any passed defaults
+  const preFilledData = documentPreFill.getPreFilledData('urla');
+  const mergedDefaults = { ...preFilledData, ...defaultValues };
+  
   const form = useForm<UrlaForm>({
     resolver: zodResolver(urlaFormSchema),
     defaultValues: {
+      // Start with base defaults
       firstName: '',
       middleName: '',
       lastName: '',
@@ -208,15 +215,23 @@ export default function UrlaForm({ onSubmit, isLoading }: UrlaFormProps) {
       additionalEmployment: false,
       previousEmployment: false,
       notes: '',
+      // Then override with merged pre-filled and passed data
+      ...mergedDefaults,
     },
   });
+
+  const handleFormSubmit = (data: UrlaForm) => {
+    // Store URLA data for future pre-filling
+    documentPreFill.storeFormData('urla', data);
+    onSubmit(data);
+  };
 
   const watchCurrentAddressYears = form.watch('currentAddressYears');
   const needsFormerAddress = parseInt(watchCurrentAddressYears || '0') < 2;
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-8">
         {/* Section 1a: Personal Information */}
         <Card>
           <CardHeader>

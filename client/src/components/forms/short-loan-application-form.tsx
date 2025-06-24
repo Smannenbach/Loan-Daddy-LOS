@@ -1,6 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { documentPreFill } from "@/lib/document-prefill";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -48,12 +49,18 @@ type ShortLoanApplicationForm = z.infer<typeof shortLoanApplicationSchema>;
 interface ShortLoanApplicationFormProps {
   onSubmit: (data: ShortLoanApplicationForm) => void;
   isLoading?: boolean;
+  loanApplicationId?: number;
 }
 
-export default function ShortLoanApplicationForm({ onSubmit, isLoading }: ShortLoanApplicationFormProps) {
+export default function ShortLoanApplicationForm({ onSubmit, isLoading, loanApplicationId }: ShortLoanApplicationFormProps) {
+  // Get pre-filled data if available
+  const preFilledData = documentPreFill.getPreFilledData('shortApplication');
+  
   const form = useForm<ShortLoanApplicationForm>({
     resolver: zodResolver(shortLoanApplicationSchema),
     defaultValues: {
+      // Merge pre-filled data with defaults
+      ...{
       loanType: 'purchase',
       loanAmount: '',
       propertyAddress: '',
@@ -73,12 +80,20 @@ export default function ShortLoanApplicationForm({ onSubmit, isLoading }: ShortL
       netIncome: '',
       liquidityPosition: '',
       additionalInfo: '',
+      },
+      ...preFilledData, // Override with pre-filled data
     },
   });
 
+  const handleFormSubmit = (data: ShortLoanApplicationForm) => {
+    // Store form data for intelligent pre-filling
+    documentPreFill.storeFormData('shortApplication', data);
+    onSubmit(data);
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
         {/* Loan Request Section */}
         <Card>
           <CardHeader>

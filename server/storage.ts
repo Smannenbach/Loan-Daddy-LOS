@@ -72,6 +72,25 @@ export interface IStorage {
     totalFunded: string;
     pipelineStats: Record<string, number>;
   }>;
+
+  // Document Requirements
+  getDocumentRequirements(loanType: string): Promise<any[]>;
+  createDocumentRequirement(requirement: any): Promise<any>;
+
+  // Document Reminders
+  getDocumentReminders(loanApplicationId: number): Promise<any[]>;
+  createDocumentReminder(reminder: any): Promise<any>;
+  updateDocumentReminder(id: number, reminder: any): Promise<any>;
+
+  // Bank Accounts
+  getBankAccounts(borrowerId: number): Promise<any[]>;
+  createBankAccount(account: any): Promise<any>;
+  updateBankAccount(id: number, account: any): Promise<any>;
+
+  // Customer Portal
+  getCustomerSession(token: string): Promise<any>;
+  createCustomerSession(session: any): Promise<any>;
+  updateLoanApplicationStage(id: number, stage: string, data?: any): Promise<any>;
 }
 
 export class MemStorage implements IStorage {
@@ -94,6 +113,12 @@ export class MemStorage implements IStorage {
   private currentNotificationId = 1;
   private currentTemplateId = 1;
   private currentCallLogId = 1;
+  private documentRequirements: Map<string, any[]> = new Map();
+  private documentReminders: Map<number, any> = new Map();
+  private bankAccounts: Map<number, any[]> = new Map();
+  private customerSessions: Map<string, any> = new Map();
+  private currentDocumentReminderId = 1;
+  private currentBankAccountId = 1;
 
   constructor() {
     // Create default user
@@ -493,6 +518,115 @@ export class MemStorage implements IStorage {
     };
     this.callLogs.set(id, newCallLog);
     return newCallLog;
+  }
+
+  // Document Requirements
+  async getDocumentRequirements(loanType: string): Promise<any[]> {
+    return this.documentRequirements.get(loanType) || this.getDefaultDocumentRequirements(loanType);
+  }
+
+  async createDocumentRequirement(requirement: any): Promise<any> {
+    const loanType = requirement.loanType;
+    const existing = this.documentRequirements.get(loanType) || [];
+    existing.push({ ...requirement, id: existing.length + 1 });
+    this.documentRequirements.set(loanType, existing);
+    return requirement;
+  }
+
+  private getDefaultDocumentRequirements(loanType: string): any[] {
+    const common = [
+      { id: 1, loanType, category: 'income_verification', documentName: 'Tax Returns (2 years)', description: 'Personal and business tax returns for the last 2 years', isRequired: true, sortOrder: 1 },
+      { id: 2, loanType, category: 'bank_statements', documentName: 'Bank Statements (3 months)', description: 'Recent bank statements showing cash reserves', isRequired: true, sortOrder: 2 },
+      { id: 3, loanType, category: 'insurance', documentName: 'Property Insurance', description: 'Proof of property insurance coverage', isRequired: true, sortOrder: 3 },
+      { id: 4, loanType, category: 'property_docs', documentName: 'Purchase Agreement', description: 'Signed purchase agreement or property deed', isRequired: true, sortOrder: 4 }
+    ];
+
+    const specific: Record<string, any[]> = {
+      'dscr': [
+        { id: 5, loanType, category: 'rental_income', documentName: 'Rent Roll', description: 'Current rent roll showing rental income', isRequired: true, sortOrder: 5 },
+        { id: 6, loanType, category: 'rental_income', documentName: 'Lease Agreements', description: 'Current tenant lease agreements', isRequired: true, sortOrder: 6 }
+      ],
+      'fix_flip': [
+        { id: 5, loanType, category: 'construction', documentName: 'Rehab Budget', description: 'Detailed renovation budget and timeline', isRequired: true, sortOrder: 5 },
+        { id: 6, loanType, category: 'construction', documentName: 'Contractor Estimates', description: 'Licensed contractor estimates', isRequired: true, sortOrder: 6 }
+      ],
+      'construction': [
+        { id: 5, loanType, category: 'construction', documentName: 'Building Plans', description: 'Architectural plans and permits', isRequired: true, sortOrder: 5 },
+        { id: 6, loanType, category: 'construction', documentName: 'Construction Budget', description: 'Detailed construction budget', isRequired: true, sortOrder: 6 }
+      ]
+    };
+
+    return [...common, ...(specific[loanType] || [])];
+  }
+
+  // Document Reminders
+  async getDocumentReminders(loanApplicationId: number): Promise<any[]> {
+    return Array.from(this.documentReminders.values()).filter(reminder => reminder.loanApplicationId === loanApplicationId);
+  }
+
+  async createDocumentReminder(reminder: any): Promise<any> {
+    const id = this.currentDocumentReminderId++;
+    const newReminder = { ...reminder, id, createdAt: new Date() };
+    this.documentReminders.set(id, newReminder);
+    return newReminder;
+  }
+
+  async updateDocumentReminder(id: number, reminder: any): Promise<any> {
+    const existing = this.documentReminders.get(id);
+    if (!existing) return undefined;
+    const updated = { ...existing, ...reminder };
+    this.documentReminders.set(id, updated);
+    return updated;
+  }
+
+  // Bank Accounts
+  async getBankAccounts(borrowerId: number): Promise<any[]> {
+    return this.bankAccounts.get(borrowerId) || [];
+  }
+
+  async createBankAccount(account: any): Promise<any> {
+    const id = this.currentBankAccountId++;
+    const newAccount = { ...account, id, createdAt: new Date() };
+    const borrowerAccounts = this.bankAccounts.get(account.borrowerId) || [];
+    borrowerAccounts.push(newAccount);
+    this.bankAccounts.set(account.borrowerId, borrowerAccounts);
+    return newAccount;
+  }
+
+  async updateBankAccount(id: number, account: any): Promise<any> {
+    for (const [borrowerId, accounts] of this.bankAccounts.entries()) {
+      const index = accounts.findIndex(acc => acc.id === id);
+      if (index !== -1) {
+        accounts[index] = { ...accounts[index], ...account };
+        return accounts[index];
+      }
+    }
+    return undefined;
+  }
+
+  // Customer Portal
+  async getCustomerSession(token: string): Promise<any> {
+    return this.customerSessions.get(token);
+  }
+
+  async createCustomerSession(session: any): Promise<any> {
+    this.customerSessions.set(session.sessionToken, session);
+    return session;
+  }
+
+  async updateLoanApplicationStage(id: number, stage: string, data?: any): Promise<any> {
+    const existing = this.loanApplications.get(id);
+    if (!existing) return undefined;
+    
+    const updated = { 
+      ...existing, 
+      stage,
+      updatedAt: new Date(),
+      ...(data?.urlaData && { urlaData: data.urlaData })
+    };
+    
+    this.loanApplications.set(id, updated);
+    return updated;
   }
 }
 

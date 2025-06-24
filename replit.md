@@ -101,6 +101,13 @@ Changelog:
 - June 24, 2025. Implemented shorter loan application form to reduce applicant friction
 - June 24, 2025. Added LinkedIn integration for real estate investor lead generation
 - June 24, 2025. Created communication tracking and history features
+- June 24, 2025. Built two-stage application system (short intake + full URLA)
+- June 24, 2025. Added customer-facing portal for document upload and loan tracking
+- June 24, 2025. Implemented automated document collection with multi-channel reminders
+- June 24, 2025. Added Plaid bank verification integration framework
+- June 24, 2025. Created document requirements management by loan type
+- June 24, 2025. Implemented intelligent document pre-filling mechanism across all loan forms
+- June 24, 2025. Added data completeness indicators and cross-form data mapping
 ```
 
 ## User Preferences
