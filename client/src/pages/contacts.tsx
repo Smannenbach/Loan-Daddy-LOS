@@ -113,7 +113,7 @@ export default function Contacts() {
 
   // Add contact mutation
   const addContactMutation = useMutation({
-    mutationFn: (contactData: any) => apiRequest('/api/contacts', 'POST', contactData),
+    mutationFn: (contactData: any) => apiRequest('POST', '/api/contacts', contactData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/contacts'] });
       setShowAddDialog(false);
@@ -133,7 +133,7 @@ export default function Contacts() {
 
   // Add interaction mutation
   const addInteractionMutation = useMutation({
-    mutationFn: (interactionData: any) => apiRequest('/api/contact-interactions', 'POST', interactionData),
+    mutationFn: (interactionData: any) => apiRequest('POST', '/api/contact-interactions', interactionData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/contacts'] });
       toast({
