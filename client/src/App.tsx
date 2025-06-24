@@ -18,6 +18,7 @@ import Sidebar from "@/components/layout/sidebar";
 const AIAdvisor = React.lazy(() => import("@/pages/ai-advisor"));
 const MarketingDashboard = React.lazy(() => import("@/pages/marketing-dashboard"));
 const PropertySearch = React.lazy(() => import("@/pages/property-search"));
+const PropertyMap = React.lazy(() => import("@/pages/property-map"));
 
 function Router() {
   return (
@@ -45,6 +46,11 @@ function Router() {
           <Route path="/property-search" component={() => (
             <React.Suspense fallback={<div className="p-8">Loading Property Search...</div>}>
               <PropertySearch />
+            </React.Suspense>
+          )} />
+          <Route path="/property-map" component={() => (
+            <React.Suspense fallback={<div className="p-8">Loading Property Map...</div>}>
+              <PropertyMap />
             </React.Suspense>
           )} />
           <Route path="/settings" component={() => (
