@@ -286,7 +286,7 @@ export class PropertyDataService {
     return parsed.zipCode && parsed.state ? parsed : null;
   }
 
-  private async aggregatePropertyData(address: string): Promise<PropertyData> {
+  private async aggregatePropertyData(address: string, searchType: 'unit' | 'building' = 'unit'): Promise<PropertyData> {
     const parsedAddress = this.parseAddress(address);
     
     // Check for known properties with verified data
@@ -344,7 +344,7 @@ export class PropertyDataService {
     };
   }
 
-  private getKnownPropertyData(address: string): Partial<PropertyData> | null {
+  private getKnownPropertyData(address: string, searchType: 'unit' | 'building' = 'unit'): Partial<PropertyData> | null {
     const normalizedAddress = address.toLowerCase().replace(/\s+/g, ' ').trim();
     
     // Data from Zillow screenshot for 15380 Ellendale Rd, Dallas, OR 97338
@@ -437,7 +437,7 @@ export class PropertyDataService {
     return taxRates[state] || 0.012; // Default 1.2%
   }
 
-  private estimateValueByLocation(address: any): number {
+  private estimateValueByLocation(address: any, searchType: 'unit' | 'building' = 'unit'): number {
     // Enhanced value estimation based on state and city
     const stateMultipliers: { [key: string]: number } = {
       'CA': 800000, 'NY': 600000, 'FL': 350000, 'TX': 300000,
@@ -454,7 +454,7 @@ export class PropertyDataService {
     return Math.floor(currentYear - (Math.random() * 60)); // Built in last 60 years
   }
 
-  private estimateSquareFootage(value: number, address: any): number {
+  private estimateSquareFootage(value: number, address: any, searchType: 'unit' | 'building' = 'unit'): number {
     // Rough sqft based on value and location
     const pricePerSqft = this.getPricePerSqft(address.state);
     return Math.floor(value / pricePerSqft);
@@ -468,7 +468,7 @@ export class PropertyDataService {
     return pricePerSqft[state] || 180;
   }
 
-  private determinePropertyType(sqft: number, value: number): string {
+  private determinePropertyType(sqft: number, value: number, isMultifamily: boolean = false, searchType: 'unit' | 'building' = 'unit'): string {
     if (sqft > 3000 || value > 600000) return 'Single Family Luxury';
     if (sqft > 2000) return 'Single Family';
     if (sqft > 1200) return 'Townhouse';
@@ -524,6 +524,53 @@ export class PropertyDataService {
   }
 
   // Method to get property data for DSCR calculation
+  private detectMultifamilyProperty(geocodeResult: any, nearbyPlaces: any[], searchType: 'unit' | 'building'): boolean {
+    // Check address for apartment indicators
+    const addressLower = geocodeResult.formatted_address.toLowerCase();
+    const multifamilyKeywords = ['apt', 'apartment', 'unit', '#', 'suite', 'complex', 'towers', 'plaza', 'gardens', 'village', 'manor', 'court'];
+    
+    const hasMultifamilyKeywords = multifamilyKeywords.some(keyword => 
+      addressLower.includes(keyword)
+    );
+    
+    // Check nearby places for apartment-related businesses
+    const apartmentBusinesses = nearbyPlaces.filter(place => {
+      const nameTypes = (place.name + ' ' + (place.types || []).join(' ')).toLowerCase();
+      return nameTypes.includes('apartment') || nameTypes.includes('residential') || 
+             nameTypes.includes('leasing') || nameTypes.includes('management');
+    });
+    
+    return hasMultifamilyKeywords || apartmentBusinesses.length > 0 || searchType === 'building';
+  }
+
+  private estimateUnitsFromAddress(address: any): number {
+    // Basic estimation based on typical building sizes
+    const city = address.city?.toLowerCase() || '';
+    const state = address.state?.toLowerCase() || '';
+    
+    // Major metro areas tend to have larger buildings
+    if (city.includes('new york') || city.includes('manhattan')) return 50 + Math.floor(Math.random() * 100);
+    if (city.includes('san francisco') || city.includes('seattle') || city.includes('chicago')) return 30 + Math.floor(Math.random() * 70);
+    if (city.includes('los angeles') || city.includes('miami') || city.includes('boston')) return 25 + Math.floor(Math.random() * 50);
+    if (state === 'ca' || state === 'ny' || state === 'wa') return 20 + Math.floor(Math.random() * 40);
+    
+    // Smaller markets
+    return 8 + Math.floor(Math.random() * 24); // 8-32 units
+  }
+
+  private estimateUnits(totalSqft: number, totalValue: number): number {
+    // Estimate units based on total building metrics
+    const avgUnitSize = 850; // Average apartment size
+    const estimatedUnits = Math.floor(totalSqft / avgUnitSize);
+    
+    // Validate against value-based estimation
+    const avgUnitValue = 200000; // Average unit value
+    const valueBasedUnits = Math.floor(totalValue / avgUnitValue);
+    
+    // Take the more conservative estimate
+    return Math.min(estimatedUnits, valueBasedUnits);
+  }
+
   async getPropertyForDSCR(address: string): Promise<{ rentEstimate: number; expenses: number } | null> {
     const propertyData = await this.getPropertyData(address);
     if (!propertyData) return null;
