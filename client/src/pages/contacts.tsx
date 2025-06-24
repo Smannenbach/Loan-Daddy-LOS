@@ -612,12 +612,71 @@ export default function Contacts() {
               return (
                 <Card 
                   key={contact.id} 
-                  className="hover:shadow-lg transition-shadow cursor-pointer"
+                  className="hover:shadow-lg transition-all duration-200 cursor-pointer group relative"
                   onClick={() => {
                     setSelectedContact(contact);
                     setShowContactDetail(true);
                   }}
                 >
+                  {/* Quick Action Menu */}
+                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <div className="flex gap-1 bg-white shadow-lg border rounded-lg p-1">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0 hover:bg-blue-100"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.open(`mailto:${contact.email}`);
+                        }}
+                        title="Send Email"
+                      >
+                        <Mail className="w-4 h-4 text-blue-600" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0 hover:bg-green-100"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.open(`tel:${contact.phone}`);
+                        }}
+                        title="Call"
+                      >
+                        <Phone className="w-4 h-4 text-green-600" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0 hover:bg-purple-100"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // Add SMS functionality
+                          toast({
+                            title: "SMS Feature",
+                            description: "SMS functionality coming soon!",
+                          });
+                        }}
+                        title="Send SMS"
+                      >
+                        <MessageSquare className="w-4 h-4 text-purple-600" />
+                      </Button>
+                      {contact.linkedInUrl && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-8 w-8 p-0 hover:bg-blue-100"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.open(contact.linkedInUrl, '_blank');
+                          }}
+                          title="View LinkedIn"
+                        >
+                          <ExternalLink className="w-4 h-4 text-blue-700" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-3">
