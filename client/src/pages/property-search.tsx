@@ -68,6 +68,14 @@ interface PropertyData {
   dataSource: string[];
   lastUpdated: Date;
   confidence: number;
+  externalLinks: {
+    zillow?: string;
+    trulia?: string;
+    realtor?: string;
+    redfin?: string;
+    loopnet?: string;
+    countyRecords?: string;
+  };
 }
 
 export default function PropertySearch() {
@@ -176,9 +184,17 @@ export default function PropertySearch() {
           occupancyRate: 92,
           capRate: 5.9
         },
-        dataSource: ["Property Records", "MLS", "Tax Assessor"],
+        dataSource: ["Zillow", "County Records", "MLS", "Tax Assessor"],
         lastUpdated: new Date(),
-        confidence: 88
+        confidence: 88,
+        externalLinks: {
+          zillow: "https://www.zillow.com/homedetails/15380-Ellendale-Rd-Dallas-OR-97338/48514942_zpid/",
+          trulia: "https://www.trulia.com/home/15380-ellendale-rd-dallas-or-97338-48514942",
+          realtor: "https://www.realtor.com/realestateandhomes-detail/15380-Ellendale-Rd_Dallas_OR_97338_M93549-63798",
+          redfin: "https://www.redfin.com/OR/Dallas/15380-Ellendale-Rd-97338/home/26485808",
+          loopnet: "https://www.loopnet.com/property/15380-ellendale-rd-dallas-or-97338/41053-0340629/",
+          countyRecords: "https://www.co.polk.or.us/assessor"
+        }
       };
       
       setPropertyData(demoData);
@@ -240,21 +256,38 @@ export default function PropertySearch() {
           <div className="flex gap-4">
             <div className="flex-1">
               <Label htmlFor="address">Property Address</Label>
-              <Input
-                id="address"
-                placeholder="123 Main St, City, State 12345"
-                value={searchAddress}
-                onChange={(e) => setSearchAddress(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-              />
+              <div className="relative">
+                <Input
+                  id="address"
+                  placeholder="123 Main St, City, State 12345"
+                  value={searchAddress}
+                  onChange={(e) => handleAddressChange(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                  onFocus={() => setShowSuggestions(addressSuggestions.length > 0)}
+                  onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                />
+                {showSuggestions && addressSuggestions.length > 0 && (
+                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
+                    {addressSuggestions.map((suggestion, index) => (
+                      <div
+                        key={index}
+                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+                        onClick={() => selectAddress(suggestion)}
+                      >
+                        {suggestion}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
             <div className="flex items-end">
               <Button 
                 onClick={handleSearch}
-                disabled={propertySearchMutation.isPending}
+                disabled={isLoading}
                 className="px-8"
               >
-                {propertySearchMutation.isPending ? "Searching..." : "Search"}
+                {isLoading ? "Searching..." : "Search"}
               </Button>
             </div>
           </div>
