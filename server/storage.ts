@@ -594,8 +594,8 @@ export class MemStorage implements IStorage {
   }
 
   async updateBankAccount(id: number, account: any): Promise<any> {
-    for (const [borrowerId, accounts] of this.bankAccounts.entries()) {
-      const index = accounts.findIndex(acc => acc.id === id);
+    for (const accounts of this.bankAccounts.values()) {
+      const index = accounts.findIndex((acc: any) => acc.id === id);
       if (index !== -1) {
         accounts[index] = { ...accounts[index], ...account };
         return accounts[index];

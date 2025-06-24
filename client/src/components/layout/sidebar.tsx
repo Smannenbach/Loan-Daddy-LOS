@@ -10,7 +10,11 @@ import {
   MessageSquare,
   Settings, 
   User,
-  LogOut
+  LogOut,
+  Bot,
+  Share2,
+  UserCheck,
+  MapPin
 } from "lucide-react";
 
 const navigation = [
@@ -21,6 +25,10 @@ const navigation = [
   { name: 'Underwriting', href: '/underwriting', icon: Calculator },
   { name: 'Communications', href: '/communications', icon: MessageSquare },
   { name: 'Reports', href: '/reports', icon: ChartBar },
+  { name: 'Customer Portal', href: '/customer-portal', icon: UserCheck },
+  { name: 'AI Advisor', href: '/ai-advisor', icon: Bot },
+  { name: 'Marketing', href: '/marketing', icon: Share2 },
+  { name: 'Property Search', href: '/property-search', icon: MapPin },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 

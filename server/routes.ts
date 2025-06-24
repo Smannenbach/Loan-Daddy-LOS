@@ -671,6 +671,150 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Marketing Automation & CRM Integration Routes
+  
+  // Webhook endpoint for marketing platforms
+  app.post("/api/webhooks/:source", async (req, res) => {
+    try {
+      const source = req.params.source;
+      const signature = req.headers['x-hub-signature-256'] || req.headers['x-signature'] || '';
+      
+      const webhookPayload: WebhookPayload = {
+        source,
+        data: req.body,
+        timestamp: new Date().toISOString(),
+        signature: signature as string,
+        headers: req.headers as Record<string, string>
+      };
+
+      const result = await marketingIntegrations.processWebhook(webhookPayload);
+      
+      if (result.success) {
+        res.status(200).json(result);
+      } else {
+        res.status(400).json(result);
+      }
+    } catch (error) {
+      console.error("Webhook processing error:", error);
+      res.status(500).json({ success: false, message: "Internal server error" });
+    }
+  });
+
+  // AI Loan Advisor Routes
+  
+  // Get loan recommendation
+  app.post("/api/ai/loan-recommendation", async (req, res) => {
+    try {
+      const profile: BorrowerProfile = req.body;
+      const recommendation = await aiLoanAdvisor.analyzeBorrowerAndRecommendLoan(profile);
+      res.json(recommendation);
+    } catch (error) {
+      console.error("AI recommendation error:", error);
+      res.status(500).json({ message: "Failed to generate loan recommendation" });
+    }
+  });
+
+  // AI chat conversation
+  app.post("/api/ai/chat", async (req, res) => {
+    try {
+      const { message, profile, context } = req.body;
+      const response = await aiLoanAdvisor.generateConversationalResponse(message, profile, context);
+      res.json({ response });
+    } catch (error) {
+      console.error("AI chat error:", error);
+      res.status(500).json({ message: "Failed to process chat message" });
+    }
+  });
+
+  // Property Data Routes
+  
+  // Get property data by address
+  app.get("/api/property-data", async (req, res) => {
+    try {
+      const { address } = req.query;
+      if (!address) {
+        return res.status(400).json({ message: "Address parameter required" });
+      }
+
+      const propertyData = await propertyDataService.getPropertyData(address as string);
+      if (!propertyData) {
+        return res.status(404).json({ message: "Property data not found" });
+      }
+
+      res.json(propertyData);
+    } catch (error) {
+      console.error("Property data error:", error);
+      res.status(500).json({ message: "Failed to fetch property data" });
+    }
+  });
+
+  // Get DSCR calculation for property
+  app.get("/api/property-data/dscr", async (req, res) => {
+    try {
+      const { address } = req.query;
+      if (!address) {
+        return res.status(400).json({ message: "Address parameter required" });
+      }
+
+      const dscrData = await propertyDataService.getPropertyForDSCR(address as string);
+      if (!dscrData) {
+        return res.status(404).json({ message: "DSCR data not available" });
+      }
+
+      res.json(dscrData);
+    } catch (error) {
+      console.error("DSCR calculation error:", error);
+      res.status(500).json({ message: "Failed to calculate DSCR" });
+    }
+  });
+
+  // Loan Pricing Engine Routes
+  
+  // Get loan pricing
+  app.post("/api/pricing/quote", async (req, res) => {
+    try {
+      const pricingRequest: PricingRequest = req.body;
+      const pricing = await pricingEngine.getPricing(pricingRequest);
+      res.json(pricing);
+    } catch (error) {
+      console.error("Pricing engine error:", error);
+      res.status(500).json({ message: "Failed to generate pricing" });
+    }
+  });
+
+  // Get rates by lender
+  app.get("/api/pricing/lenders/:loanType", async (req, res) => {
+    try {
+      const { loanType } = req.params;
+      const lenderRates = await pricingEngine.getRatesByLender(loanType);
+      res.json(lenderRates);
+    } catch (error) {
+      console.error("Lender rates error:", error);
+      res.status(500).json({ message: "Failed to fetch lender rates" });
+    }
+  });
+
+  // Sync external rate sources
+  app.post("/api/pricing/sync-rates", async (req, res) => {
+    try {
+      const { source } = req.body;
+      let success = false;
+      
+      if (source === 'loansifter') {
+        success = await pricingEngine.syncLoanSifterRates();
+      } else if (source === 'lenderprice') {
+        success = await pricingEngine.syncLenderPriceRates();
+      } else {
+        return res.status(400).json({ message: "Invalid rate source" });
+      }
+      
+      res.json({ success, source });
+    } catch (error) {
+      console.error("Rate sync error:", error);
+      res.status(500).json({ message: "Failed to sync rates" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
