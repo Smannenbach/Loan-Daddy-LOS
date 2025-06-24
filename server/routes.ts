@@ -799,6 +799,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Video tour generation endpoint
+  app.post('/api/generate-video-tour', async (req, res) => {
+    try {
+      const { videoTourGenerator } = await import('./video-tour-generator.js');
+      const tourRequest: PropertyVideoTourRequest = req.body;
+
+      if (!tourRequest.propertyData || !tourRequest.tourStyle || !tourRequest.duration) {
+        return res.status(400).json({ error: 'Property data, tour style, and duration are required' });
+      }
+
+      const videoTour = await videoTourGenerator.generateVideoTour(tourRequest);
+      res.json(videoTour);
+    } catch (error) {
+      console.error('Video tour generation error:', error);
+      res.status(500).json({ error: 'Failed to generate video tour' });
+    }
+  });
+
+  // Generate video thumbnail endpoint
+  app.post('/api/generate-thumbnail', async (req, res) => {
+    try {
+      const { videoTourGenerator } = await import('./video-tour-generator.js');
+      const { prompt } = req.body;
+
+      if (!prompt || typeof prompt !== 'string') {
+        return res.status(400).json({ error: 'Thumbnail prompt is required' });
+      }
+
+      const thumbnail = await videoTourGenerator.generateVideoThumbnail(prompt);
+      res.json(thumbnail);
+    } catch (error) {
+      console.error('Thumbnail generation error:', error);
+      res.status(500).json({ error: 'Failed to generate thumbnail' });
+    }
+  });
+
   // Get DSCR calculation for property
   app.get("/api/property-data/dscr", async (req, res) => {
     try {
