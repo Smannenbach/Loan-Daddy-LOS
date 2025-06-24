@@ -473,21 +473,131 @@ export default function PropertySearch() {
             </CardContent>
           </Card>
 
+          {/* Property Links */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ExternalLink className="w-5 h-5" />
+                View on Real Estate Sites
+              </CardTitle>
+              <CardDescription>
+                Research this property on major real estate platforms
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {(() => {
+                  const links = getPropertyLinks(propertyData);
+                  const isCommercial = searchType === 'building' || propertyData.propertyType?.toLowerCase().includes('apartment') || propertyData.propertyType?.toLowerCase().includes('complex');
+                  
+                  return (
+                    <>
+                      {isCommercial && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => window.open(links.loopnet, '_blank')}
+                          className="justify-start border-orange-200 hover:border-orange-300 hover:bg-orange-50"
+                        >
+                          <Building2 className="w-4 h-4 mr-2 text-orange-600" />
+                          LoopNet
+                        </Button>
+                      )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open(links.zillow, '_blank')}
+                        className="justify-start"
+                      >
+                        <Home className="w-4 h-4 mr-2" />
+                        Zillow
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open(links.realtor, '_blank')}
+                        className="justify-start"
+                      >
+                        <Home className="w-4 h-4 mr-2" />
+                        Realtor.com
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open(links.trulia, '_blank')}
+                        className="justify-start"
+                      >
+                        <Home className="w-4 h-4 mr-2" />
+                        Trulia
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open(links.redfin, '_blank')}
+                        className="justify-start"
+                      >
+                        <Home className="w-4 h-4 mr-2" />
+                        Redfin
+                      </Button>
+                      {!isCommercial && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => window.open(links.loopnet, '_blank')}
+                          className="justify-start"
+                        >
+                          <Building2 className="w-4 h-4 mr-2" />
+                          LoopNet
+                        </Button>
+                      )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open(links.googleMaps, '_blank')}
+                        className="justify-start"
+                      >
+                        <MapPin className="w-4 h-4 mr-2" />
+                        Google Maps
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => copyToClipboard(`${propertyData.address}, ${propertyData.city}, ${propertyData.state} ${propertyData.zipCode}`)}
+                        className="justify-start"
+                      >
+                        <Copy className="w-4 h-4 mr-2" />
+                        Copy Address
+                      </Button>
+                    </>
+                  );
+                })()}
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Data Sources */}
           <Card>
             <CardHeader>
-              <CardTitle>Data Sources & Reliability</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="w-5 h-5" />
+                Data Sources & Reliability
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-wrap gap-2 mb-4">
-                {propertyData.dataSource.map((source, index) => (
-                  <Badge key={index} variant="outline" className="text-xs">
-                    {source}
-                  </Badge>
-                ))}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex flex-wrap gap-2">
+                  {propertyData.dataSource.map((source, index) => (
+                    <Badge key={index} variant="outline" className="text-xs">
+                      {source}
+                    </Badge>
+                  ))}
+                </div>
+                <Badge className={`${getConfidenceColor(propertyData.confidence)} px-2 py-1`}>
+                  {propertyData.confidence}% Confidence
+                </Badge>
               </div>
               <div className="text-xs text-muted-foreground">
-                Last updated: {propertyData.lastUpdated.toLocaleDateString()}
+                Last updated: {propertyData.lastUpdated.toLocaleDateString()} • Data aggregated from {propertyData.dataSource.length} sources
               </div>
             </CardContent>
           </Card>

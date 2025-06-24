@@ -235,7 +235,9 @@ export class PropertyDataService {
         schoolRatings: this.generateSchoolRatings(),
         recentSales: this.generateRecentSales(parsedAddress, estimatedValue),
         marketTrends: this.generateMarketTrends(),
-        rentalEstimates: this.generateRentalEstimates(estimatedValue, squareFootage),
+        rentalEstimates: searchType === 'building' && isMultifamily 
+          ? this.generateCommercialRentalEstimates(estimatedValue, this.estimateUnitsFromAddress(parsedAddress), parsedAddress)
+          : this.generateRentalEstimates(estimatedValue, squareFootage),
         dataSource: ['Google Maps API', 'Geocoding API', 'Places API', 'Address Validation API', 'Elevation API', 'Timezone API'],
         lastUpdated: new Date(),
         confidence: 92 // Very high confidence with comprehensive Google APIs
@@ -449,15 +451,29 @@ export class PropertyDataService {
     const variation = Math.random() * 0.4 - 0.2; // ±20% variation
     const unitValue = Math.floor(baseValue * (1 + variation));
     
-    // If searching for building, estimate total building value
+    // If searching for building, use Income Approach (NOI/Cap Rate) for apartment valuation
     if (searchType === 'building') {
-      // Estimate number of units and multiply by a higher per-unit building value
       const estimatedUnits = this.estimateUnitsFromAddress(address);
-      const buildingPremium = 1.25; // 25% premium for building ownership vs individual units
-      const buildingValue = unitValue * estimatedUnits * buildingPremium;
       
-      // Ensure minimum realistic building values
-      const minimumBuildingValue = Math.max(5000000, estimatedUnits * 200000); // Min $5M or $200k per unit
+      // Calculate apartment building value using Income Approach
+      const avgRentPerUnit = this.getMarketRent(address, estimatedUnits);
+      const grossRentalIncome = avgRentPerUnit * estimatedUnits * 12; // Annual
+      const vacancyRate = 0.05; // 5% vacancy typical for apartments
+      const effectiveGrossIncome = grossRentalIncome * (1 - vacancyRate);
+      
+      // Operating expenses (% of EGI) - typical for apartment buildings
+      const operatingExpenseRatio = 0.45; // 45% is typical for apartments
+      const operatingExpenses = effectiveGrossIncome * operatingExpenseRatio;
+      const netOperatingIncome = effectiveGrossIncome - operatingExpenses;
+      
+      // Cap rate varies by market and property quality
+      const capRate = this.getMarketCapRate(address, estimatedUnits);
+      const buildingValue = netOperatingIncome / capRate;
+      
+      // Ensure minimum realistic values based on unit count
+      const minimumPerUnit = estimatedUnits > 100 ? 150000 : 200000;
+      const minimumBuildingValue = estimatedUnits * minimumPerUnit;
+      
       return Math.max(buildingValue, minimumBuildingValue);
     }
     
@@ -555,6 +571,26 @@ export class PropertyDataService {
     };
   }
 
+  private generateCommercialRentalEstimates(buildingValue: number, units: number, address: any): any {
+    const avgRentPerUnit = this.getMarketRent(address, units);
+    const grossRentalIncome = avgRentPerUnit * units * 12;
+    const vacancyRate = 0.05;
+    const effectiveGrossIncome = grossRentalIncome * (1 - vacancyRate);
+    const operatingExpenses = effectiveGrossIncome * 0.45;
+    const netOperatingIncome = effectiveGrossIncome - operatingExpenses;
+    
+    return {
+      monthlyRent: avgRentPerUnit * units, // Total building rent
+      rentPerUnit: avgRentPerUnit,
+      grossRentalIncome: grossRentalIncome,
+      netOperatingIncome: netOperatingIncome,
+      occupancyRate: 1 - vacancyRate,
+      capRate: netOperatingIncome / buildingValue,
+      units: units,
+      operatingExpenseRatio: 0.45
+    };
+  }
+
   private generateRentalEstimates(value: number, sqft: number): any {
     const monthlyRent = Math.floor(value * 0.006); // ~0.6% rent-to-value ratio
     return {
@@ -613,6 +649,53 @@ export class PropertyDataService {
     
     // Take the more realistic estimate
     return Math.max(25, Math.min(estimatedUnits, valueBasedUnits));
+  }
+
+  private getMarketRent(address: any, units: number): number {
+    // Market rent per unit based on location and building size
+    const stateRentMultipliers: Record<string, number> = {
+      'CA': 2800, 'NY': 2600, 'WA': 2200, 'MA': 2400,
+      'FL': 1800, 'TX': 1600, 'AZ': 1700, 'CO': 1900,
+      'NC': 1400, 'GA': 1500, 'NV': 1600, 'OR': 2000
+    };
+    
+    const baseRent = stateRentMultipliers[address.state] || 1500;
+    
+    // Larger buildings often have economies of scale but lower per-unit rents
+    const sizeAdjustment = units > 100 ? 0.9 : units > 50 ? 0.95 : 1.0;
+    
+    // Location premiums for major metros
+    const city = address.city?.toLowerCase() || '';
+    let locationMultiplier = 1.0;
+    if (city.includes('san francisco') || city.includes('manhattan')) locationMultiplier = 1.4;
+    else if (city.includes('seattle') || city.includes('los angeles') || city.includes('boston')) locationMultiplier = 1.2;
+    else if (city.includes('scottsdale') || city.includes('miami') || city.includes('denver')) locationMultiplier = 1.1;
+    
+    return Math.floor(baseRent * sizeAdjustment * locationMultiplier);
+  }
+
+  private getMarketCapRate(address: any, units: number): number {
+    // Cap rates vary by market, property size, and quality
+    const stateCapRates: Record<string, number> = {
+      'CA': 0.04, 'NY': 0.045, 'WA': 0.05, 'MA': 0.048,
+      'FL': 0.055, 'TX': 0.06, 'AZ': 0.058, 'CO': 0.052,
+      'NC': 0.065, 'GA': 0.062, 'NV': 0.059, 'OR': 0.053
+    };
+    
+    let baseCapRate = stateCapRates[address.state] || 0.06;
+    
+    // Larger buildings typically have lower cap rates (higher values)
+    if (units > 200) baseCapRate -= 0.005;
+    else if (units > 100) baseCapRate -= 0.003;
+    else if (units < 25) baseCapRate += 0.01;
+    
+    // Metro area adjustments
+    const city = address.city?.toLowerCase() || '';
+    if (city.includes('san francisco') || city.includes('manhattan')) baseCapRate -= 0.01;
+    else if (city.includes('seattle') || city.includes('los angeles') || city.includes('boston')) baseCapRate -= 0.005;
+    else if (city.includes('scottsdale') || city.includes('phoenix')) baseCapRate -= 0.002;
+    
+    return Math.max(0.035, Math.min(0.08, baseCapRate)); // Cap between 3.5% and 8%
   }
 
   async getPropertyForDSCR(address: string): Promise<{ rentEstimate: number; expenses: number } | null> {
