@@ -122,6 +122,11 @@ export class PropertyDataService {
       const geocodeResponse = await fetch(geocodeUrl);
       const geocodeData = await geocodeResponse.json();
 
+      console.log('Google Maps API response status:', geocodeData.status);
+      if (geocodeData.error_message) {
+        console.log('Google Maps API error:', geocodeData.error_message);
+      }
+      
       if (geocodeData.status !== 'OK' || !geocodeData.results[0]) {
         return null;
       }
