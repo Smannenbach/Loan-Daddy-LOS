@@ -115,7 +115,7 @@ export class PropertyDataService {
         console.log('No Google Maps API key found');
         return null;
       }
-      console.log('Using Google Maps API key:', apiKey.substring(0, 10) + '...');
+      console.log('Calling Google Maps API for:', address.substring(0, 30) + '...');
 
       // Step 1: Geocoding API for address validation and coordinates
       const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${apiKey}`;
