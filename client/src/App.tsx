@@ -19,6 +19,10 @@ const AIAdvisor = React.lazy(() => import("@/pages/ai-advisor"));
 const MarketingDashboard = React.lazy(() => import("@/pages/marketing-dashboard"));
 const PropertySearch = React.lazy(() => import("@/pages/property-search"));
 const PropertyMap = React.lazy(() => import("@/pages/property-map"));
+const PropertyComparison = React.lazy(() => import("@/pages/property-comparison"));
+const MarketTrends = React.lazy(() => import("@/pages/market-trends"));
+const LoanRecommendation = React.lazy(() => import("@/pages/loan-recommendation"));
+const MortgageCalculator = React.lazy(() => import("@/pages/mortgage-calculator"));
 
 function Router() {
   return (

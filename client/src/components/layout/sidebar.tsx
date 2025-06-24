@@ -14,7 +14,9 @@ import {
   Bot,
   Share2,
   UserCheck,
-  MapPin
+  MapPin,
+  TrendingUp,
+  Brain
 } from "lucide-react";
 
 const navigation = [
@@ -30,6 +32,10 @@ const navigation = [
   { name: 'Marketing', href: '/marketing', icon: Share2 },
   { name: 'Property Search', href: '/property-search', icon: MapPin },
   { name: 'Property Map', href: '/property-map', icon: MapPin },
+  { name: 'Property Comparison', href: '/property-comparison', icon: BarChart3 },
+  { name: 'Market Trends', href: '/market-trends', icon: TrendingUp },
+  { name: 'AI Loan Advisor', href: '/loan-recommendation', icon: Brain },
+  { name: 'Mortgage Calculator', href: '/mortgage-calculator', icon: Calculator },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
