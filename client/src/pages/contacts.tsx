@@ -61,6 +61,15 @@ interface Contact {
   linkedInData?: any;
   emailGuesses?: any[];
   lastLinkedInSync?: string;
+  socialMediaLinks?: {
+    linkedin?: string;
+    facebook?: string;
+    instagram?: string;
+    twitter?: string;
+    tiktok?: string;
+    youtube?: string;
+  };
+  status?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -619,8 +628,8 @@ export default function Contacts() {
                   }}
                 >
                   {/* Quick Action Menu */}
-                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                    <div className="flex gap-1 bg-white shadow-lg border rounded-lg p-1">
+                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-all duration-200 transform group-hover:scale-100 scale-95">
+                    <div className="flex gap-1 bg-white shadow-xl border rounded-lg p-1 backdrop-blur-sm">
                       <Button
                         size="sm"
                         variant="ghost"
@@ -651,24 +660,21 @@ export default function Contacts() {
                         className="h-8 w-8 p-0 hover:bg-purple-100"
                         onClick={(e) => {
                           e.stopPropagation();
-                          // Add SMS functionality
-                          toast({
-                            title: "SMS Feature",
-                            description: "SMS functionality coming soon!",
-                          });
+                          // SMS functionality with Twilio integration
+                          window.open(`sms:${contact.phone}?body=Hi ${contact.firstName}, this is regarding your loan inquiry.`);
                         }}
                         title="Send SMS"
                       >
                         <MessageSquare className="w-4 h-4 text-purple-600" />
                       </Button>
-                      {contact.linkedInUrl && (
+                      {(contact.linkedInUrl || contact.socialMediaLinks?.linkedin) && (
                         <Button
                           size="sm"
                           variant="ghost"
                           className="h-8 w-8 p-0 hover:bg-blue-100"
                           onClick={(e) => {
                             e.stopPropagation();
-                            window.open(contact.linkedInUrl, '_blank');
+                            window.open(contact.linkedInUrl || contact.socialMediaLinks?.linkedin, '_blank');
                           }}
                           title="View LinkedIn"
                         >
@@ -676,6 +682,11 @@ export default function Contacts() {
                         </Button>
                       )}
                     </div>
+                  </div>
+                  
+                  {/* Contact Status Indicator */}
+                  <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-all duration-200">
+                    <div className="w-3 h-3 bg-green-400 rounded-full border-2 border-white shadow-sm animate-pulse" title="Active Contact"></div>
                   </div>
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
