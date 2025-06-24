@@ -1185,6 +1185,36 @@ export default function Contacts() {
             )}
           </DialogContent>
         </Dialog>
+
+        {/* Contact Import Wizard */}
+        <ContactImportWizard
+          open={showImportWizard}
+          onOpenChange={setShowImportWizard}
+          onSearch={(query) => linkedInSearchMutation.mutate(query)}
+          onImport={(profileIds) => importLinkedInMutation.mutate(profileIds)}
+          searchResults={linkedInResults}
+          isSearching={linkedInSearchMutation.isPending}
+          isImporting={importLinkedInMutation.isPending}
+          step={importStep}
+          onStepChange={setImportStep}
+          selectedProfiles={selectedLinkedInProfiles}
+          onProfileToggle={(profileId) => {
+            setSelectedLinkedInProfiles(prev => 
+              prev.includes(profileId) 
+                ? prev.filter(id => id !== profileId)
+                : [...prev, profileId]
+            );
+          }}
+        />
+
+        {/* Achievement Panel */}
+        <AchievementPanel
+          open={showAchievements}
+          onOpenChange={setShowAchievements}
+          achievements={getAchievements()}
+          totalPoints={contacts.length * 10}
+          level={Math.floor(contacts.length / 10) + 1}
+        />
       </div>
     </div>
   );
