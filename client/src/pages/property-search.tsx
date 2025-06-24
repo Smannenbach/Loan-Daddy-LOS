@@ -93,7 +93,7 @@ interface PropertyData {
     capRate: number;
   };
   dataSource: string[];
-  lastUpdated: Date;
+  lastUpdated: string;
   confidence: number;
 }
 
@@ -441,7 +441,7 @@ export default function PropertySearch() {
                         </div>
                         <div className="flex justify-between">
                           <span>Last Updated:</span>
-                          <span>{propertyData.lastUpdated.toLocaleDateString()}</span>
+                          <span>{new Date(propertyData.lastUpdated).toLocaleDateString()}</span>
                         </div>
                       </div>
                     </div>
@@ -808,7 +808,7 @@ export default function PropertySearch() {
                       <div>
                         <div className="font-medium">{sale.address}</div>
                         <div className="text-sm text-text-secondary">
-                          {sale.squareFootage.toLocaleString()} sq ft • {new Date(sale.saleDate).toLocaleDateString()}
+                          {sale.squareFootage.toLocaleString()} sq ft • {sale.saleDate}
                         </div>
                       </div>
                       <div className="text-right">
@@ -948,7 +948,7 @@ export default function PropertySearch() {
                 </Badge>
               </div>
               <div className="text-xs text-muted-foreground">
-                Last updated: {propertyData.lastUpdated.toLocaleDateString()} • Data aggregated from {propertyData.dataSource.length} sources
+                Last updated: {new Date(propertyData.lastUpdated).toLocaleDateString()} • Data aggregated from {propertyData.dataSource.length} sources
               </div>
             </CardContent>
           </Card>
