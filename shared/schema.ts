@@ -10,6 +10,73 @@ export const users = pgTable("users", {
   lastName: text("last_name").notNull(),
   email: text("email").notNull().unique(),
   role: text("role").notNull().default("loan_officer"),
+  profilePicture: text("profile_picture"),
+  phone: text("phone"),
+  nmlsId: text("nmls_id"),
+  realEstateLicense: text("real_estate_license"),
+  licenseState: text("license_state"),
+  bio: text("bio"),
+  emailSignature: text("email_signature"),
+  socialMediaLinks: jsonb("social_media_links"), // {linkedin, facebook, instagram, twitter, website}
+  customDomain: text("custom_domain"), // e.g., johnsmith.loandaddy.com
+  websiteEnabled: boolean("website_enabled").default(false),
+  websiteTheme: text("website_theme").default("professional"),
+  websiteContent: jsonb("website_content"),
+  calendarSettings: jsonb("calendar_settings"),
+  timeZone: text("time_zone").default("America/New_York"),
+  workingHours: jsonb("working_hours"), // {monday: {start: "09:00", end: "17:00"}, ...}
+  permissions: text("permissions").array().default([]),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  lastLogin: timestamp("last_login"),
+});
+
+export const userRoles = pgTable("user_roles", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  displayName: text("display_name").notNull(),
+  description: text("description"),
+  permissions: text("permissions").array().notNull(),
+  isSystemRole: boolean("is_system_role").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  createdBy: integer("created_by").references(() => users.id),
+});
+
+export const userCalendars = pgTable("user_calendars", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  name: text("name").notNull(),
+  description: text("description"),
+  color: text("color").default("#3b82f6"),
+  isDefault: boolean("is_default").default(false),
+  isPublic: boolean("is_public").default(false),
+  bookingSettings: jsonb("booking_settings"), // meeting duration, buffer time, etc.
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const calendarEvents = pgTable("calendar_events", {
+  id: serial("id").primaryKey(),
+  calendarId: integer("calendar_id").references(() => userCalendars.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  startTime: timestamp("start_time").notNull(),
+  endTime: timestamp("end_time").notNull(),
+  isAllDay: boolean("is_all_day").default(false),
+  location: text("location"),
+  meetingLink: text("meeting_link"),
+  attendees: jsonb("attendees"), // array of email addresses
+  eventType: text("event_type").default("meeting"), // meeting, call, appointment, deadline
+  loanApplicationId: integer("loan_application_id").references(() => loanApplications.id),
+  contactId: integer("contact_id"),
+  reminderMinutes: integer("reminder_minutes").default(15),
+  recurrence: jsonb("recurrence"), // recurrence rules
+  status: text("status").default("confirmed"), // confirmed, tentative, cancelled
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 export const borrowers = pgTable("borrowers", {

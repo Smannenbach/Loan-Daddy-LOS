@@ -1,4 +1,4 @@
-import fetch from 'node-fetch';
+import * as cheerio from 'cheerio';
 
 export interface PropertyImage {
   url: string;
@@ -39,60 +39,78 @@ export class PropertyImageService {
 
   private async getZillowImages(address: string, city: string, state: string, zipCode: string): Promise<PropertyImage[]> {
     try {
-      // Use Zillow's search API to find property images
-      const searchQuery = `${address}, ${city}, ${state} ${zipCode}`;
+      const searchQuery = encodeURIComponent(`${address}, ${city}, ${state} ${zipCode}`);
+      const searchUrl = `https://www.zillow.com/homes/${searchQuery}_rb/`;
       
-      // Note: This would require proper Zillow API integration
-      // For now, we'll generate predictable image URLs based on Zillow's pattern
-      const propertyId = this.generatePropertyId(address, city, state);
-      
-      return [
-        {
-          url: `https://photos.zillowstatic.com/fp/${propertyId}-p_e.jpg`,
-          source: 'Zillow',
-          type: 'exterior',
-          caption: 'Front exterior view'
-        },
-        {
-          url: `https://photos.zillowstatic.com/fp/${propertyId}-p_f.jpg`,
-          source: 'Zillow',
-          type: 'interior',
-          caption: 'Living room'
-        },
-        {
-          url: `https://photos.zillowstatic.com/fp/${propertyId}-p_g.jpg`,
-          source: 'Zillow',
-          type: 'interior',
-          caption: 'Kitchen'
+      const response = await fetch(searchUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         }
-      ];
+      });
+      
+      if (!response.ok) return [];
+      
+      const html = await response.text();
+      const $ = cheerio.load(html);
+      const images: PropertyImage[] = [];
+      
+      // Scrape Zillow property images
+      $('img[src*="zillowstatic.com"]').each((i, elem) => {
+        const src = $(elem).attr('src');
+        const alt = $(elem).attr('alt') || '';
+        
+        if (src && src.includes('p_e') || src.includes('p_f') || src.includes('bigphoto')) {
+          images.push({
+            url: src,
+            source: 'Zillow',
+            type: src.includes('p_e') ? 'exterior' : 'interior',
+            caption: alt || 'Property photo'
+          });
+        }
+      });
+      
+      return images.slice(0, 5);
     } catch (error) {
-      console.error('Zillow images error:', error);
+      console.error('Zillow scraping error:', error);
       return [];
     }
   }
 
   private async getRealtorImages(address: string, city: string, state: string, zipCode: string): Promise<PropertyImage[]> {
     try {
-      // Realtor.com image patterns
-      const propertyId = this.generatePropertyId(address, city, state);
+      const searchQuery = encodeURIComponent(`${address}, ${city}, ${state} ${zipCode}`);
+      const searchUrl = `https://www.realtor.com/realestateandhomes-search/${city}_${state}/${address.replace(/\s+/g, '-')}`;
       
-      return [
-        {
-          url: `https://ap.rdcpix.com/v01/l/${propertyId}-m0xd-w1020_h770_q80.jpg`,
-          source: 'Realtor.com',
-          type: 'exterior',
-          caption: 'Property exterior'
-        },
-        {
-          url: `https://ap.rdcpix.com/v01/l/${propertyId}-m1xd-w1020_h770_q80.jpg`,
-          source: 'Realtor.com',
-          type: 'interior',
-          caption: 'Interior view'
+      const response = await fetch(searchUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         }
-      ];
+      });
+      
+      if (!response.ok) return [];
+      
+      const html = await response.text();
+      const $ = cheerio.load(html);
+      const images: PropertyImage[] = [];
+      
+      // Scrape Realtor.com property images
+      $('img[src*="rdcpix.com"]').each((i, elem) => {
+        const src = $(elem).attr('src');
+        const alt = $(elem).attr('alt') || '';
+        
+        if (src && (src.includes('bigphoto') || src.includes('photo'))) {
+          images.push({
+            url: src,
+            source: 'Realtor.com',
+            type: i === 0 ? 'exterior' : 'interior',
+            caption: alt || 'Property photo'
+          });
+        }
+      });
+      
+      return images.slice(0, 3);
     } catch (error) {
-      console.error('Realtor.com images error:', error);
+      console.error('Realtor.com scraping error:', error);
       return [];
     }
   }
