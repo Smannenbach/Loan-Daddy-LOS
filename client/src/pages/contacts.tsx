@@ -629,11 +629,11 @@ export default function Contacts() {
                 >
                   {/* Quick Action Menu */}
                   <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-all duration-200 transform group-hover:scale-100 scale-95">
-                    <div className="flex gap-1 bg-white shadow-xl border rounded-lg p-1 backdrop-blur-sm">
+                    <div className="flex gap-1 bg-white/95 shadow-xl border rounded-xl p-1.5 backdrop-blur-sm">
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="h-8 w-8 p-0 hover:bg-blue-100"
+                        className="h-8 w-8 p-0 hover:bg-blue-100 transition-all duration-150 hover:scale-110"
                         onClick={(e) => {
                           e.stopPropagation();
                           window.open(`mailto:${contact.email}`);
@@ -645,7 +645,7 @@ export default function Contacts() {
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="h-8 w-8 p-0 hover:bg-green-100"
+                        className="h-8 w-8 p-0 hover:bg-green-100 transition-all duration-150 hover:scale-110"
                         onClick={(e) => {
                           e.stopPropagation();
                           window.open(`tel:${contact.phone}`);
@@ -657,7 +657,7 @@ export default function Contacts() {
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="h-8 w-8 p-0 hover:bg-purple-100"
+                        className="h-8 w-8 p-0 hover:bg-purple-100 transition-all duration-150 hover:scale-110"
                         onClick={(e) => {
                           e.stopPropagation();
                           // SMS functionality with Twilio integration
@@ -671,7 +671,7 @@ export default function Contacts() {
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="h-8 w-8 p-0 hover:bg-blue-100"
+                          className="h-8 w-8 p-0 hover:bg-blue-100 transition-all duration-150 hover:scale-110"
                           onClick={(e) => {
                             e.stopPropagation();
                             const linkedInUrl = contact.linkedInUrl || contact.socialMediaLinks?.linkedin;
@@ -690,6 +690,13 @@ export default function Contacts() {
                   {/* Contact Status Indicator */}
                   <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-all duration-200">
                     <div className="w-3 h-3 bg-green-400 rounded-full border-2 border-white shadow-sm animate-pulse" title="Active Contact"></div>
+                  </div>
+                  
+                  {/* Contact Type Badge */}
+                  <div className="absolute bottom-2 left-2 opacity-0 group-hover:opacity-100 transition-all duration-200">
+                    <Badge variant="secondary" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                      {typeInfo.label}
+                    </Badge>
                   </div>
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">

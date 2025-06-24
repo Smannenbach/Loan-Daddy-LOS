@@ -656,6 +656,27 @@ export class MemStorage implements IStorage {
     this.loanApplications.set(id, updated);
     return updated;
   }
+
+  // Contacts methods
+  async getAllContacts(): Promise<any[]> {
+    return [];
+  }
+
+  async getContact(id: number): Promise<any> {
+    return undefined;
+  }
+
+  async createContact(contact: any): Promise<any> {
+    return { id: Date.now(), ...contact, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+  }
+
+  async updateContact(id: number, contact: any): Promise<any> {
+    return { id, ...contact, updatedAt: new Date().toISOString() };
+  }
+
+  async deleteContact(id: number): Promise<boolean> {
+    return true;
+  }
 }
 
 export const storage = new MemStorage();
