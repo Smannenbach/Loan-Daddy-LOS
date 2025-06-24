@@ -37,18 +37,30 @@ interface Contact {
   email?: string;
   phone?: string;
   profilePhoto?: string;
+  dateOfBirth?: string;
+  ssn?: string;
+  relationshipStatus?: string;
   company?: string;
   title?: string;
   contactType: string;
   status: string;
   notes?: string;
   tags?: string[];
-  linkedInUrl?: string;
-  website?: string;
-  address?: string;
+  streetAddress?: string;
   city?: string;
   state?: string;
   zipCode?: string;
+  country?: string;
+  socialMediaLinks?: {
+    linkedin?: string;
+    facebook?: string;
+    instagram?: string;
+    twitter?: string;
+    tiktok?: string;
+    youtube?: string;
+  };
+  linkedInUrl?: string;
+  website?: string;
   licenseNumber?: string;
   mlsId?: string;
   lenderId?: string;
@@ -135,18 +147,30 @@ export default function Contacts() {
     email: '',
     phone: '',
     profilePhoto: '',
+    dateOfBirth: '',
+    ssn: '',
+    relationshipStatus: '',
     company: '',
     title: '',
     contactType: '',
     notes: '',
-    address: '',
+    streetAddress: '',
     city: '',
     state: '',
     zipCode: '',
-    licenseNumber: '',
-    mlsId: '',
+    country: 'United States',
+    socialMediaLinks: {
+      linkedin: '',
+      facebook: '',
+      instagram: '',
+      twitter: '',
+      tiktok: '',
+      youtube: ''
+    },
     linkedInUrl: '',
     website: '',
+    licenseNumber: '',
+    mlsId: '',
     source: '',
     tags: []
   });
@@ -378,6 +402,188 @@ export default function Contacts() {
                   </Select>
                 </div>
 
+                {/* Personal Information */}
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="dateOfBirth">Date of Birth</Label>
+                    <Input
+                      id="dateOfBirth"
+                      type="date"
+                      value={newContact.dateOfBirth}
+                      onChange={(e) => setNewContact({...newContact, dateOfBirth: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="ssn">SSN (Last 4 digits)</Label>
+                    <Input
+                      id="ssn"
+                      value={newContact.ssn}
+                      onChange={(e) => setNewContact({...newContact, ssn: e.target.value})}
+                      placeholder="1234"
+                      maxLength={4}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="relationshipStatus">Relationship Status</Label>
+                    <Select 
+                      value={newContact.relationshipStatus} 
+                      onValueChange={(value) => setNewContact({...newContact, relationshipStatus: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="single">Single</SelectItem>
+                        <SelectItem value="married">Married</SelectItem>
+                        <SelectItem value="divorced">Divorced</SelectItem>
+                        <SelectItem value="widowed">Widowed</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Address Information */}
+                <div className="space-y-4">
+                  <h4 className="font-semibold">Address Information</h4>
+                  <div>
+                    <Label htmlFor="streetAddress">Street Address</Label>
+                    <Input
+                      id="streetAddress"
+                      value={newContact.streetAddress}
+                      onChange={(e) => setNewContact({...newContact, streetAddress: e.target.value})}
+                      placeholder="123 Main Street"
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 gap-4">
+                    <div className="col-span-2">
+                      <Label htmlFor="city">City</Label>
+                      <Input
+                        id="city"
+                        value={newContact.city}
+                        onChange={(e) => setNewContact({...newContact, city: e.target.value})}
+                        placeholder="Los Angeles"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="state">State</Label>
+                      <Input
+                        id="state"
+                        value={newContact.state}
+                        onChange={(e) => setNewContact({...newContact, state: e.target.value})}
+                        placeholder="CA"
+                        maxLength={2}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="zipCode">ZIP Code</Label>
+                      <Input
+                        id="zipCode"
+                        value={newContact.zipCode}
+                        onChange={(e) => setNewContact({...newContact, zipCode: e.target.value})}
+                        placeholder="90210"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Social Media Links */}
+                <div className="space-y-4">
+                  <h4 className="font-semibold">Social Media Links</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="linkedin">LinkedIn</Label>
+                      <Input
+                        id="linkedin"
+                        value={newContact.socialMediaLinks.linkedin}
+                        onChange={(e) => setNewContact({
+                          ...newContact, 
+                          socialMediaLinks: {
+                            ...newContact.socialMediaLinks,
+                            linkedin: e.target.value
+                          }
+                        })}
+                        placeholder="https://linkedin.com/in/username"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="facebook">Facebook</Label>
+                      <Input
+                        id="facebook"
+                        value={newContact.socialMediaLinks.facebook}
+                        onChange={(e) => setNewContact({
+                          ...newContact, 
+                          socialMediaLinks: {
+                            ...newContact.socialMediaLinks,
+                            facebook: e.target.value
+                          }
+                        })}
+                        placeholder="https://facebook.com/username"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="instagram">Instagram</Label>
+                      <Input
+                        id="instagram"
+                        value={newContact.socialMediaLinks.instagram}
+                        onChange={(e) => setNewContact({
+                          ...newContact, 
+                          socialMediaLinks: {
+                            ...newContact.socialMediaLinks,
+                            instagram: e.target.value
+                          }
+                        })}
+                        placeholder="https://instagram.com/username"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="twitter">Twitter/X</Label>
+                      <Input
+                        id="twitter"
+                        value={newContact.socialMediaLinks.twitter}
+                        onChange={(e) => setNewContact({
+                          ...newContact, 
+                          socialMediaLinks: {
+                            ...newContact.socialMediaLinks,
+                            twitter: e.target.value
+                          }
+                        })}
+                        placeholder="https://twitter.com/username"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="tiktok">TikTok</Label>
+                      <Input
+                        id="tiktok"
+                        value={newContact.socialMediaLinks.tiktok}
+                        onChange={(e) => setNewContact({
+                          ...newContact, 
+                          socialMediaLinks: {
+                            ...newContact.socialMediaLinks,
+                            tiktok: e.target.value
+                          }
+                        })}
+                        placeholder="https://tiktok.com/@username"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="youtube">YouTube</Label>
+                      <Input
+                        id="youtube"
+                        value={newContact.socialMediaLinks.youtube}
+                        onChange={(e) => setNewContact({
+                          ...newContact, 
+                          socialMediaLinks: {
+                            ...newContact.socialMediaLinks,
+                            youtube: e.target.value
+                          }
+                        })}
+                        placeholder="https://youtube.com/@username"
+                      />
+                    </div>
+                  </div>
+                </div>
+
                 <div>
                   <Label htmlFor="notes">Notes</Label>
                   <Textarea
@@ -469,6 +675,13 @@ export default function Contacts() {
                           <Building2 className="w-4 h-4" />
                           {contact.company}
                           {contact.title && ` - ${contact.title}`}
+                        </div>
+                      )}
+
+                      {(contact.streetAddress || contact.city) && (
+                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                          <MapPin className="w-4 h-4" />
+                          {contact.city}, {contact.state}
                         </div>
                       )}
                       
@@ -566,13 +779,39 @@ export default function Contacts() {
                         </div>
                       </div>
                     </div>
+
+                    <div className="grid grid-cols-3 gap-4">
+                      {selectedContact.dateOfBirth && (
+                        <div>
+                          <Label>Date of Birth</Label>
+                          <p className="mt-1 text-sm">
+                            {new Date(selectedContact.dateOfBirth).toLocaleDateString()}
+                          </p>
+                        </div>
+                      )}
+                      {selectedContact.relationshipStatus && (
+                        <div>
+                          <Label>Relationship Status</Label>
+                          <p className="mt-1 text-sm capitalize">{selectedContact.relationshipStatus}</p>
+                        </div>
+                      )}
+                      {selectedContact.ssn && (
+                        <div>
+                          <Label>SSN (Last 4)</Label>
+                          <p className="mt-1 text-sm font-mono">***-**-{selectedContact.ssn}</p>
+                        </div>
+                      )}
+                    </div>
                     
-                    {selectedContact.address && (
+                    {(selectedContact.streetAddress || selectedContact.city) && (
                       <div>
                         <Label>Address</Label>
                         <p className="mt-1 text-sm">
-                          {selectedContact.address}<br />
+                          {selectedContact.streetAddress && `${selectedContact.streetAddress}\n`}
                           {selectedContact.city}, {selectedContact.state} {selectedContact.zipCode}
+                          {selectedContact.country && selectedContact.country !== 'United States' && (
+                            <br />{selectedContact.country}
+                          )}
                         </p>
                       </div>
                     )}
@@ -591,6 +830,57 @@ export default function Contacts() {
                         </div>
                       )}
                     </div>
+
+                    {/* Social Media Links */}
+                    {selectedContact.socialMediaLinks && Object.values(selectedContact.socialMediaLinks).some(link => link) && (
+                      <div>
+                        <Label>Social Media</Label>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {selectedContact.socialMediaLinks.linkedin && (
+                            <Button variant="outline" size="sm" asChild>
+                              <a href={selectedContact.socialMediaLinks.linkedin} target="_blank" rel="noopener noreferrer">
+                                LinkedIn
+                              </a>
+                            </Button>
+                          )}
+                          {selectedContact.socialMediaLinks.facebook && (
+                            <Button variant="outline" size="sm" asChild>
+                              <a href={selectedContact.socialMediaLinks.facebook} target="_blank" rel="noopener noreferrer">
+                                Facebook
+                              </a>
+                            </Button>
+                          )}
+                          {selectedContact.socialMediaLinks.instagram && (
+                            <Button variant="outline" size="sm" asChild>
+                              <a href={selectedContact.socialMediaLinks.instagram} target="_blank" rel="noopener noreferrer">
+                                Instagram
+                              </a>
+                            </Button>
+                          )}
+                          {selectedContact.socialMediaLinks.twitter && (
+                            <Button variant="outline" size="sm" asChild>
+                              <a href={selectedContact.socialMediaLinks.twitter} target="_blank" rel="noopener noreferrer">
+                                Twitter/X
+                              </a>
+                            </Button>
+                          )}
+                          {selectedContact.socialMediaLinks.tiktok && (
+                            <Button variant="outline" size="sm" asChild>
+                              <a href={selectedContact.socialMediaLinks.tiktok} target="_blank" rel="noopener noreferrer">
+                                TikTok
+                              </a>
+                            </Button>
+                          )}
+                          {selectedContact.socialMediaLinks.youtube && (
+                            <Button variant="outline" size="sm" asChild>
+                              <a href={selectedContact.socialMediaLinks.youtube} target="_blank" rel="noopener noreferrer">
+                                YouTube
+                              </a>
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </TabsContent>
                   
                   <TabsContent value="interactions">
