@@ -756,7 +756,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Input parameter required" });
       }
 
-      const apiKey = process.env.GOOGLE_MAPS_API_KEY || "AIzaSyBBBEZc_XLQXrCOs4Y4VgpOQdhUqFo4lCE";
+      const apiKey = process.env.GOOGLE_MAPS_API_KEY || "AIzaSyB_eOoP_huU27PjXO4LMQCnopqsGSLckBE";
       const response = await fetch(
         `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(input)}&types=address&key=${apiKey}`
       );
