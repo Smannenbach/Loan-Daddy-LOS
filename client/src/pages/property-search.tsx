@@ -116,6 +116,11 @@ export default function PropertySearch() {
   const [videoTourLoading, setVideoTourLoading] = useState(false);
   const [videoTour, setVideoTour] = useState<any>(null);
   const [showVideoDialog, setShowVideoDialog] = useState(false);
+  
+  // Property images states
+  const [propertyImages, setPropertyImages] = useState<any[]>([]);
+  const [streetViewUrl, setStreetViewUrl] = useState<string>('');
+  const [imagesLoading, setImagesLoading] = useState(false);
 
   const searchMutation = useMutation({
     mutationFn: async (searchAddress: string) => {
@@ -394,7 +399,7 @@ export default function PropertySearch() {
 
       {/* Property Data Results */}
       {propertyData && !error && (
-        <div className="space-y-6 max-h-screen overflow-y-auto">
+        <div className="space-y-6">
           {/* Property Overview */}
           <Card>
             <CardHeader>

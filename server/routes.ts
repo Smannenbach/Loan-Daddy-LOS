@@ -17,6 +17,7 @@ import { aiMarketAnalyzer, type MarketAnalysisRequest } from "./ai-market-analys
 import { propertyDataService } from "./property-data-service";
 import { pricingEngine, type PricingRequest } from "./pricing-engine";
 import type { PropertyVideoTourRequest } from "./video-tour-generator";
+import { propertyImageService } from "./property-image-service";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -832,6 +833,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Thumbnail generation error:', error);
       res.status(500).json({ error: 'Failed to generate thumbnail' });
+    }
+  });
+
+  // Property images endpoint
+  app.get('/api/property-images', async (req, res) => {
+    try {
+      const { address, city, state, zipCode } = req.query;
+      
+      if (!address || !city || !state) {
+        return res.status(400).json({ error: 'Address, city, and state are required' });
+      }
+
+      const images = await propertyImageService.getPropertyImages(
+        address as string, 
+        city as string, 
+        state as string, 
+        zipCode as string || ''
+      );
+      
+      // Also get street view
+      const streetViewUrl = await propertyImageService.getStreetViewImage(
+        address as string,
+        city as string,
+        state as string
+      );
+
+      res.json({
+        images,
+        streetView: streetViewUrl
+      });
+    } catch (error) {
+      console.error('Property images error:', error);
+      res.status(500).json({ error: 'Failed to fetch property images' });
     }
   });
 
