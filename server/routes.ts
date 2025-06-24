@@ -1064,22 +1064,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
           connectionLevel: 'Public',
           profileUrl: 'https://linkedin.com/in/jameswilson',
         },
+        {
+          id: 4,
+          firstName: 'Jennifer',
+          lastName: 'Lee',
+          headline: 'Commercial Real Estate Broker at Lee & Associates',
+          currentPosition: {
+            title: 'Commercial Broker',
+            company: 'Lee & Associates'
+          },
+          location: 'Seattle, WA',
+          connectionLevel: '2nd',
+          profileUrl: 'https://linkedin.com/in/jenniferlee',
+        },
+        {
+          id: 5,
+          firstName: 'Robert',
+          lastName: 'Chen',
+          headline: 'Real Estate Investment Analyst at Capital Partners',
+          currentPosition: {
+            title: 'Investment Analyst',
+            company: 'Capital Partners'
+          },
+          location: 'New York, NY',
+          connectionLevel: '3rd',
+          profileUrl: 'https://linkedin.com/in/robertchen',
+        },
       ];
-      
-      const searchRequest = {
-        query: query as string,
-        location: location as string,
-        industry: industry as string,
-        currentCompany: currentCompany as string,
-        title: title as string,
-        limit: parseInt(limit as string),
-        offset: parseInt(offset as string)
-      };
 
       // For demo, return mock results filtered by query
       const filteredResults = mockResults.filter(profile => 
-        profile.headline.toLowerCase().includes((query as string || '').toLowerCase()) ||
-        profile.currentPosition.title.toLowerCase().includes((query as string || '').toLowerCase())
+        !query || 
+        profile.headline.toLowerCase().includes((query as string).toLowerCase()) ||
+        profile.currentPosition.title.toLowerCase().includes((query as string).toLowerCase()) ||
+        profile.currentPosition.company.toLowerCase().includes((query as string).toLowerCase())
       );
 
       res.json(filteredResults);
