@@ -12,10 +12,12 @@ import Underwriting from "@/pages/underwriting";
 import Communications from "@/pages/communications";
 import Reports from "@/pages/reports";
 import NotFound from "@/pages/not-found";
-import AIAdvisor from "@/pages/ai-advisor";
-import MarketingDashboard from "@/pages/marketing-dashboard";
-import PropertySearch from "@/pages/property-search";
 import Sidebar from "@/components/layout/sidebar";
+
+// Lazy load new pages to avoid bundle size issues
+const AIAdvisor = React.lazy(() => import("@/pages/ai-advisor"));
+const MarketingDashboard = React.lazy(() => import("@/pages/marketing-dashboard"));
+const PropertySearch = React.lazy(() => import("@/pages/property-search"));
 
 function Router() {
   return (
@@ -30,6 +32,27 @@ function Router() {
           <Route path="/underwriting" component={Underwriting} />
           <Route path="/communications" component={Communications} />
           <Route path="/reports" component={Reports} />
+          <Route path="/ai-advisor" component={() => (
+            <React.Suspense fallback={<div className="p-8">Loading AI Advisor...</div>}>
+              <AIAdvisor />
+            </React.Suspense>
+          )} />
+          <Route path="/marketing" component={() => (
+            <React.Suspense fallback={<div className="p-8">Loading Marketing Dashboard...</div>}>
+              <MarketingDashboard />
+            </React.Suspense>
+          )} />
+          <Route path="/property-search" component={() => (
+            <React.Suspense fallback={<div className="p-8">Loading Property Search...</div>}>
+              <PropertySearch />
+            </React.Suspense>
+          )} />
+          <Route path="/settings" component={() => (
+            <div className="p-8">
+              <h1 className="text-2xl font-bold mb-4">Settings</h1>
+              <p>Settings page coming soon...</p>
+            </div>
+          )} />
           <Route path="/customer-portal" component={() => {
             const params = new URLSearchParams(window.location.search);
             const token = params.get('token');
