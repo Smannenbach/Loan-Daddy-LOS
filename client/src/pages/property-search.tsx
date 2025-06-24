@@ -105,35 +105,6 @@ export default function PropertySearch() {
   const [searchType, setSearchType] = useState<'unit' | 'building'>('unit');
   const { toast } = useToast();
 
-  // Address autocomplete with Google Places API
-  useEffect(() => {
-    if (address.length > 3) {
-      const timeoutId = setTimeout(() => {
-        fetchAddressSuggestions(address);
-      }, 300);
-      return () => clearTimeout(timeoutId);
-    } else {
-      setAddressSuggestions([]);
-      setShowSuggestions(false);
-    }
-  }, [address]);
-
-  const fetchAddressSuggestions = async (query: string) => {
-    try {
-      const response = await fetch(`https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(query)}&types=address&key=AIzaSyBBBEZc_XLQXrCOs4Y4VgpOQdhUqFo4lCE`);
-      const data = await response.json();
-      if (data.predictions) {
-        const suggestions = data.predictions.map((p: any) => p.description).slice(0, 5);
-        setAddressSuggestions(suggestions);
-        setShowSuggestions(true);
-      }
-    } catch (error) {
-      console.error('Error fetching address suggestions:', error);
-    }
-  };
-
-
-
   const searchMutation = useMutation({
     mutationFn: async (searchAddress: string) => {
       const response = await fetch(`/api/property-data?address=${encodeURIComponent(searchAddress)}&searchType=${searchType}`);
@@ -170,6 +141,33 @@ export default function PropertySearch() {
     }
     setShowSuggestions(false);
     searchMutation.mutate(address);
+  };
+
+  // Address autocomplete with Google Places API
+  useEffect(() => {
+    if (address.length > 3) {
+      const timeoutId = setTimeout(() => {
+        fetchAddressSuggestions(address);
+      }, 300);
+      return () => clearTimeout(timeoutId);
+    } else {
+      setAddressSuggestions([]);
+      setShowSuggestions(false);
+    }
+  }, [address]);
+
+  const fetchAddressSuggestions = async (query: string) => {
+    try {
+      const response = await fetch(`https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(query)}&types=address&key=AIzaSyBBBEZc_XLQXrCOs4Y4VgpOQdhUqFo4lCE`);
+      const data = await response.json();
+      if (data.predictions) {
+        const suggestions = data.predictions.map((p: any) => p.description).slice(0, 5);
+        setAddressSuggestions(suggestions);
+        setShowSuggestions(true);
+      }
+    } catch (error) {
+      console.error('Error fetching address suggestions:', error);
+    }
   };
 
   const copyToClipboard = (text: string) => {
