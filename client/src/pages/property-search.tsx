@@ -132,11 +132,7 @@ export default function PropertySearch() {
     }
   };
 
-  const selectSuggestion = (suggestion: string) => {
-    setAddress(suggestion);
-    setShowSuggestions(false);
-    searchMutation.mutate(suggestion);
-  };
+
 
   const searchMutation = useMutation({
     mutationFn: async (searchAddress: string) => {
@@ -254,8 +250,8 @@ export default function PropertySearch() {
                 <Input
                   id="address"
                   placeholder="123 Main St, City, State 12345"
-                  value={searchAddress || address}
-                  onChange={(e) => handleAddressChange(e.target.value)}
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                   onFocus={() => setShowSuggestions(addressSuggestions.length > 0)}
                   onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
@@ -266,7 +262,11 @@ export default function PropertySearch() {
                       <div
                         key={index}
                         className="px-4 py-2 hover:bg-gray-50 cursor-pointer text-sm"
-                        onClick={() => selectSuggestion(suggestion)}
+                        onClick={() => {
+                          setAddress(suggestion);
+                          setShowSuggestions(false);
+                          searchMutation.mutate(suggestion);
+                        }}
                       >
                         {suggestion}
                       </div>
