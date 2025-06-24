@@ -116,19 +116,9 @@ export default function PropertySearch() {
 
   const handleAddressChange = (value: string) => {
     setSearchAddress(value);
-    // Simulate address suggestions - in real app would call geocoding API
-    if (value.length > 3) {
-      const mockSuggestions = [
-        `${value} Main St, San Francisco, CA 94102`,
-        `${value} Oak Ave, Los Angeles, CA 90210`,
-        `${value} Pine Rd, San Diego, CA 92101`,
-      ];
-      setAddressSuggestions(mockSuggestions);
-      setShowSuggestions(true);
-    } else {
-      setAddressSuggestions([]);
-      setShowSuggestions(false);
-    }
+    // Clear suggestions since we don't have a geocoding service integrated
+    setAddressSuggestions([]);
+    setShowSuggestions(false);
   };
 
   const formatCurrency = (amount: number) => {
@@ -186,8 +176,8 @@ export default function PropertySearch() {
                   value={searchAddress}
                   onChange={(e) => handleAddressChange(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                  onFocus={() => setShowSuggestions(addressSuggestions.length > 0)}
-                  onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                  onFocus={() => setShowSuggestions(false)}
+                  onBlur={() => setShowSuggestions(false)}
                 />
                 {showSuggestions && addressSuggestions.length > 0 && (
                   <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
