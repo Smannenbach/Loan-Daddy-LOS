@@ -92,11 +92,124 @@ export class PropertyDataService {
           confidence: 95
         };
       }
+
+      // Try Google Maps APIs if available
+      if (process.env.GOOGLE_MAPS_API_KEY) {
+        const googleData = await this.getFromGoogleMaps(address);
+        if (googleData) {
+          return googleData;
+        }
+      }
+
       return null;
     } catch (error) {
       console.error('Public source error:', error);
       return null;
     }
+  }
+
+  private async getFromGoogleMaps(address: string): Promise<PropertyData | null> {
+    try {
+      const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+      if (!apiKey) return null;
+
+      // First, geocode the address to get coordinates and validated address
+      const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${apiKey}`;
+      const geocodeResponse = await fetch(geocodeUrl);
+      const geocodeData = await geocodeResponse.json();
+
+      if (geocodeData.status !== 'OK' || !geocodeData.results[0]) {
+        return null;
+      }
+
+      const result = geocodeData.results[0];
+      const location = result.geometry.location;
+      const addressComponents = result.address_components;
+
+      // Parse address components
+      const parsedAddress = this.parseGoogleAddressComponents(addressComponents);
+      
+      // Use Places API to get more detailed information about the property
+      const placesUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${location.lat},${location.lng}&radius=10&type=premise&key=${apiKey}`;
+      const placesResponse = await fetch(placesUrl);
+      const placesData = await placesResponse.json();
+
+      // For now, return basic information from geocoding
+      // This would be enhanced with additional APIs for property values, etc.
+      return {
+        address: parsedAddress.street,
+        city: parsedAddress.city,
+        state: parsedAddress.state,
+        zipCode: parsedAddress.zipCode,
+        estimatedValue: 0, // Would need additional property value API
+        yearBuilt: 0, // Would need additional property history API
+        squareFootage: 0, // Would need additional property details API
+        propertyType: 'Unknown',
+        bedrooms: 0,
+        bathrooms: 0,
+        lotSize: 0,
+        annualPropertyTaxes: 0,
+        monthlyPropertyTaxes: 0,
+        estimatedInsurance: 0,
+        monthlyInsurance: 0,
+        neighborhood: parsedAddress.neighborhood || 'Unknown',
+        walkScore: 0,
+        schoolRatings: [],
+        recentSales: [],
+        marketTrends: {
+          priceChange30Days: 0,
+          priceChange90Days: 0,
+          priceChangeYearly: 0,
+          inventoryLevel: 'Unknown',
+          daysOnMarket: 0
+        },
+        rentalEstimates: {
+          monthlyRent: 0,
+          rentPerSqFt: 0,
+          occupancyRate: 0,
+          capRate: 0
+        },
+        dataSource: ['Google Maps'],
+        lastUpdated: new Date(),
+        confidence: 40 // Lower confidence until we integrate property value APIs
+      };
+    } catch (error) {
+      console.error('Google Maps API error:', error);
+      return null;
+    }
+  }
+
+  private parseGoogleAddressComponents(components: any[]): any {
+    const result = {
+      street: '',
+      city: '',
+      state: '',
+      zipCode: '',
+      neighborhood: ''
+    };
+
+    for (const component of components) {
+      const types = component.types;
+      
+      if (types.includes('street_number') || types.includes('route')) {
+        result.street += component.long_name + ' ';
+      }
+      if (types.includes('locality')) {
+        result.city = component.long_name;
+      }
+      if (types.includes('administrative_area_level_1')) {
+        result.state = component.short_name;
+      }
+      if (types.includes('postal_code')) {
+        result.zipCode = component.long_name;
+      }
+      if (types.includes('neighborhood')) {
+        result.neighborhood = component.long_name;
+      }
+    }
+
+    result.street = result.street.trim();
+    return result;
   }
 
   private async geocodeAddress(address: string): Promise<any> {
@@ -167,11 +280,8 @@ export class PropertyDataService {
   private getKnownPropertyData(address: string): Partial<PropertyData> | null {
     const normalizedAddress = address.toLowerCase().replace(/\s+/g, ' ').trim();
     
-    console.log('Checking address:', normalizedAddress); // Debug log
-    
     // Data from Zillow screenshot for 15380 Ellendale Rd, Dallas, OR 97338
-    if (normalizedAddress.includes('15380') && (normalizedAddress.includes('ellendale') || normalizedAddress.includes('w ellendale'))) {
-      console.log('Found matching address for 15380 Ellendale'); // Debug log
+    if (normalizedAddress.includes('15380') && normalizedAddress.includes('ellendale')) {
       return {
         estimatedValue: 1126900,
         yearBuilt: 1990,
