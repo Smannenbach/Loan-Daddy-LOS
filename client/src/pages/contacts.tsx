@@ -27,7 +27,8 @@ import {
   Tag,
   Filter,
   Star,
-  Home
+  Home,
+  MapPin
 } from "lucide-react";
 
 interface Contact {
