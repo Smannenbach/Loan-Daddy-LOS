@@ -12,6 +12,9 @@ import Underwriting from "@/pages/underwriting";
 import Communications from "@/pages/communications";
 import Reports from "@/pages/reports";
 import NotFound from "@/pages/not-found";
+import AIAdvisor from "@/pages/ai-advisor";
+import MarketingDashboard from "@/pages/marketing-dashboard";
+import PropertySearch from "@/pages/property-search";
 import Sidebar from "@/components/layout/sidebar";
 
 function Router() {

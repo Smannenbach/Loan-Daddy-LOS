@@ -11,8 +11,14 @@ import {
   insertTemplateSchema,
   insertCallLogSchema
 } from "@shared/schema";
+import { marketingIntegrations, type WebhookPayload } from "./marketing-integrations";
+import { aiLoanAdvisor, type BorrowerProfile } from "./ai-loan-advisor";
+import { propertyDataService } from "./property-data-service";
+import { pricingEngine, type PricingRequest } from "./pricing-engine";
 import multer from "multer";
 import path from "path";
+import fs from "fs";
+import { z } from "zod";
 
 // Configure multer for file uploads
 const upload = multer({
