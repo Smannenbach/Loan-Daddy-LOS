@@ -16,7 +16,9 @@ import {
   UserCheck,
   MapPin,
   TrendingUp,
-  Brain
+  Brain,
+  Users,
+  Shield
 } from "lucide-react";
 
 const navigation = [
@@ -27,6 +29,8 @@ const navigation = [
   { name: 'Underwriting', href: '/underwriting', icon: Calculator },
   { name: 'Communications', href: '/communications', icon: MessageSquare },
   { name: 'Reports', href: '/reports', icon: ChartBar },
+  { name: 'Contacts', href: '/contacts', icon: Users },
+  { name: 'Team Management', href: '/team-management', icon: UserCheck },
   { name: 'Customer Portal', href: '/customer-portal', icon: UserCheck },
   { name: 'AI Advisor', href: '/ai-advisor', icon: Bot },
   { name: 'Marketing', href: '/marketing', icon: Share2 },
@@ -36,6 +40,8 @@ const navigation = [
   { name: 'Market Trends', href: '/market-trends', icon: TrendingUp },
   { name: 'AI Loan Advisor', href: '/loan-recommendation', icon: Brain },
   { name: 'Mortgage Calculator', href: '/mortgage-calculator', icon: Calculator },
+  { name: 'Profile', href: '/profile', icon: User },
+  { name: 'Permissions', href: '/permissions', icon: Shield },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 

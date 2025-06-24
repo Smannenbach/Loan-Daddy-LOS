@@ -23,6 +23,10 @@ const PropertyComparison = React.lazy(() => import("@/pages/property-comparison"
 const MarketTrends = React.lazy(() => import("@/pages/market-trends"));
 const LoanRecommendation = React.lazy(() => import("@/pages/loan-recommendation"));
 const MortgageCalculator = React.lazy(() => import("@/pages/mortgage-calculator"));
+const Contacts = React.lazy(() => import("@/pages/contacts"));
+const TeamManagement = React.lazy(() => import("@/pages/team-management"));
+const Profile = React.lazy(() => import("@/pages/profile"));
+const Permissions = React.lazy(() => import("@/pages/permissions"));
 
 function Router() {
   return (
@@ -75,6 +79,26 @@ function Router() {
           <Route path="/mortgage-calculator" component={() => (
             <React.Suspense fallback={<div className="p-8">Loading Mortgage Calculator...</div>}>
               <MortgageCalculator />
+            </React.Suspense>
+          )} />
+          <Route path="/contacts" component={() => (
+            <React.Suspense fallback={<div className="p-8">Loading Contacts...</div>}>
+              <Contacts />
+            </React.Suspense>
+          )} />
+          <Route path="/team-management" component={() => (
+            <React.Suspense fallback={<div className="p-8">Loading Team Management...</div>}>
+              <TeamManagement />
+            </React.Suspense>
+          )} />
+          <Route path="/profile" component={() => (
+            <React.Suspense fallback={<div className="p-8">Loading Profile...</div>}>
+              <Profile />
+            </React.Suspense>
+          )} />
+          <Route path="/permissions" component={() => (
+            <React.Suspense fallback={<div className="p-8">Loading Permissions...</div>}>
+              <Permissions />
             </React.Suspense>
           )} />
           <Route path="/settings" component={() => (
