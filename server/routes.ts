@@ -608,6 +608,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const application = await storage.getLoanApplication(session.loanApplicationId);
+      if (!application) {
+        return res.status(404).json({ message: "Application not found" });
+      }
       const requirements = await storage.getDocumentRequirements(application.loanType);
       res.json(requirements);
     } catch (error) {
