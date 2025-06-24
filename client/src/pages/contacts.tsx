@@ -36,8 +36,8 @@ interface Contact {
   id: number;
   firstName: string;
   lastName: string;
-  email?: string;
-  phone?: string;
+  email: string;
+  phone: string;
   profilePhoto?: string;
   dateOfBirth?: string;
   ssn?: string;
@@ -45,31 +45,22 @@ interface Contact {
   company?: string;
   title?: string;
   contactType: string;
-  status: string;
   notes?: string;
-  tags?: string[];
   streetAddress?: string;
   city?: string;
   state?: string;
   zipCode?: string;
   country?: string;
-  socialMediaLinks?: {
-    linkedin?: string;
-    facebook?: string;
-    instagram?: string;
-    twitter?: string;
-    tiktok?: string;
-    youtube?: string;
-  };
   linkedInUrl?: string;
   website?: string;
   licenseNumber?: string;
   mlsId?: string;
-  lenderId?: string;
-  brokerageId?: string;
-  lastContactDate?: string;
-  source?: string;
-  referredBy?: number;
+  source: string;
+  tags?: string[];
+  linkedInProfile?: string;
+  linkedInData?: any;
+  emailGuesses?: any[];
+  lastLinkedInSync?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -641,8 +632,8 @@ export default function Contacts() {
                           </CardDescription>
                         </div>
                       </div>
-                      <Badge className={`text-xs ${getStatusColor(contact.status)}`}>
-                        {contact.status}
+                      <Badge className={`text-xs bg-green-100 text-green-800`}>
+                        Active
                       </Badge>
                     </div>
                   </CardHeader>
