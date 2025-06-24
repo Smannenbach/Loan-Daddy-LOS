@@ -42,7 +42,7 @@ export const loanApplications = pgTable("loan_applications", {
   borrowerId: integer("borrower_id").notNull(),
   propertyId: integer("property_id").notNull(),
   loanOfficerId: integer("loan_officer_id").notNull(),
-  loanType: text("loan_type").notNull(), // 'dscr' or 'fix-n-flip'
+  loanType: text("loan_type").notNull(), // 'dscr', 'fix-n-flip', 'hard-money', 'commercial-real-estate', 'private-money', 'bridge', 'construction', 'multifamily'
   requestedAmount: decimal("requested_amount", { precision: 12, scale: 2 }).notNull(),
   status: text("status").notNull().default("application"), // application, document_review, underwriting, approved, declined
   ltv: decimal("ltv", { precision: 5, scale: 2 }), // Loan to Value ratio
@@ -51,6 +51,9 @@ export const loanApplications = pgTable("loan_applications", {
   termMonths: integer("term_months"),
   monthlyRent: decimal("monthly_rent", { precision: 10, scale: 2 }),
   monthlyExpenses: decimal("monthly_expenses", { precision: 10, scale: 2 }),
+  loanPurpose: text("loan_purpose"), // purchase, refinance, construction, renovation
+  exitStrategy: text("exit_strategy"), // sale, refinance, hold
+  experienceLevel: text("experience_level"), // beginner, intermediate, experienced
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),

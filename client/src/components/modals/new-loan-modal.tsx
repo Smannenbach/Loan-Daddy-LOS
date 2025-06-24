@@ -15,7 +15,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 const loanApplicationSchema = z.object({
-  loanType: z.enum(['dscr', 'fix-n-flip']),
+  loanType: z.enum(['dscr', 'fix-n-flip', 'hard-money', 'commercial-real-estate', 'private-money', 'bridge', 'construction', 'multifamily']),
   borrower: z.object({
     firstName: z.string().min(1, "First name is required"),
     lastName: z.string().min(1, "Last name is required"),
@@ -42,6 +42,9 @@ const loanApplicationSchema = z.object({
   termMonths: z.string().optional(),
   monthlyRent: z.string().optional(),
   monthlyExpenses: z.string().optional(),
+  loanPurpose: z.string().optional(),
+  exitStrategy: z.string().optional(),
+  experienceLevel: z.string().optional(),
   notes: z.string().optional(),
 });
 
@@ -138,20 +141,62 @@ export default function NewLoanModal({ open, onClose }: NewLoanModalProps) {
                     <RadioGroup
                       onValueChange={field.onChange}
                       defaultValue={field.value}
-                      className="grid grid-cols-2 gap-4"
+                      className="grid grid-cols-2 lg:grid-cols-4 gap-3"
                     >
-                      <div className="flex items-center p-4 border-2 border-gray-200 rounded-lg hover:border-primary">
-                        <RadioGroupItem value="dscr" id="dscr" className="mr-3" />
+                      <div className="flex items-center p-3 border-2 border-gray-200 rounded-lg hover:border-primary">
+                        <RadioGroupItem value="dscr" id="dscr" className="mr-2" />
                         <Label htmlFor="dscr" className="flex-1 cursor-pointer">
-                          <div className="font-medium text-text-primary">DSCR Loan</div>
-                          <div className="text-sm text-text-secondary">Debt Service Coverage Ratio</div>
+                          <div className="font-medium text-text-primary text-sm">DSCR</div>
+                          <div className="text-xs text-text-secondary">Debt Service Coverage</div>
                         </Label>
                       </div>
-                      <div className="flex items-center p-4 border-2 border-gray-200 rounded-lg hover:border-primary">
-                        <RadioGroupItem value="fix-n-flip" id="fix-n-flip" className="mr-3" />
+                      <div className="flex items-center p-3 border-2 border-gray-200 rounded-lg hover:border-primary">
+                        <RadioGroupItem value="fix-n-flip" id="fix-n-flip" className="mr-2" />
                         <Label htmlFor="fix-n-flip" className="flex-1 cursor-pointer">
-                          <div className="font-medium text-text-primary">Fix-N-Flip</div>
-                          <div className="text-sm text-text-secondary">Property renovation loan</div>
+                          <div className="font-medium text-text-primary text-sm">Fix-N-Flip</div>
+                          <div className="text-xs text-text-secondary">Property renovation</div>
+                        </Label>
+                      </div>
+                      <div className="flex items-center p-3 border-2 border-gray-200 rounded-lg hover:border-primary">
+                        <RadioGroupItem value="hard-money" id="hard-money" className="mr-2" />
+                        <Label htmlFor="hard-money" className="flex-1 cursor-pointer">
+                          <div className="font-medium text-text-primary text-sm">Hard Money</div>
+                          <div className="text-xs text-text-secondary">Asset-based lending</div>
+                        </Label>
+                      </div>
+                      <div className="flex items-center p-3 border-2 border-gray-200 rounded-lg hover:border-primary">
+                        <RadioGroupItem value="commercial-real-estate" id="commercial-real-estate" className="mr-2" />
+                        <Label htmlFor="commercial-real-estate" className="flex-1 cursor-pointer">
+                          <div className="font-medium text-text-primary text-sm">Commercial RE</div>
+                          <div className="text-xs text-text-secondary">Commercial property</div>
+                        </Label>
+                      </div>
+                      <div className="flex items-center p-3 border-2 border-gray-200 rounded-lg hover:border-primary">
+                        <RadioGroupItem value="private-money" id="private-money" className="mr-2" />
+                        <Label htmlFor="private-money" className="flex-1 cursor-pointer">
+                          <div className="font-medium text-text-primary text-sm">Private Money</div>
+                          <div className="text-xs text-text-secondary">Private lending</div>
+                        </Label>
+                      </div>
+                      <div className="flex items-center p-3 border-2 border-gray-200 rounded-lg hover:border-primary">
+                        <RadioGroupItem value="bridge" id="bridge" className="mr-2" />
+                        <Label htmlFor="bridge" className="flex-1 cursor-pointer">
+                          <div className="font-medium text-text-primary text-sm">Bridge Loan</div>
+                          <div className="text-xs text-text-secondary">Short-term financing</div>
+                        </Label>
+                      </div>
+                      <div className="flex items-center p-3 border-2 border-gray-200 rounded-lg hover:border-primary">
+                        <RadioGroupItem value="construction" id="construction" className="mr-2" />
+                        <Label htmlFor="construction" className="flex-1 cursor-pointer">
+                          <div className="font-medium text-text-primary text-sm">Construction</div>
+                          <div className="text-xs text-text-secondary">New construction</div>
+                        </Label>
+                      </div>
+                      <div className="flex items-center p-3 border-2 border-gray-200 rounded-lg hover:border-primary">
+                        <RadioGroupItem value="multifamily" id="multifamily" className="mr-2" />
+                        <Label htmlFor="multifamily" className="flex-1 cursor-pointer">
+                          <div className="font-medium text-text-primary text-sm">Multifamily</div>
+                          <div className="text-xs text-text-secondary">Multi-unit property</div>
                         </Label>
                       </div>
                     </RadioGroup>

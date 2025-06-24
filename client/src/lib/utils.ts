@@ -66,6 +66,18 @@ export function getLoanTypeColor(loanType: string): string {
       return 'bg-blue-100 text-blue-800';
     case 'fix-n-flip':
       return 'bg-green-100 text-green-800';
+    case 'hard-money':
+      return 'bg-purple-100 text-purple-800';
+    case 'commercial-real-estate':
+      return 'bg-indigo-100 text-indigo-800';
+    case 'private-money':
+      return 'bg-yellow-100 text-yellow-800';
+    case 'bridge':
+      return 'bg-orange-100 text-orange-800';
+    case 'construction':
+      return 'bg-red-100 text-red-800';
+    case 'multifamily':
+      return 'bg-teal-100 text-teal-800';
     default:
       return 'bg-gray-100 text-gray-800';
   }
@@ -77,6 +89,18 @@ export function getLoanTypeLabel(loanType: string): string {
       return 'DSCR';
     case 'fix-n-flip':
       return 'Fix-N-Flip';
+    case 'hard-money':
+      return 'Hard Money';
+    case 'commercial-real-estate':
+      return 'Commercial Real Estate';
+    case 'private-money':
+      return 'Private Money';
+    case 'bridge':
+      return 'Bridge Loan';
+    case 'construction':
+      return 'Construction';
+    case 'multifamily':
+      return 'Multifamily';
     default:
       return loanType;
   }
