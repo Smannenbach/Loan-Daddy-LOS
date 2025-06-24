@@ -240,7 +240,7 @@ export class PropertyDataService {
         rentalEstimates: searchType === 'building' && isMultifamily 
           ? this.generateCommercialRentalEstimates(estimatedValue, this.estimateUnitsFromAddress(parsedAddress), parsedAddress)
           : this.generateRentalEstimates(estimatedValue, squareFootage),
-        dataSource: ['Google Maps API', 'Geocoding API', 'Places API'],
+        dataSource: ['Google Maps API', 'Geocoding API', 'Places API', 'Address Validation API', 'Elevation API', 'Timezone API'],
         lastUpdated: new Date(),
         confidence: 92 // Very high confidence with comprehensive Google APIs
       };
