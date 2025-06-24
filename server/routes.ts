@@ -16,6 +16,7 @@ import { aiLoanAdvisor, type BorrowerProfile } from "./ai-loan-advisor";
 import { aiMarketAnalyzer, type MarketAnalysisRequest } from "./ai-market-analysis";
 import { propertyDataService } from "./property-data-service";
 import { pricingEngine, type PricingRequest } from "./pricing-engine";
+import type { PropertyVideoTourRequest } from "./video-tour-generator";
 import multer from "multer";
 import path from "path";
 import fs from "fs";

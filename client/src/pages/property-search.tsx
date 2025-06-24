@@ -27,7 +27,13 @@ import {
   Shield,
   School,
   Car,
-  Activity
+  Activity,
+  Video,
+  PlayCircle,
+  Download,
+  Share2,
+  Clock,
+  Users
 } from "lucide-react";
 
 interface PropertyData {
@@ -628,7 +634,7 @@ export default function PropertySearch() {
                       Property Sales History
                     </h4>
                     <div className="space-y-3">
-                      {propertyData.salesHistory.map((sale, index) => (
+                      {propertyData.salesHistory?.map((sale, index) => (
                         <div key={index} className="flex justify-between items-center p-3 border rounded-lg">
                           <div>
                             <div className="font-medium">{sale.date}</div>
