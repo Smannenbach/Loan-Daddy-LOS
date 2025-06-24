@@ -254,11 +254,11 @@ export default function PropertySearch() {
                 <Input
                   id="address"
                   placeholder="123 Main St, City, State 12345"
-                  value={searchAddress}
+                  value={searchAddress || address}
                   onChange={(e) => handleAddressChange(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                  onFocus={() => setShowSuggestions(false)}
-                  onBlur={() => setShowSuggestions(false)}
+                  onFocus={() => setShowSuggestions(addressSuggestions.length > 0)}
+                  onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                 />
                 {showSuggestions && addressSuggestions.length > 0 && (
                   <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
@@ -266,10 +266,7 @@ export default function PropertySearch() {
                       <div
                         key={index}
                         className="px-4 py-2 hover:bg-gray-50 cursor-pointer text-sm"
-                        onClick={() => {
-                          setSearchAddress(suggestion);
-                          setShowSuggestions(false);
-                        }}
+                        onClick={() => selectSuggestion(suggestion)}
                       >
                         {suggestion}
                       </div>
@@ -285,6 +282,36 @@ export default function PropertySearch() {
             >
               {searchMutation.isPending ? "Searching..." : "Search Property"}
             </Button>
+          </div>
+          
+          <div className="mt-4">
+            <div className="flex items-center gap-4">
+              <Label className="text-sm font-medium">Search Type:</Label>
+              <div className="flex gap-4">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="searchType"
+                    value="unit"
+                    checked={searchType === 'unit'}
+                    onChange={(e) => setSearchType(e.target.value as 'unit' | 'building')}
+                    className="text-primary"
+                  />
+                  <span className="text-sm">Individual Unit/Home</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="searchType"
+                    value="building"
+                    checked={searchType === 'building'}
+                    onChange={(e) => setSearchType(e.target.value as 'unit' | 'building')}
+                    className="text-primary"
+                  />
+                  <span className="text-sm">Entire Building/Complex</span>
+                </label>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
