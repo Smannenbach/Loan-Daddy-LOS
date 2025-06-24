@@ -869,6 +869,195 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Profile endpoints
+  app.get('/api/profile', async (req, res) => {
+    try {
+      // Mock profile data for now - replace with actual user session
+      const mockProfile = {
+        id: 1,
+        firstName: 'John',
+        lastName: 'Smith',
+        email: 'john.smith@loandaddy.com',
+        phone: '(555) 123-4567',
+        nmlsId: '123456',
+        realEstateLicense: 'CA-DRE-12345',
+        licenseState: 'CA',
+        bio: 'Experienced loan officer with 10+ years helping clients achieve their real estate dreams.',
+        websiteEnabled: true,
+        websiteTheme: 'professional',
+        timeZone: 'America/Los_Angeles',
+        permissions: ['loans.view', 'loans.create', 'contacts.view'],
+        socialMediaLinks: {
+          linkedin: 'https://linkedin.com/in/johnsmith',
+          website: 'https://johnsmith.com'
+        }
+      };
+      res.json(mockProfile);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch profile' });
+    }
+  });
+
+  app.put('/api/profile', async (req, res) => {
+    try {
+      // Update profile logic would go here
+      res.json({ success: true, message: 'Profile updated successfully' });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to update profile' });
+    }
+  });
+
+  // Team management endpoints
+  app.get('/api/team-members', async (req, res) => {
+    try {
+      // Mock team data
+      const mockTeam = [
+        {
+          id: 1,
+          firstName: 'John',
+          lastName: 'Smith',
+          email: 'john@loandaddy.com',
+          phone: '(555) 123-4567',
+          role: 'loan_officer',
+          department: 'sales',
+          title: 'Senior Loan Officer',
+          nmlsId: '123456',
+          status: 'active',
+          maxLoanAmount: 1000000,
+          baseSalary: 75000,
+          commissionRate: 0.005,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+      ];
+      res.json(mockTeam);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch team members' });
+    }
+  });
+
+  app.post('/api/team-members', async (req, res) => {
+    try {
+      // Add team member logic would go here
+      const newMember = { id: Date.now(), ...req.body, createdAt: new Date().toISOString() };
+      res.json(newMember);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to add team member' });
+    }
+  });
+
+  // Contacts endpoints
+  app.get('/api/contacts', async (req, res) => {
+    try {
+      // Mock contacts data
+      const mockContacts = [
+        {
+          id: 1,
+          firstName: 'Jane',
+          lastName: 'Doe',
+          email: 'jane.doe@email.com',
+          phone: '(555) 987-6543',
+          contactType: 'real_estate_agent',
+          company: 'ABC Realty',
+          title: 'Senior Agent',
+          status: 'active',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+      ];
+      res.json(mockContacts);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch contacts' });
+    }
+  });
+
+  app.post('/api/contacts', async (req, res) => {
+    try {
+      // Add contact logic would go here
+      const newContact = { id: Date.now(), ...req.body, createdAt: new Date().toISOString() };
+      res.json(newContact);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to add contact' });
+    }
+  });
+
+  // Roles and permissions endpoints
+  app.get('/api/roles', async (req, res) => {
+    try {
+      const mockRoles = [
+        {
+          id: 1,
+          name: 'owner',
+          displayName: 'Owner',
+          description: 'Full system access',
+          permissions: ['*'],
+          isSystemRole: true,
+          userCount: 1,
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: 2,
+          name: 'loan_officer',
+          displayName: 'Loan Officer',
+          description: 'Standard loan officer permissions',
+          permissions: ['loans.view', 'loans.create', 'contacts.view'],
+          isSystemRole: true,
+          userCount: 5,
+          createdAt: new Date().toISOString()
+        }
+      ];
+      res.json(mockRoles);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch roles' });
+    }
+  });
+
+  app.post('/api/roles', async (req, res) => {
+    try {
+      const newRole = { id: Date.now(), ...req.body, createdAt: new Date().toISOString() };
+      res.json(newRole);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to create role' });
+    }
+  });
+
+  app.get('/api/users', async (req, res) => {
+    try {
+      const mockUsers = [
+        {
+          id: 1,
+          firstName: 'John',
+          lastName: 'Smith',
+          email: 'john@loandaddy.com',
+          role: 'owner',
+          permissions: ['*'],
+          isActive: true
+        },
+        {
+          id: 2,
+          firstName: 'Jane',
+          lastName: 'Doe', 
+          email: 'jane@loandaddy.com',
+          role: 'loan_officer',
+          permissions: ['loans.view', 'loans.create'],
+          isActive: true
+        }
+      ];
+      res.json(mockUsers);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch users' });
+    }
+  });
+
+  app.put('/api/users/:id', async (req, res) => {
+    try {
+      // Update user logic would go here
+      res.json({ success: true, message: 'User updated successfully' });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to update user' });
+    }
+  });
+
   // Get DSCR calculation for property
   app.get("/api/property-data/dscr", async (req, res) => {
     try {
