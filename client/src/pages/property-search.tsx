@@ -307,13 +307,47 @@ export default function PropertySearch() {
                 )}
               </div>
             </div>
-            <Button 
-              onClick={handleSearch} 
-              disabled={searchMutation.isPending}
-              className="mt-6"
-            >
-              {searchMutation.isPending ? "Searching..." : "Search Property"}
-            </Button>
+            <div className="flex gap-3 mt-6">
+              <Button 
+                onClick={handleSearch} 
+                disabled={searchMutation.isPending}
+                size="lg"
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                {searchMutation.isPending ? (
+                  <>
+                    <Search className="mr-2 h-4 w-4 animate-spin" />
+                    Searching...
+                  </>
+                ) : (
+                  <>
+                    <Search className="mr-2 h-4 w-4" />
+                    Search Property
+                  </>
+                )}
+              </Button>
+              
+              {propertyData && (
+                <Button
+                  onClick={() => generateVideoTour('investor', 'medium')}
+                  disabled={videoTourLoading}
+                  size="lg"
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  {videoTourLoading ? (
+                    <>
+                      <Video className="mr-2 h-4 w-4 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Video className="mr-2 h-4 w-4" />
+                      Create Video Tour
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
           </div>
           
           <div className="mt-4">
