@@ -217,7 +217,7 @@ export default function Contacts() {
     addContactMutation.mutate(contactData);
   };
 
-  const filteredContacts = contacts.filter((contact: Contact) => {
+  const filteredContacts = Array.isArray(contacts) ? contacts.filter((contact: Contact) => {
     const matchesSearch = 
       (contact.firstName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (contact.lastName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -227,7 +227,7 @@ export default function Contacts() {
     const matchesType = filterType === "all" || contact.contactType === filterType;
     
     return matchesSearch && matchesType;
-  });
+  }) : [];
 
   const getContactTypeInfo = (type: string) => {
     return contactTypes.find(ct => ct.value === type) || contactTypes[contactTypes.length - 1];
@@ -674,7 +674,10 @@ export default function Contacts() {
                           className="h-8 w-8 p-0 hover:bg-blue-100"
                           onClick={(e) => {
                             e.stopPropagation();
-                            window.open(contact.linkedInUrl || contact.socialMediaLinks?.linkedin, '_blank');
+                            const linkedInUrl = contact.linkedInUrl || contact.socialMediaLinks?.linkedin;
+                            if (linkedInUrl) {
+                              window.open(linkedInUrl, '_blank');
+                            }
                           }}
                           title="View LinkedIn"
                         >

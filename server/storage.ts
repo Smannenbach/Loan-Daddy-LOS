@@ -91,6 +91,13 @@ export interface IStorage {
   getCustomerSession(token: string): Promise<any>;
   createCustomerSession(session: any): Promise<any>;
   updateLoanApplicationStage(id: number, stage: string, data?: any): Promise<any>;
+
+  // Contacts
+  getAllContacts(): Promise<any[]>;
+  getContact(id: number): Promise<any>;
+  createContact(contact: any): Promise<any>;
+  updateContact(id: number, contact: any): Promise<any>;
+  deleteContact(id: number): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {

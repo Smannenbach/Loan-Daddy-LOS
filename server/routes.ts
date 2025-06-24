@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { databaseStorage } from "./database-storage";
 import { 
   insertBorrowerSchema, 
   insertPropertySchema, 
@@ -952,41 +953,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Contacts endpoints
   app.get('/api/contacts', async (req, res) => {
     try {
-      // Mock contacts data
-      const mockContacts = [
-        {
-          id: 1,
-          firstName: 'Jane',
-          lastName: 'Doe',
-          email: 'jane.doe@email.com',
-          phone: '(555) 987-6543',
-          profilePhoto: null,
-          dateOfBirth: null,
-          ssn: null,
-          relationshipStatus: 'married',
-          contactType: 'real_estate_agent',
-          company: 'ABC Realty',
-          title: 'Senior Agent',
-          streetAddress: '123 Business Blvd',
-          city: 'Los Angeles',
-          state: 'CA',
-          zipCode: '90210',
-          country: 'United States',
-          socialMediaLinks: {
-            linkedin: 'https://linkedin.com/in/jane-doe-realtor',
-            facebook: null,
-            instagram: null,
-            twitter: null,
-            tiktok: null,
-            youtube: null
-          },
-          status: 'active',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }
-      ];
-      res.json(mockContacts);
+      const contacts = await databaseStorage.getAllContacts();
+      res.json(contacts);
     } catch (error) {
+      console.error('Error fetching contacts:', error);
       res.status(500).json({ error: 'Failed to fetch contacts' });
     }
   });
