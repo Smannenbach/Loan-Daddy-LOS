@@ -118,6 +118,10 @@ Changelog:
 - June 24, 2025. Successfully integrated comprehensive Google Maps APIs (Geocoding, Places, Address Validation, Elevation, Timezone) for accurate worldwide property data
 - June 24, 2025. Enhanced property data service to achieve 92% confidence ratings using real Google API data instead of mock estimates
 - June 24, 2025. Property search now provides accurate data for any address globally with detailed property information, tax estimates, and market analysis
+- June 24, 2025. Completed interactive property map with neighborhood heat maps and enhanced property search with unit vs building differentiation
+- June 24, 2025. Added comprehensive property links to Zillow, Realtor.com, Trulia, Redfin, LoopNet, and other major real estate sites
+- June 24, 2025. Implemented address autocomplete using Google Places API for seamless property search experience
+- June 24, 2025. Enhanced property data service to distinguish between individual apartment units and entire apartment buildings for commercial investors
 ```
 
 ## User Preferences

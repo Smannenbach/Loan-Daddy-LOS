@@ -177,46 +177,6 @@ export default function PropertySearch() {
       googleMaps: `https://maps.google.com/maps?q=${encodedAddress}`
     };
   };
-  const [searchAddress, setSearchAddress] = useState("");
-  const [propertyData, setPropertyData] = useState<PropertyData | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [addressSuggestions, setAddressSuggestions] = useState<string[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const { toast } = useToast();
-
-  const searchMutation = useMutation({
-    mutationFn: async (address: string) => {
-      const response = await fetch(`/api/property-data?address=${encodeURIComponent(address)}`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return await response.json();
-    },
-    onSuccess: (data) => {
-      setPropertyData({
-        ...data,
-        lastUpdated: new Date(data.lastUpdated)
-      });
-      toast({
-        title: "Property Data Retrieved",
-        description: "Successfully loaded property information from multiple sources.",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Search Failed",
-        description: error.message || "Failed to retrieve property data. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handleSearch = () => {
-    if (!searchAddress.trim()) {
-      toast({
-        title: "Address Required",
-        description: "Please enter a property address to search.",
-        variant: "destructive",
       });
       return;
     }
