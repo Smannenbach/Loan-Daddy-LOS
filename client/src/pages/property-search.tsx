@@ -577,8 +577,12 @@ export default function PropertySearch() {
                             <div className="font-medium">{sale.date}</div>
                             <div className="text-sm text-muted-foreground flex items-center gap-2">
                               {sale.type} • {sale.source}
-                              {sale.type === 'Sale' && <Badge variant="outline" className="text-xs">Public Record</Badge>}
-                              {sale.type === 'Current Estimate' && <Badge variant="secondary" className="text-xs">Estimated</Badge>}
+                              {sale.type === 'Sale' && (
+                                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">Public Record</span>
+                              )}
+                              {sale.type === 'Current Estimate' && (
+                                <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">Estimated</span>
+                              )}
                             </div>
                           </div>
                           <div className="text-right">

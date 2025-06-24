@@ -13,6 +13,7 @@ import {
 } from "@shared/schema";
 import { marketingIntegrations, type WebhookPayload } from "./marketing-integrations";
 import { aiLoanAdvisor, type BorrowerProfile } from "./ai-loan-advisor";
+import { aiMarketAnalyzer, type MarketAnalysisRequest } from "./ai-market-analysis";
 import { propertyDataService } from "./property-data-service";
 import { pricingEngine, type PricingRequest } from "./pricing-engine";
 import multer from "multer";

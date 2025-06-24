@@ -57,6 +57,26 @@ function Router() {
               <PropertyMap />
             </React.Suspense>
           )} />
+          <Route path="/property-comparison" component={() => (
+            <React.Suspense fallback={<div className="p-8">Loading Property Comparison...</div>}>
+              <PropertyComparison />
+            </React.Suspense>
+          )} />
+          <Route path="/market-trends" component={() => (
+            <React.Suspense fallback={<div className="p-8">Loading Market Trends...</div>}>
+              <MarketTrends />
+            </React.Suspense>
+          )} />
+          <Route path="/loan-recommendation" component={() => (
+            <React.Suspense fallback={<div className="p-8">Loading AI Loan Advisor...</div>}>
+              <LoanRecommendation />
+            </React.Suspense>
+          )} />
+          <Route path="/mortgage-calculator" component={() => (
+            <React.Suspense fallback={<div className="p-8">Loading Mortgage Calculator...</div>}>
+              <MortgageCalculator />
+            </React.Suspense>
+          )} />
           <Route path="/settings" component={() => (
             <div className="p-8">
               <h1 className="text-2xl font-bold mb-4">Settings</h1>
