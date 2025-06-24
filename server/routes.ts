@@ -735,6 +735,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // AI market analysis
+  app.post("/api/ai/market-analysis", async (req, res) => {
+    try {
+      const analysisRequest: MarketAnalysisRequest = req.body;
+      const analysis = await aiMarketAnalyzer.analyzeMarket(analysisRequest);
+      res.json(analysis);
+    } catch (error) {
+      console.error("AI market analysis error:", error);
+      res.status(500).json({ message: "Failed to analyze market data" });
+    }
+  });
+
   // Property Data Routes
   
   // Get property data by address
