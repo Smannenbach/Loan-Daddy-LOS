@@ -22,6 +22,12 @@ export const borrowers = pgTable("borrowers", {
   city: text("city"),
   state: text("state"),
   zipCode: text("zip_code"),
+  linkedinProfile: text("linkedin_profile"),
+  company: text("company"),
+  jobTitle: text("job_title"),
+  investmentExperience: text("investment_experience"), // beginner, intermediate, experienced
+  portfolioSize: text("portfolio_size"), // 1-5, 6-10, 11-25, 25+
+  preferredLoanTypes: text("preferred_loan_types").array(),
 });
 
 export const properties = pgTable("properties", {
@@ -82,6 +88,43 @@ export const tasks = pgTable("tasks", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  loanApplicationId: integer("loan_application_id").notNull(),
+  borrowerId: integer("borrower_id").notNull(),
+  type: text("type").notNull(), // email, sms
+  recipient: text("recipient").notNull(), // email address or phone number
+  subject: text("subject"),
+  message: text("message").notNull(),
+  status: text("status").notNull().default("pending"), // pending, sent, failed
+  sentAt: timestamp("sent_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const templates = pgTable("templates", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  type: text("type").notNull(), // email, sms
+  subject: text("subject"), // for email templates
+  content: text("content").notNull(),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const callLogs = pgTable("call_logs", {
+  id: serial("id").primaryKey(),
+  loanApplicationId: integer("loan_application_id").notNull(),
+  borrowerId: integer("borrower_id").notNull(),
+  userId: integer("user_id").notNull(),
+  phoneNumber: text("phone_number").notNull(),
+  duration: integer("duration"), // in seconds
+  callType: text("call_type").notNull(), // inbound, outbound
+  status: text("status").notNull(), // completed, missed, busy, failed
+  notes: text("notes"),
+  recordingUrl: text("recording_url"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Schemas
 export const insertBorrowerSchema = createInsertSchema(borrowers);
 export const insertPropertySchema = createInsertSchema(properties);
@@ -98,6 +141,19 @@ export const insertTaskSchema = createInsertSchema(tasks).omit({
   id: true,
   createdAt: true,
 });
+export const insertNotificationSchema = createInsertSchema(notifications).omit({
+  id: true,
+  sentAt: true,
+  createdAt: true,
+});
+export const insertTemplateSchema = createInsertSchema(templates).omit({
+  id: true,
+  createdAt: true,
+});
+export const insertCallLogSchema = createInsertSchema(callLogs).omit({
+  id: true,
+  createdAt: true,
+});
 
 // Types
 export type User = typeof users.$inferSelect;
@@ -106,12 +162,18 @@ export type Property = typeof properties.$inferSelect;
 export type LoanApplication = typeof loanApplications.$inferSelect;
 export type Document = typeof documents.$inferSelect;
 export type Task = typeof tasks.$inferSelect;
+export type Notification = typeof notifications.$inferSelect;
+export type Template = typeof templates.$inferSelect;
+export type CallLog = typeof callLogs.$inferSelect;
 
 export type InsertBorrower = z.infer<typeof insertBorrowerSchema>;
 export type InsertProperty = z.infer<typeof insertPropertySchema>;
 export type InsertLoanApplication = z.infer<typeof insertLoanApplicationSchema>;
 export type InsertDocument = z.infer<typeof insertDocumentSchema>;
 export type InsertTask = z.infer<typeof insertTaskSchema>;
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+export type InsertTemplate = z.infer<typeof insertTemplateSchema>;
+export type InsertCallLog = z.infer<typeof insertCallLogSchema>;
 
 // Extended types for API responses
 export type LoanApplicationWithDetails = LoanApplication & {

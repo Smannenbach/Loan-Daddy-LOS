@@ -1,9 +1,10 @@
 import { 
-  users, borrowers, properties, loanApplications, documents, tasks,
+  users, borrowers, properties, loanApplications, documents, tasks, notifications, templates, callLogs,
   type User, type Borrower, type Property, type LoanApplication, 
-  type Document, type Task, type InsertBorrower, type InsertProperty,
-  type InsertLoanApplication, type InsertDocument, type InsertTask,
-  type LoanApplicationWithDetails
+  type Document, type Task, type Notification, type Template, type CallLog,
+  type InsertBorrower, type InsertProperty, type InsertLoanApplication, 
+  type InsertDocument, type InsertTask, type InsertNotification, 
+  type InsertTemplate, type InsertCallLog, type LoanApplicationWithDetails
 } from "@shared/schema";
 
 export interface IStorage {
@@ -44,6 +45,25 @@ export interface IStorage {
   createTask(task: InsertTask): Promise<Task>;
   updateTask(id: number, task: Partial<InsertTask>): Promise<Task | undefined>;
 
+  // Notifications
+  getNotification(id: number): Promise<Notification | undefined>;
+  getNotificationsByLoanApplication(loanApplicationId: number): Promise<Notification[]>;
+  createNotification(notification: InsertNotification): Promise<Notification>;
+  updateNotification(id: number, notification: Partial<InsertNotification>): Promise<Notification | undefined>;
+
+  // Templates
+  getTemplate(id: number): Promise<Template | undefined>;
+  getAllTemplates(): Promise<Template[]>;
+  getTemplatesByType(type: string): Promise<Template[]>;
+  createTemplate(template: InsertTemplate): Promise<Template>;
+  updateTemplate(id: number, template: Partial<InsertTemplate>): Promise<Template | undefined>;
+
+  // Call Logs
+  getCallLog(id: number): Promise<CallLog | undefined>;
+  getCallLogsByLoanApplication(loanApplicationId: number): Promise<CallLog[]>;
+  getCallLogsByBorrower(borrowerId: number): Promise<CallLog[]>;
+  createCallLog(callLog: InsertCallLog): Promise<CallLog>;
+
   // Dashboard stats
   getDashboardStats(): Promise<{
     activeApplications: number;
@@ -61,6 +81,9 @@ export class MemStorage implements IStorage {
   private loanApplications: Map<number, LoanApplication> = new Map();
   private documents: Map<number, Document> = new Map();
   private tasks: Map<number, Task> = new Map();
+  private notifications: Map<number, Notification> = new Map();
+  private templates: Map<number, Template> = new Map();
+  private callLogs: Map<number, CallLog> = new Map();
   
   private currentUserId = 1;
   private currentBorrowerId = 1;
@@ -68,6 +91,9 @@ export class MemStorage implements IStorage {
   private currentLoanApplicationId = 1;
   private currentDocumentId = 1;
   private currentTaskId = 1;
+  private currentNotificationId = 1;
+  private currentTemplateId = 1;
+  private currentCallLogId = 1;
 
   constructor() {
     // Create default user
@@ -81,6 +107,29 @@ export class MemStorage implements IStorage {
       role: 'senior_loan_officer'
     });
     this.currentUserId = 2;
+
+    // Create default email templates
+    this.templates.set(1, {
+      id: 1,
+      name: 'Application Received',
+      type: 'email',
+      subject: 'Your Loan Application Has Been Received',
+      content: 'Dear {borrowerName},\n\nThank you for submitting your loan application. We have received your application for ${requestedAmount} and will review it within 24-48 hours.\n\nApplication ID: {applicationId}\nLoan Type: {loanType}\n\nBest regards,\nLoanFlow Pro Team',
+      isActive: true,
+      createdAt: new Date()
+    });
+
+    this.templates.set(2, {
+      id: 2,
+      name: 'Document Request',
+      type: 'sms',
+      subject: null,
+      content: 'Hi {borrowerName}, we need additional documents for your loan application #{applicationId}. Please upload them to your portal or call us at (555) 123-4567.',
+      isActive: true,
+      createdAt: new Date()
+    });
+
+    this.currentTemplateId = 3;
   }
 
   // Users
@@ -106,7 +155,20 @@ export class MemStorage implements IStorage {
 
   async createBorrower(borrower: InsertBorrower): Promise<Borrower> {
     const id = this.currentBorrowerId++;
-    const newBorrower: Borrower = { ...borrower, id };
+    const newBorrower: Borrower = { 
+      ...borrower, 
+      id,
+      address: borrower.address || null,
+      city: borrower.city || null,
+      state: borrower.state || null,
+      zipCode: borrower.zipCode || null,
+      linkedinProfile: borrower.linkedinProfile || null,
+      company: borrower.company || null,
+      jobTitle: borrower.jobTitle || null,
+      investmentExperience: borrower.investmentExperience || null,
+      portfolioSize: borrower.portfolioSize || null,
+      preferredLoanTypes: borrower.preferredLoanTypes || null
+    };
     this.borrowers.set(id, newBorrower);
     return newBorrower;
   }
@@ -126,7 +188,14 @@ export class MemStorage implements IStorage {
 
   async createProperty(property: InsertProperty): Promise<Property> {
     const id = this.currentPropertyId++;
-    const newProperty: Property = { ...property, id };
+    const newProperty: Property = { 
+      ...property, 
+      id,
+      propertyValue: property.propertyValue || null,
+      purchasePrice: property.purchasePrice || null,
+      rehabCost: property.rehabCost || null,
+      arv: property.arv || null
+    };
     this.properties.set(id, newProperty);
     return newProperty;
   }
