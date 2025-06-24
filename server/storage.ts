@@ -129,7 +129,27 @@ export class MemStorage implements IStorage {
       firstName: 'Sarah',
       lastName: 'Johnson',
       email: 'sarah.johnson@loanflow.com',
-      role: 'senior_loan_officer'
+      role: 'senior_loan_officer',
+      phone: null,
+      nmlsId: null,
+      realEstateLicense: null,
+      licenseState: null,
+      bio: null,
+      emailSignature: null,
+      socialMediaLinks: null,
+      customDomain: null,
+      websiteEnabled: false,
+      websiteTheme: 'professional',
+      websiteContent: null,
+      calendarSettings: null,
+      timeZone: 'America/New_York',
+      workingHours: null,
+      permissions: [],
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      lastLogin: null,
+      profilePicture: null
     });
     this.currentUserId = 2;
 

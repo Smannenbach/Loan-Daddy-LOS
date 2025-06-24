@@ -810,7 +810,9 @@ export default function Contacts() {
                           {selectedContact.streetAddress && `${selectedContact.streetAddress}\n`}
                           {selectedContact.city}, {selectedContact.state} {selectedContact.zipCode}
                           {selectedContact.country && selectedContact.country !== 'United States' && (
-                            <br />{selectedContact.country}
+                            <>
+                              <br />{selectedContact.country}
+                            </>
                           )}
                         </p>
                       </div>
