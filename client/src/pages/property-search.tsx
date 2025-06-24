@@ -111,6 +111,11 @@ export default function PropertySearch() {
   const [searchType, setSearchType] = useState<'unit' | 'building'>('unit');
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  
+  // Video tour states
+  const [videoTourLoading, setVideoTourLoading] = useState(false);
+  const [videoTour, setVideoTour] = useState<any>(null);
+  const [showVideoDialog, setShowVideoDialog] = useState(false);
 
   const searchMutation = useMutation({
     mutationFn: async (searchAddress: string) => {
