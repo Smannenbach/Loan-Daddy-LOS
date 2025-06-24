@@ -18,6 +18,9 @@ import { propertyDataService } from "./property-data-service";
 import { pricingEngine, type PricingRequest } from "./pricing-engine";
 import type { PropertyVideoTourRequest } from "./video-tour-generator";
 import { propertyImageService } from "./property-image-service";
+import { linkedInIntegration } from "./linkedin-integration";
+import { aiChatbot } from "./ai-chatbot";
+import { aiVoicebot } from "./ai-voicebot";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -990,11 +993,182 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/contacts', async (req, res) => {
     try {
-      // Add contact logic would go here
-      const newContact = { id: Date.now(), ...req.body, createdAt: new Date().toISOString() };
+      const contactData = req.body;
+      
+      // Enhanced contact creation with LinkedIn enrichment
+      if (contactData.email && !contactData.linkedInUrl) {
+        try {
+          const linkedInProfile = await linkedInIntegration.enrichContactWithLinkedIn(contactData.email);
+          if (linkedInProfile) {
+            contactData.linkedInUrl = linkedInProfile.publicProfileUrl;
+            contactData.notes = (contactData.notes || '') + `\n\nLinkedIn Profile: ${linkedInProfile.headline}`;
+            if (!contactData.company && linkedInProfile.experience.length > 0) {
+              contactData.company = linkedInProfile.experience[0].company;
+            }
+            if (!contactData.title && linkedInProfile.experience.length > 0) {
+              contactData.title = linkedInProfile.experience[0].title;
+            }
+          }
+        } catch (enrichmentError) {
+          console.log('LinkedIn enrichment failed, continuing without enrichment');
+        }
+      }
+
+      const newContact = { 
+        id: Date.now(), 
+        ...contactData, 
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
       res.json(newContact);
     } catch (error) {
+      console.error('Contact creation error:', error);
       res.status(500).json({ error: 'Failed to add contact' });
+    }
+  });
+
+  // LinkedIn integration endpoints
+  app.get('/api/linkedin/search', async (req, res) => {
+    try {
+      const { query, location, industry, currentCompany, title, limit = 25, offset = 0 } = req.query;
+      
+      const searchRequest = {
+        query: query as string,
+        location: location as string,
+        industry: industry as string,
+        currentCompany: currentCompany as string,
+        title: title as string,
+        limit: parseInt(limit as string),
+        offset: parseInt(offset as string)
+      };
+
+      const results = await linkedInIntegration.searchProfiles(searchRequest);
+      res.json(results);
+    } catch (error) {
+      console.error('LinkedIn search error:', error);
+      res.status(500).json({ error: 'Failed to search LinkedIn profiles' });
+    }
+  });
+
+  app.post('/api/linkedin/import', async (req, res) => {
+    try {
+      const { profileId } = req.body;
+      const profile = await linkedInIntegration.getProfile(profileId);
+      
+      if (!profile) {
+        return res.status(404).json({ error: 'Profile not found' });
+      }
+
+      const contactData = await linkedInIntegration.importProfileToContacts(profile);
+      
+      // Create the contact
+      const newContact = { 
+        id: Date.now(), 
+        ...contactData, 
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      res.json(newContact);
+    } catch (error) {
+      console.error('LinkedIn import error:', error);
+      res.status(500).json({ error: 'Failed to import LinkedIn profile' });
+    }
+  });
+
+  // AI Chatbot endpoints
+  app.post('/api/ai/chat', async (req, res) => {
+    try {
+      const { sessionId, message, contactId } = req.body;
+      
+      if (!message) {
+        return res.status(400).json({ error: 'Message is required' });
+      }
+
+      const response = await aiChatbot.processMessage(sessionId, message, contactId);
+      res.json(response);
+    } catch (error) {
+      console.error('AI chat error:', error);
+      res.status(500).json({ error: 'Failed to process chat message' });
+    }
+  });
+
+  app.get('/api/ai/chat/:sessionId/history', async (req, res) => {
+    try {
+      const { sessionId } = req.params;
+      const history = await aiChatbot.getChatHistory(sessionId);
+      res.json(history);
+    } catch (error) {
+      console.error('Chat history error:', error);
+      res.status(500).json({ error: 'Failed to get chat history' });
+    }
+  });
+
+  app.post('/api/ai/chat/:sessionId/end', async (req, res) => {
+    try {
+      const { sessionId } = req.params;
+      await aiChatbot.endSession(sessionId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('End chat session error:', error);
+      res.status(500).json({ error: 'Failed to end chat session' });
+    }
+  });
+
+  // AI Voice Bot endpoints
+  app.post('/api/ai/voice/call', async (req, res) => {
+    try {
+      const { contactId, phoneNumber, purpose = 'follow_up' } = req.body;
+      
+      if (!contactId || !phoneNumber) {
+        return res.status(400).json({ error: 'Contact ID and phone number are required' });
+      }
+
+      const sessionId = await aiVoicebot.initiateCall(contactId, phoneNumber, purpose);
+      res.json({ sessionId });
+    } catch (error) {
+      console.error('Voice call initiation error:', error);
+      res.status(500).json({ error: 'Failed to initiate voice call' });
+    }
+  });
+
+  app.post('/api/ai/voice/:sessionId/input', async (req, res) => {
+    try {
+      const { sessionId } = req.params;
+      const { transcript } = req.body;
+      
+      if (!transcript) {
+        return res.status(400).json({ error: 'Transcript is required' });
+      }
+
+      const response = await aiVoicebot.processVoiceInput(sessionId, transcript);
+      res.json({ response });
+    } catch (error) {
+      console.error('Voice input processing error:', error);
+      res.status(500).json({ error: 'Failed to process voice input' });
+    }
+  });
+
+  app.post('/api/ai/voice/:sessionId/end', async (req, res) => {
+    try {
+      const { sessionId } = req.params;
+      const outcome = await aiVoicebot.endCall(sessionId);
+      res.json(outcome);
+    } catch (error) {
+      console.error('End voice call error:', error);
+      res.status(500).json({ error: 'Failed to end voice call' });
+    }
+  });
+
+  app.get('/api/ai/voice/:sessionId/transcript', async (req, res) => {
+    try {
+      const { sessionId } = req.params;
+      const transcript = await aiVoicebot.getCallTranscript(sessionId);
+      res.json(transcript);
+    } catch (error) {
+      console.error('Voice transcript error:', error);
+      res.status(500).json({ error: 'Failed to get call transcript' });
     }
   });
 

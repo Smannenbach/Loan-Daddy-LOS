@@ -117,12 +117,38 @@ export default function Contacts() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/contacts'] });
       setShowAddDialog(false);
+      // Reset form
+      setNewContact({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        dateOfBirth: '',
+        ssn: '',
+        relationshipStatus: '',
+        company: '',
+        title: '',
+        contactType: '',
+        notes: '',
+        streetAddress: '',
+        city: '',
+        state: '',
+        zipCode: '',
+        country: 'United States',
+        linkedInUrl: '',
+        website: '',
+        licenseNumber: '',
+        mlsId: '',
+        source: '',
+        tags: []
+      });
       toast({
         title: "Contact Added",
         description: "New contact has been successfully added.",
       });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Contact creation error:', error);
       toast({
         title: "Error",
         description: "Failed to add contact. Please try again.",
@@ -441,96 +467,24 @@ export default function Contacts() {
 
                 {/* Social Media Links */}
                 <div className="space-y-4">
-                  <h4 className="font-semibold">Social Media Links</h4>
+                  <h4 className="font-semibold">Professional Links</h4>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="linkedin">LinkedIn</Label>
+                      <Label htmlFor="linkedin">LinkedIn URL</Label>
                       <Input
                         id="linkedin"
-                        value={newContact.socialMediaLinks.linkedin}
-                        onChange={(e) => setNewContact({
-                          ...newContact, 
-                          socialMediaLinks: {
-                            ...newContact.socialMediaLinks,
-                            linkedin: e.target.value
-                          }
-                        })}
+                        value={newContact.linkedInUrl}
+                        onChange={(e) => setNewContact({...newContact, linkedInUrl: e.target.value})}
                         placeholder="https://linkedin.com/in/username"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="facebook">Facebook</Label>
+                      <Label htmlFor="website">Website</Label>
                       <Input
-                        id="facebook"
-                        value={newContact.socialMediaLinks.facebook}
-                        onChange={(e) => setNewContact({
-                          ...newContact, 
-                          socialMediaLinks: {
-                            ...newContact.socialMediaLinks,
-                            facebook: e.target.value
-                          }
-                        })}
-                        placeholder="https://facebook.com/username"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="instagram">Instagram</Label>
-                      <Input
-                        id="instagram"
-                        value={newContact.socialMediaLinks.instagram}
-                        onChange={(e) => setNewContact({
-                          ...newContact, 
-                          socialMediaLinks: {
-                            ...newContact.socialMediaLinks,
-                            instagram: e.target.value
-                          }
-                        })}
-                        placeholder="https://instagram.com/username"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="twitter">Twitter/X</Label>
-                      <Input
-                        id="twitter"
-                        value={newContact.socialMediaLinks.twitter}
-                        onChange={(e) => setNewContact({
-                          ...newContact, 
-                          socialMediaLinks: {
-                            ...newContact.socialMediaLinks,
-                            twitter: e.target.value
-                          }
-                        })}
-                        placeholder="https://twitter.com/username"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="tiktok">TikTok</Label>
-                      <Input
-                        id="tiktok"
-                        value={newContact.socialMediaLinks.tiktok}
-                        onChange={(e) => setNewContact({
-                          ...newContact, 
-                          socialMediaLinks: {
-                            ...newContact.socialMediaLinks,
-                            tiktok: e.target.value
-                          }
-                        })}
-                        placeholder="https://tiktok.com/@username"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="youtube">YouTube</Label>
-                      <Input
-                        id="youtube"
-                        value={newContact.socialMediaLinks.youtube}
-                        onChange={(e) => setNewContact({
-                          ...newContact, 
-                          socialMediaLinks: {
-                            ...newContact.socialMediaLinks,
-                            youtube: e.target.value
-                          }
-                        })}
-                        placeholder="https://youtube.com/@username"
+                        id="website"
+                        value={newContact.website}
+                        onChange={(e) => setNewContact({...newContact, website: e.target.value})}
+                        placeholder="https://example.com"
                       />
                     </div>
                   </div>
