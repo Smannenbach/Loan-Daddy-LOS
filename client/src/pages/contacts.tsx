@@ -148,7 +148,6 @@ export default function Contacts() {
     lastName: '',
     email: '',
     phone: '',
-    profilePhoto: '',
     dateOfBirth: '',
     ssn: '',
     relationshipStatus: '',
@@ -161,14 +160,6 @@ export default function Contacts() {
     state: '',
     zipCode: '',
     country: 'United States',
-    socialMediaLinks: {
-      linkedin: '',
-      facebook: '',
-      instagram: '',
-      twitter: '',
-      tiktok: '',
-      youtube: ''
-    },
     linkedInUrl: '',
     website: '',
     licenseNumber: '',
@@ -278,48 +269,7 @@ export default function Contacts() {
               </DialogHeader>
               
               <div className="space-y-4">
-                {/* Profile Photo Section */}
-                <div className="flex items-center gap-6">
-                  <div className="relative">
-                    <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
-                      {newContact.profilePhoto ? (
-                        <img 
-                          src={newContact.profilePhoto} 
-                          alt="Profile" 
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <User className="w-8 h-8 text-gray-400" />
-                      )}
-                    </div>
-                    <Button 
-                      size="sm" 
-                      className="absolute -bottom-1 -right-1 rounded-full w-6 h-6 p-0"
-                      onClick={() => {
-                        const input = document.createElement('input');
-                        input.type = 'file';
-                        input.accept = 'image/*';
-                        input.onchange = (e) => {
-                          const file = (e.target as HTMLInputElement).files?.[0];
-                          if (file) {
-                            const reader = new FileReader();
-                            reader.onload = (e) => {
-                              setNewContact({...newContact, profilePhoto: e.target?.result as string});
-                            };
-                            reader.readAsDataURL(file);
-                          }
-                        };
-                        input.click();
-                      }}
-                    >
-                      <Camera className="w-3 h-3" />
-                    </Button>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold">Contact Photo</h3>
-                    <p className="text-sm text-gray-600">Upload a profile photo for this contact</p>
-                  </div>
-                </div>
+
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -840,42 +790,42 @@ export default function Contacts() {
                       <div>
                         <Label>Social Media</Label>
                         <div className="flex flex-wrap gap-2 mt-2">
-                          {selectedContact.socialMediaLinks.linkedin && (
+                          {selectedContact.socialMediaLinks?.linkedin && (
                             <Button variant="outline" size="sm" asChild>
                               <a href={selectedContact.socialMediaLinks.linkedin} target="_blank" rel="noopener noreferrer">
                                 LinkedIn
                               </a>
                             </Button>
                           )}
-                          {selectedContact.socialMediaLinks.facebook && (
+                          {selectedContact.socialMediaLinks?.facebook && (
                             <Button variant="outline" size="sm" asChild>
                               <a href={selectedContact.socialMediaLinks.facebook} target="_blank" rel="noopener noreferrer">
                                 Facebook
                               </a>
                             </Button>
                           )}
-                          {selectedContact.socialMediaLinks.instagram && (
+                          {selectedContact.socialMediaLinks?.instagram && (
                             <Button variant="outline" size="sm" asChild>
                               <a href={selectedContact.socialMediaLinks.instagram} target="_blank" rel="noopener noreferrer">
                                 Instagram
                               </a>
                             </Button>
                           )}
-                          {selectedContact.socialMediaLinks.twitter && (
+                          {selectedContact.socialMediaLinks?.twitter && (
                             <Button variant="outline" size="sm" asChild>
                               <a href={selectedContact.socialMediaLinks.twitter} target="_blank" rel="noopener noreferrer">
                                 Twitter/X
                               </a>
                             </Button>
                           )}
-                          {selectedContact.socialMediaLinks.tiktok && (
+                          {selectedContact.socialMediaLinks?.tiktok && (
                             <Button variant="outline" size="sm" asChild>
                               <a href={selectedContact.socialMediaLinks.tiktok} target="_blank" rel="noopener noreferrer">
                                 TikTok
                               </a>
                             </Button>
                           )}
-                          {selectedContact.socialMediaLinks.youtube && (
+                          {selectedContact.socialMediaLinks?.youtube && (
                             <Button variant="outline" size="sm" asChild>
                               <a href={selectedContact.socialMediaLinks.youtube} target="_blank" rel="noopener noreferrer">
                                 YouTube
