@@ -145,6 +145,7 @@ export default function Contacts() {
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [showContactDetail, setShowContactDetail] = useState(false);
   const [showImportWizard, setShowImportWizard] = useState(false);
+  const [showEnrichmentWidget, setShowEnrichmentWidget] = useState(false);
   const [showAchievements, setShowAchievements] = useState(false);
   const [importStep, setImportStep] = useState(1);
   const [linkedInSearchQuery, setLinkedInSearchQuery] = useState("");
@@ -1196,6 +1197,14 @@ export default function Contacts() {
                       )}
                       
                       <div className="flex gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => setShowEnrichmentWidget(true)}
+                        >
+                          <Sparkles className="w-4 h-4 mr-1" />
+                          Enrich Contact
+                        </Button>
                         {selectedContact.linkedInUrl && (
                           <Button variant="outline" size="sm" asChild>
                             <a href={selectedContact.linkedInUrl} target="_blank" rel="noopener noreferrer">
@@ -1250,6 +1259,17 @@ export default function Contacts() {
           totalPoints={contactsArray.length * 10}
           level={Math.floor(contactsArray.length / 10) + 1}
         />
+
+        {/* Social Enrichment Widget */}
+        {selectedContact && (
+          <SocialEnrichmentWidget
+            contactId={selectedContact.id}
+            contactName={`${selectedContact.firstName} ${selectedContact.lastName}`}
+            contactEmail={selectedContact.email}
+            isOpen={showEnrichmentWidget}
+            onClose={() => setShowEnrichmentWidget(false)}
+          />
+        )}
       </div>
     </div>
   );

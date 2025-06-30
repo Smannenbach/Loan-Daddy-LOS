@@ -1417,11 +1417,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const enrichmentRequest = {
         contactId,
-        email: contact.email,
+        email: contact.email || '',
         firstName: contact.firstName,
         lastName: contact.lastName,
         phone: contact.phone,
-        company: contact.company
+        company: contact.company || undefined
       };
 
       const enrichedData = await socialEnrichmentService.enrichContact(enrichmentRequest);
