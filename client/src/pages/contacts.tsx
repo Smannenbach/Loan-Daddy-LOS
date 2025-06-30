@@ -15,6 +15,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { ContactImportWizard } from "@/components/ContactImportWizard";
 import { AchievementPanel } from "@/components/AchievementPanel";
+import SocialEnrichmentWidget from "@/components/social-enrichment-widget";
 import { 
   Users, 
   Plus, 

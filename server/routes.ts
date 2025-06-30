@@ -22,6 +22,7 @@ import { propertyImageService } from "./property-image-service";
 import { linkedInIntegration } from "./linkedin-integration";
 import { aiChatbot } from "./ai-chatbot";
 import { aiVoicebot } from "./ai-voicebot";
+import { socialEnrichmentService } from "./social-enrichment";
 import aiRoutes from "./ai-routes";
 import multer from "multer";
 import path from "path";
@@ -1401,6 +1402,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Rate sync error:", error);
       res.status(500).json({ message: "Failed to sync rates" });
+    }
+  });
+
+  // Social Media Enrichment endpoints
+  app.post('/api/contacts/:id/enrich', async (req, res) => {
+    try {
+      const contactId = parseInt(req.params.id);
+      const contact = await databaseStorage.getContact(contactId);
+      
+      if (!contact) {
+        return res.status(404).json({ error: 'Contact not found' });
+      }
+
+      const enrichmentRequest = {
+        contactId,
+        email: contact.email,
+        firstName: contact.firstName,
+        lastName: contact.lastName,
+        phone: contact.phone,
+        company: contact.company
+      };
+
+      const enrichedData = await socialEnrichmentService.enrichContact(enrichmentRequest);
+      res.json(enrichedData);
+    } catch (error) {
+      console.error('Contact enrichment error:', error);
+      res.status(500).json({ error: 'Failed to enrich contact' });
+    }
+  });
+
+  app.post('/api/contacts/batch-enrich', async (req, res) => {
+    try {
+      const { contactIds } = req.body;
+      const contacts = await Promise.all(
+        contactIds.map((id: number) => databaseStorage.getContact(id))
+      );
+
+      const enrichmentRequests = contacts
+        .filter(contact => contact !== undefined)
+        .map(contact => ({
+          contactId: contact!.id,
+          email: contact!.email,
+          firstName: contact!.firstName,
+          lastName: contact!.lastName,
+          phone: contact!.phone,
+          company: contact!.company
+        }));
+
+      const enrichedResults = await socialEnrichmentService.enrichMultipleContacts(enrichmentRequests);
+      
+      // Convert Map to object for JSON response
+      const resultsObject = Object.fromEntries(enrichedResults);
+      res.json(resultsObject);
+    } catch (error) {
+      console.error('Batch enrichment error:', error);
+      res.status(500).json({ error: 'Failed to enrich contacts' });
+    }
+  });
+
+  app.get('/api/contacts/:id/enrichment-suggestions', async (req, res) => {
+    try {
+      const contactId = parseInt(req.params.id);
+      const contact = await databaseStorage.getContact(contactId);
+      
+      if (!contact) {
+        return res.status(404).json({ error: 'Contact not found' });
+      }
+
+      const suggestions = socialEnrichmentService.getSuggestedEnrichments(contact);
+      res.json({ suggestions });
+    } catch (error) {
+      console.error('Enrichment suggestions error:', error);
+      res.status(500).json({ error: 'Failed to get enrichment suggestions' });
     }
   });
 
