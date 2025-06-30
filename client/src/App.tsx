@@ -29,6 +29,9 @@ const Profile = React.lazy(() => import("@/pages/profile"));
 const Permissions = React.lazy(() => import("@/pages/permissions"));
 const AIDashboard = React.lazy(() => import("@/pages/ai-dashboard"));
 const AnalyticsDashboard = React.lazy(() => import("@/pages/analytics-dashboard"));
+const WorkflowAutomation = React.lazy(() => import("@/pages/workflow-automation"));
+const DocumentCenter = React.lazy(() => import("@/pages/document-center"));
+const ComplianceCenter = React.lazy(() => import("@/pages/compliance-center"));
 
 function Router() {
   return (
@@ -111,6 +114,21 @@ function Router() {
           <Route path="/analytics" component={() => (
             <React.Suspense fallback={<div className="p-8">Loading Analytics...</div>}>
               <AnalyticsDashboard />
+            </React.Suspense>
+          )} />
+          <Route path="/workflow-automation" component={() => (
+            <React.Suspense fallback={<div className="p-8">Loading Workflow Automation...</div>}>
+              <WorkflowAutomation />
+            </React.Suspense>
+          )} />
+          <Route path="/document-center" component={() => (
+            <React.Suspense fallback={<div className="p-8">Loading Document Center...</div>}>
+              <DocumentCenter />
+            </React.Suspense>
+          )} />
+          <Route path="/compliance" component={() => (
+            <React.Suspense fallback={<div className="p-8">Loading Compliance Center...</div>}>
+              <ComplianceCenter />
             </React.Suspense>
           )} />
           <Route path="/settings" component={() => (
