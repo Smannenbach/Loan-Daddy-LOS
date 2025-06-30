@@ -159,6 +159,9 @@ export default function Contacts() {
     queryFn: () => apiRequest('GET', '/api/contacts'),
   });
 
+  // Ensure contacts is always an array
+  const contactsArray = Array.isArray(contacts) ? contacts : [];
+
   // Fetch user stats and achievements
   const { data: userStats } = useQuery({
     queryKey: ['/api/user-stats'],
@@ -169,7 +172,7 @@ export default function Contacts() {
   useEffect(() => {
     const updateContactStatuses = () => {
       const newStatuses: Record<number, 'online' | 'offline' | 'busy'> = {};
-      contacts.forEach((contact: Contact) => {
+      contactsArray.forEach((contact: Contact) => {
         const statuses: ('online' | 'offline' | 'busy')[] = ['online', 'offline', 'busy'];
         newStatuses[contact.id] = statuses[Math.floor(Math.random() * statuses.length)];
       });
@@ -179,7 +182,7 @@ export default function Contacts() {
     updateContactStatuses();
     const interval = setInterval(updateContactStatuses, 30000); // Update every 30 seconds
     return () => clearInterval(interval);
-  }, [contacts]);
+  }, [contactsArray]);
 
   // LinkedIn search mutation
   const linkedInSearchMutation = useMutation({
@@ -317,7 +320,7 @@ export default function Contacts() {
     addContactMutation.mutate(contactData);
   };
 
-  const filteredContacts = Array.isArray(contacts) ? contacts.filter((contact: Contact) => {
+  const filteredContacts = contactsArray.filter((contact: Contact) => {
     const matchesSearch = 
       (contact.firstName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (contact.lastName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -327,7 +330,7 @@ export default function Contacts() {
     const matchesType = filterType === "all" || contact.contactType === filterType;
     
     return matchesSearch && matchesType;
-  }) : [];
+  });
 
   const getContactTypeInfo = (type: string) => {
     return contactTypes.find(ct => ct.value === type) || contactTypes[contactTypes.length - 1];
@@ -353,7 +356,7 @@ export default function Contacts() {
   };
 
   const getAchievements = (): Achievement[] => {
-    const totalContacts = contacts.length;
+    const totalContacts = contactsArray.length;
     return [
       {
         id: 'first_10',
@@ -419,7 +422,7 @@ export default function Contacts() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-blue-100 text-sm">Total Contacts</p>
-                  <p className="text-2xl font-bold">{contacts.length}</p>
+                  <p className="text-2xl font-bold">{contactsArray.length}</p>
                 </div>
                 <Users className="w-8 h-8 text-blue-200" />
               </div>
@@ -1243,8 +1246,8 @@ export default function Contacts() {
           open={showAchievements}
           onOpenChange={setShowAchievements}
           achievements={getAchievements()}
-          totalPoints={contacts.length * 10}
-          level={Math.floor(contacts.length / 10) + 1}
+          totalPoints={contactsArray.length * 10}
+          level={Math.floor(contactsArray.length / 10) + 1}
         />
       </div>
     </div>

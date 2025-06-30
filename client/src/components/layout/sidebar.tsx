@@ -32,6 +32,7 @@ const navigation = [
   { name: 'Contacts', href: '/contacts', icon: Users },
   { name: 'Team Management', href: '/team-management', icon: UserCheck },
   { name: 'Customer Portal', href: '/customer-portal', icon: UserCheck },
+  { name: 'AI Dashboard', href: '/ai-dashboard', icon: Brain },
   { name: 'AI Advisor', href: '/ai-advisor', icon: Bot },
   { name: 'Marketing', href: '/marketing', icon: Share2 },
   { name: 'Property Search', href: '/property-search', icon: MapPin },
