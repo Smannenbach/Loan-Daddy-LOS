@@ -34,6 +34,7 @@ const navigation = [
   { name: 'Customer Portal', href: '/customer-portal', icon: UserCheck },
   { name: 'AI Dashboard', href: '/ai-dashboard', icon: Brain },
   { name: 'AI Advisor', href: '/ai-advisor', icon: Bot },
+  { name: 'Analytics', href: '/analytics', icon: BarChart3 },
   { name: 'Marketing', href: '/marketing', icon: Share2 },
   { name: 'Property Search', href: '/property-search', icon: MapPin },
   { name: 'Property Map', href: '/property-map', icon: MapPin },

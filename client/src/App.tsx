@@ -28,6 +28,7 @@ const TeamManagement = React.lazy(() => import("@/pages/team-management"));
 const Profile = React.lazy(() => import("@/pages/profile"));
 const Permissions = React.lazy(() => import("@/pages/permissions"));
 const AIDashboard = React.lazy(() => import("@/pages/ai-dashboard"));
+const AnalyticsDashboard = React.lazy(() => import("@/pages/analytics-dashboard"));
 
 function Router() {
   return (
@@ -105,6 +106,11 @@ function Router() {
           <Route path="/ai-dashboard" component={() => (
             <React.Suspense fallback={<div className="p-8">Loading AI Dashboard...</div>}>
               <AIDashboard />
+            </React.Suspense>
+          )} />
+          <Route path="/analytics" component={() => (
+            <React.Suspense fallback={<div className="p-8">Loading Analytics...</div>}>
+              <AnalyticsDashboard />
             </React.Suspense>
           )} />
           <Route path="/settings" component={() => (

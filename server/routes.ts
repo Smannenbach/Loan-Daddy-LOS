@@ -1404,6 +1404,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Mount AI routes
+  app.use(aiRoutes);
+  
   const httpServer = createServer(app);
   return httpServer;
 }
