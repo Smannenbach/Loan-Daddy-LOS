@@ -181,6 +181,37 @@ export default function Contacts() {
     return () => clearInterval(interval);
   }, [contacts]);
 
+  // LinkedIn search mutation
+  const linkedInSearchMutation = useMutation({
+    mutationFn: (query: string) => apiRequest('GET', `/api/linkedin/search?query=${encodeURIComponent(query)}&limit=10`),
+    onSuccess: (data) => {
+      setLinkedInResults(data || []);
+    },
+    onError: (error) => {
+      console.error('LinkedIn search error:', error);
+      toast({
+        title: "LinkedIn Search Failed",
+        description: "Using demo data for now. Contact search is still functional.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Import LinkedIn profiles mutation
+  const importLinkedInMutation = useMutation({
+    mutationFn: (profileIds: number[]) => apiRequest('POST', '/api/linkedin/import', { profileIds }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/contacts'] });
+      setShowImportWizard(false);
+      setImportStep(1);
+      setSelectedLinkedInProfiles([]);
+      toast({
+        title: "LinkedIn Import Successful",
+        description: `Successfully imported ${selectedLinkedInProfiles.length} contacts from LinkedIn.`,
+      });
+    }
+  });
+
   // Add contact mutation
   const addContactMutation = useMutation({
     mutationFn: (contactData: any) => apiRequest('POST', '/api/contacts', contactData),
