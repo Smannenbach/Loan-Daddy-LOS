@@ -147,7 +147,7 @@ export default function Contacts() {
   const [showAchievements, setShowAchievements] = useState(false);
   const [importStep, setImportStep] = useState(1);
   const [linkedInSearchQuery, setLinkedInSearchQuery] = useState("");
-  const [linkedInResults, setLinkedInResults] = useState([]);
+  const [linkedInResults, setLinkedInResults] = useState<any[]>([]);
   const [selectedLinkedInProfiles, setSelectedLinkedInProfiles] = useState<number[]>([]);
   const [contactStatuses, setContactStatuses] = useState<Record<number, 'online' | 'offline' | 'busy'>>({});
   const { toast } = useToast();
@@ -187,8 +187,8 @@ export default function Contacts() {
   // LinkedIn search mutation
   const linkedInSearchMutation = useMutation({
     mutationFn: (query: string) => apiRequest('GET', `/api/linkedin/search?query=${encodeURIComponent(query)}&limit=10`),
-    onSuccess: (data) => {
-      setLinkedInResults(data || []);
+    onSuccess: (data: any) => {
+      setLinkedInResults(Array.isArray(data) ? data : []);
     },
     onError: (error) => {
       console.error('LinkedIn search error:', error);
@@ -434,7 +434,7 @@ export default function Contacts() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-green-100 text-sm">Level</p>
-                  <p className="text-2xl font-bold">{Math.floor(contacts.length / 10) + 1}</p>
+                  <p className="text-2xl font-bold">{Math.floor(contactsArray.length / 10) + 1}</p>
                 </div>
                 <Crown className="w-8 h-8 text-green-200" />
               </div>
@@ -446,7 +446,7 @@ export default function Contacts() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-purple-100 text-sm">Points</p>
-                  <p className="text-2xl font-bold">{contacts.length * 10}</p>
+                  <p className="text-2xl font-bold">{contactsArray.length * 10}</p>
                 </div>
                 <Star className="w-8 h-8 text-purple-200" />
               </div>

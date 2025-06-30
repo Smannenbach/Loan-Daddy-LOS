@@ -22,6 +22,7 @@ import { propertyImageService } from "./property-image-service";
 import { linkedInIntegration } from "./linkedin-integration";
 import { aiChatbot } from "./ai-chatbot";
 import { aiVoicebot } from "./ai-voicebot";
+import aiRoutes from "./ai-routes";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
