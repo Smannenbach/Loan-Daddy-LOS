@@ -98,6 +98,7 @@ export default function AIAdvisor() {
   const [recommendation, setRecommendation] = useState<LoanRecommendation | null>(null);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [currentMessage, setCurrentMessage] = useState('');
+  const [sessionId] = useState(() => `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const { toast } = useToast();
@@ -159,14 +160,19 @@ export default function AIAdvisor() {
       const response = await apiRequest('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message, profile, messages: chatMessages })
+        body: JSON.stringify({ 
+          message, 
+          sessionId,
+          profile, 
+          messages: chatMessages 
+        })
       });
       return response;
     },
     onSuccess: (data) => {
       setChatMessages(prev => [...prev, {
         role: 'assistant',
-        content: data.message,
+        content: data.response || data.message,
         timestamp: new Date()
       }]);
     },
