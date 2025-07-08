@@ -45,7 +45,6 @@ const navigation = [
   { name: 'Property Map', href: '/property-map', icon: MapPin },
   { name: 'Property Comparison', href: '/property-comparison', icon: BarChart3 },
   { name: 'Market Trends', href: '/market-trends', icon: TrendingUp },
-  { name: 'AI Loan Advisor', href: '/loan-recommendation', icon: Brain },
   { name: 'Mortgage Calculator', href: '/mortgage-calculator', icon: Calculator },
   { name: 'Profile', href: '/profile', icon: User },
   { name: 'Permissions', href: '/permissions', icon: Shield },
