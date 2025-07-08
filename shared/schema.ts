@@ -246,6 +246,144 @@ export const contacts = pgTable("contacts", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Customer authentication and portal tables
+export const customerUsers = pgTable("customer_users", {
+  id: serial("id").primaryKey(),
+  email: text("email").notNull().unique(),
+  password: text("password").notNull(),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  phone: text("phone"),
+  isEmailVerified: boolean("is_email_verified").default(false),
+  emailVerificationToken: text("email_verification_token"),
+  passwordResetToken: text("password_reset_token"),
+  passwordResetExpires: timestamp("password_reset_expires"),
+  lastLogin: timestamp("last_login"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const customerSessions = pgTable("customer_sessions", {
+  id: text("id").primaryKey(),
+  customerId: integer("customer_id").references(() => customerUsers.id).notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const customerLoanApplications = pgTable("customer_loan_applications", {
+  id: serial("id").primaryKey(),
+  customerId: integer("customer_id").references(() => customerUsers.id).notNull(),
+  applicationNumber: text("application_number").notNull().unique(),
+  
+  // Basic Information
+  loanType: text("loan_type").notNull(), // 'dscr', 'fix-and-flip', 'bridge', 'commercial'
+  requestedAmount: decimal("requested_amount", { precision: 12, scale: 2 }).notNull(),
+  loanPurpose: text("loan_purpose").notNull(), // purchase, refinance, cash-out, construction
+  
+  // Property Information
+  propertyAddress: text("property_address").notNull(),
+  propertyCity: text("property_city").notNull(),
+  propertyState: text("property_state").notNull(),
+  propertyZip: text("property_zip").notNull(),
+  propertyType: text("property_type").notNull(), // single-family, multi-family, commercial, etc.
+  propertyValue: decimal("property_value", { precision: 12, scale: 2 }),
+  purchasePrice: decimal("purchase_price", { precision: 12, scale: 2 }),
+  downPayment: decimal("down_payment", { precision: 12, scale: 2 }),
+  
+  // Financial Information
+  annualIncome: decimal("annual_income", { precision: 12, scale: 2 }),
+  monthlyIncome: decimal("monthly_income", { precision: 12, scale: 2 }),
+  monthlyDebts: decimal("monthly_debts", { precision: 12, scale: 2 }),
+  liquidAssets: decimal("liquid_assets", { precision: 12, scale: 2 }),
+  creditScore: integer("credit_score"),
+  
+  // Experience
+  investmentExperience: text("investment_experience"), // beginner, intermediate, experienced
+  numberOfProperties: integer("number_of_properties"),
+  experienceYears: integer("experience_years"),
+  
+  // Contact Information
+  workPhone: text("work_phone"),
+  cellPhone: text("cell_phone"),
+  workEmail: text("work_email"),
+  
+  // Employment Information
+  employmentStatus: text("employment_status"), // employed, self-employed, retired, other
+  employerName: text("employer_name"),
+  jobTitle: text("job_title"),
+  workAddress: text("work_address"),
+  employmentYears: integer("employment_years"),
+  
+  // Additional Details
+  hasCoApplicant: boolean("has_co_applicant").default(false),
+  coApplicantInfo: jsonb("co_applicant_info"),
+  additionalComments: text("additional_comments"),
+  
+  // Application Status
+  status: text("status").notNull().default("draft"), // draft, submitted, under_review, approved, declined, incomplete
+  submittedAt: timestamp("submitted_at"),
+  lastModified: timestamp("last_modified").defaultNow().notNull(),
+  
+  // Document Tracking
+  requiredDocuments: text("required_documents").array().default([]),
+  uploadedDocuments: text("uploaded_documents").array().default([]),
+  missingDocuments: text("missing_documents").array().default([]),
+  
+  // Communication Preferences
+  preferredContactMethod: text("preferred_contact_method").default("email"), // email, phone, text
+  bestTimeToCall: text("best_time_to_call"),
+  communicationNotes: text("communication_notes"),
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const customerDocuments = pgTable("customer_documents", {
+  id: serial("id").primaryKey(),
+  customerId: integer("customer_id").references(() => customerUsers.id).notNull(),
+  applicationId: integer("application_id").references(() => customerLoanApplications.id),
+  
+  fileName: text("file_name").notNull(),
+  originalName: text("original_name").notNull(),
+  category: text("category").notNull(), // income, bank_statements, tax_returns, property_docs, etc.
+  documentType: text("document_type").notNull(), // w2, paystub, bank_statement, tax_return, etc.
+  
+  fileSize: integer("file_size").notNull(),
+  mimeType: text("mime_type").notNull(),
+  fileHash: text("file_hash"), // for duplicate detection
+  
+  // Document Status
+  status: text("status").default("uploaded"), // uploaded, processing, verified, rejected
+  verificationNotes: text("verification_notes"),
+  isRequired: boolean("is_required").default(true),
+  
+  // Metadata
+  documentDate: timestamp("document_date"), // date of the document (e.g., statement date)
+  expirationDate: timestamp("expiration_date"), // for documents that expire
+  
+  uploadedAt: timestamp("uploaded_at").defaultNow().notNull(),
+  verifiedAt: timestamp("verified_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const documentRequirements = pgTable("document_requirements", {
+  id: serial("id").primaryKey(),
+  loanType: text("loan_type").notNull(),
+  category: text("category").notNull(),
+  documentType: text("document_type").notNull(),
+  displayName: text("display_name").notNull(),
+  description: text("description"),
+  isRequired: boolean("is_required").default(true),
+  sortOrder: integer("sort_order").default(0),
+  acceptedFormats: text("accepted_formats").array().default(['pdf', 'jpg', 'png', 'doc', 'docx']),
+  maxFileSize: integer("max_file_size").default(10485760), // 10MB in bytes
+  validationRules: jsonb("validation_rules"), // custom validation rules
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Schemas
 export const insertBorrowerSchema = createInsertSchema(borrowers);
 export const insertPropertySchema = createInsertSchema(properties);
@@ -281,6 +419,39 @@ export const insertContactSchema = createInsertSchema(contacts).omit({
   updatedAt: true,
 });
 
+// Customer schemas
+export const insertCustomerUserSchema = createInsertSchema(customerUsers).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  lastLogin: true,
+  emailVerificationToken: true,
+  passwordResetToken: true,
+  passwordResetExpires: true,
+});
+
+export const insertCustomerLoanApplicationSchema = createInsertSchema(customerLoanApplications).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  submittedAt: true,
+  lastModified: true,
+  applicationNumber: true,
+});
+
+export const insertCustomerDocumentSchema = createInsertSchema(customerDocuments).omit({
+  id: true,
+  uploadedAt: true,
+  verifiedAt: true,
+  createdAt: true,
+});
+
+export const insertDocumentRequirementSchema = createInsertSchema(documentRequirements).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type Borrower = typeof borrowers.$inferSelect;
@@ -293,6 +464,13 @@ export type Template = typeof templates.$inferSelect;
 export type CallLog = typeof callLogs.$inferSelect;
 export type Contact = typeof contacts.$inferSelect;
 
+// Customer types
+export type CustomerUser = typeof customerUsers.$inferSelect;
+export type CustomerSession = typeof customerSessions.$inferSelect;
+export type CustomerLoanApplication = typeof customerLoanApplications.$inferSelect;
+export type CustomerDocument = typeof customerDocuments.$inferSelect;
+export type DocumentRequirement = typeof documentRequirements.$inferSelect;
+
 export type InsertBorrower = z.infer<typeof insertBorrowerSchema>;
 export type InsertProperty = z.infer<typeof insertPropertySchema>;
 export type InsertLoanApplication = z.infer<typeof insertLoanApplicationSchema>;
@@ -302,6 +480,12 @@ export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type InsertTemplate = z.infer<typeof insertTemplateSchema>;
 export type InsertCallLog = z.infer<typeof insertCallLogSchema>;
 export type InsertContact = z.infer<typeof insertContactSchema>;
+
+// Customer insert types
+export type InsertCustomerUser = z.infer<typeof insertCustomerUserSchema>;
+export type InsertCustomerLoanApplication = z.infer<typeof insertCustomerLoanApplicationSchema>;
+export type InsertCustomerDocument = z.infer<typeof insertCustomerDocumentSchema>;
+export type InsertDocumentRequirement = z.infer<typeof insertDocumentRequirementSchema>;
 
 // Extended types for API responses
 export type LoanApplicationWithDetails = LoanApplication & {

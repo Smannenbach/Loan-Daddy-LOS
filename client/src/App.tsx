@@ -33,6 +33,13 @@ const WorkflowAutomation = React.lazy(() => import("@/pages/workflow-automation"
 const DocumentCenter = React.lazy(() => import("@/pages/document-center"));
 const ComplianceCenter = React.lazy(() => import("@/pages/compliance-center"));
 
+// Customer portal pages
+const CustomerLogin = React.lazy(() => import("@/pages/customer/customer-login"));
+const CustomerSignup = React.lazy(() => import("@/pages/customer/customer-signup"));
+const CustomerDashboard = React.lazy(() => import("@/pages/customer/customer-dashboard"));
+const LoanApplication = React.lazy(() => import("@/pages/customer/loan-application"));
+const DocumentUpload = React.lazy(() => import("@/pages/customer/document-upload"));
+
 function Router() {
   return (
     <div className="flex h-screen bg-surface">
@@ -136,6 +143,37 @@ function Router() {
               <h1 className="text-2xl font-bold mb-4">Settings</h1>
               <p>Settings page coming soon...</p>
             </div>
+          )} />
+          {/* Customer portal routes */}
+          <Route path="/customer/login" component={() => (
+            <React.Suspense fallback={<div className="p-8">Loading...</div>}>
+              <CustomerLogin />
+            </React.Suspense>
+          )} />
+          <Route path="/customer/signup" component={() => (
+            <React.Suspense fallback={<div className="p-8">Loading...</div>}>
+              <CustomerSignup />
+            </React.Suspense>
+          )} />
+          <Route path="/customer/dashboard" component={() => (
+            <React.Suspense fallback={<div className="p-8">Loading...</div>}>
+              <CustomerDashboard />
+            </React.Suspense>
+          )} />
+          <Route path="/customer/loan-application" component={() => (
+            <React.Suspense fallback={<div className="p-8">Loading...</div>}>
+              <LoanApplication />
+            </React.Suspense>
+          )} />
+          <Route path="/customer/loan-application/:id" component={() => (
+            <React.Suspense fallback={<div className="p-8">Loading...</div>}>
+              <LoanApplication />
+            </React.Suspense>
+          )} />
+          <Route path="/customer/documents" component={() => (
+            <React.Suspense fallback={<div className="p-8">Loading...</div>}>
+              <DocumentUpload />
+            </React.Suspense>
           )} />
           <Route path="/customer-portal" component={() => {
             const params = new URLSearchParams(window.location.search);

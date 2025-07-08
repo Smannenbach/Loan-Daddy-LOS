@@ -22,9 +22,11 @@ import { propertyImageService } from "./property-image-service";
 import { linkedInIntegration } from "./linkedin-integration";
 import { aiChatbot } from "./ai-chatbot";
 import { aiVoicebot } from "./ai-voicebot";
-import { socialEnrichmentService } from "./social-enrichment";
+import { socialEnrichment } from "./social-enrichment";
+import { customerAuth } from "./customer-auth";
 import aiRoutes from "./ai-routes";
 import multer from "multer";
+import cookieParser from "cookie-parser";
 import path from "path";
 import fs from "fs";
 import { z } from "zod";
@@ -56,6 +58,8 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Configure middleware
+  app.use(cookieParser());
   // Dashboard stats
   app.get("/api/dashboard/stats", async (req, res) => {
     try {
@@ -1475,6 +1479,303 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Enrichment suggestions error:', error);
       res.status(500).json({ error: 'Failed to get enrichment suggestions' });
+    }
+  });
+
+  // Customer Authentication Routes
+  app.post('/api/customer/signup', async (req, res) => {
+    try {
+      const result = await customerAuth.signup(req.body);
+      
+      // Set session cookie
+      res.cookie('customer_session', result.sessionId, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+        sameSite: 'strict'
+      });
+
+      res.json({
+        success: true,
+        customer: result.customer,
+        message: 'Account created successfully'
+      });
+    } catch (error) {
+      console.error('Customer signup error:', error);
+      res.status(400).json({ 
+        error: error.message,
+        message: 'Failed to create account' 
+      });
+    }
+  });
+
+  app.post('/api/customer/login', async (req, res) => {
+    try {
+      const result = await customerAuth.login(req.body);
+      
+      // Set session cookie
+      res.cookie('customer_session', result.sessionId, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+        sameSite: 'strict'
+      });
+
+      res.json({
+        success: true,
+        customer: result.customer,
+        message: 'Logged in successfully'
+      });
+    } catch (error) {
+      console.error('Customer login error:', error);
+      res.status(400).json({ 
+        error: error.message,
+        message: 'Failed to log in' 
+      });
+    }
+  });
+
+  app.post('/api/customer/logout', async (req, res) => {
+    try {
+      const sessionId = req.cookies.customer_session;
+      
+      if (sessionId) {
+        await customerAuth.logout(sessionId);
+      }
+      
+      res.clearCookie('customer_session');
+      res.json({
+        success: true,
+        message: 'Logged out successfully'
+      });
+    } catch (error) {
+      console.error('Customer logout error:', error);
+      res.status(500).json({ 
+        error: error.message,
+        message: 'Failed to log out' 
+      });
+    }
+  });
+
+  app.get('/api/customer/profile', async (req, res) => {
+    try {
+      const sessionId = req.cookies.customer_session;
+      
+      if (!sessionId) {
+        return res.status(401).json({ error: 'Not authenticated' });
+      }
+
+      const customer = await customerAuth.getCustomerBySession(sessionId);
+      
+      if (!customer) {
+        res.clearCookie('customer_session');
+        return res.status(401).json({ error: 'Session expired' });
+      }
+
+      res.json({
+        success: true,
+        customer
+      });
+    } catch (error) {
+      console.error('Get customer profile error:', error);
+      res.status(500).json({ 
+        error: error.message,
+        message: 'Failed to get profile' 
+      });
+    }
+  });
+
+  // Customer middleware for protected routes
+  const customerAuthMiddleware = async (req: any, res: any, next: any) => {
+    try {
+      const sessionId = req.cookies.customer_session;
+      
+      if (!sessionId) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const customer = await customerAuth.getCustomerBySession(sessionId);
+      
+      if (!customer) {
+        res.clearCookie('customer_session');
+        return res.status(401).json({ error: 'Session expired' });
+      }
+
+      req.customer = customer;
+      next();
+    } catch (error) {
+      console.error('Customer auth middleware error:', error);
+      res.status(500).json({ error: 'Authentication error' });
+    }
+  };
+
+  // Customer loan application routes (protected)
+  app.post('/api/customer/loan-applications', customerAuthMiddleware, async (req, res) => {
+    try {
+      const applicationNumber = `LA-${Date.now()}`;
+      
+      res.json({
+        success: true,
+        application: {
+          id: Math.floor(Math.random() * 1000) + 1,
+          applicationNumber,
+          customerId: req.customer.id,
+          status: 'draft',
+          ...req.body,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        message: 'Loan application created successfully'
+      });
+    } catch (error) {
+      console.error('Create loan application error:', error);
+      res.status(400).json({ 
+        error: error.message,
+        message: 'Failed to create loan application' 
+      });
+    }
+  });
+
+  app.get('/api/customer/loan-applications', customerAuthMiddleware, async (req, res) => {
+    try {
+      res.json({
+        success: true,
+        applications: [],
+        message: 'Loan applications retrieved successfully'
+      });
+    } catch (error) {
+      console.error('Get loan applications error:', error);
+      res.status(500).json({ 
+        error: error.message,
+        message: 'Failed to retrieve loan applications' 
+      });
+    }
+  });
+
+  // Document upload configuration
+  const customerDocumentUpload = multer({
+    dest: 'uploads/customer-documents/',
+    limits: {
+      fileSize: 10 * 1024 * 1024, // 10MB limit
+    },
+    fileFilter: (req, file, cb) => {
+      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg', 
+                           'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+      
+      if (allowedTypes.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new Error('Invalid file type. Only PDF, images, and Word documents are allowed.'));
+      }
+    }
+  });
+
+  // Customer document upload routes (protected)
+  app.post('/api/customer/documents/upload', customerAuthMiddleware, customerDocumentUpload.single('document'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No file provided' });
+      }
+
+      const { category, documentType, applicationId } = req.body;
+
+      if (!category || !documentType) {
+        return res.status(400).json({ error: 'Category and document type are required' });
+      }
+
+      const document = {
+        id: Math.floor(Math.random() * 1000) + 1,
+        customerId: req.customer.id,
+        applicationId: applicationId ? parseInt(applicationId) : null,
+        fileName: req.file.filename,
+        originalName: req.file.originalname,
+        category,
+        documentType,
+        fileSize: req.file.size,
+        mimeType: req.file.mimetype,
+        status: 'uploaded',
+        uploadedAt: new Date(),
+        createdAt: new Date()
+      };
+
+      res.json({
+        success: true,
+        document,
+        message: 'Document uploaded successfully'
+      });
+    } catch (error) {
+      console.error('Document upload error:', error);
+      res.status(400).json({ 
+        error: error.message,
+        message: 'Failed to upload document' 
+      });
+    }
+  });
+
+  app.get('/api/customer/documents', customerAuthMiddleware, async (req, res) => {
+    try {
+      res.json({
+        success: true,
+        documents: [],
+        message: 'Documents retrieved successfully'
+      });
+    } catch (error) {
+      console.error('Get documents error:', error);
+      res.status(500).json({ 
+        error: error.message,
+        message: 'Failed to retrieve documents' 
+      });
+    }
+  });
+
+  // Get document requirements for loan type
+  app.get('/api/customer/document-requirements/:loanType', async (req, res) => {
+    try {
+      const { loanType } = req.params;
+      
+      const requirements = {
+        'dscr': [
+          { category: 'income', documentType: 'tax_return', displayName: 'Tax Returns (2 years)', isRequired: true },
+          { category: 'income', documentType: 'rent_roll', displayName: 'Current Rent Roll', isRequired: true },
+          { category: 'bank_statements', documentType: 'bank_statement', displayName: 'Bank Statements (3 months)', isRequired: true },
+          { category: 'property', documentType: 'property_appraisal', displayName: 'Property Appraisal', isRequired: false },
+          { category: 'property', documentType: 'purchase_contract', displayName: 'Purchase Contract', isRequired: true }
+        ],
+        'fix-and-flip': [
+          { category: 'income', documentType: 'tax_return', displayName: 'Tax Returns (2 years)', isRequired: true },
+          { category: 'income', documentType: 'profit_loss', displayName: 'Profit & Loss Statement', isRequired: true },
+          { category: 'bank_statements', documentType: 'bank_statement', displayName: 'Bank Statements (3 months)', isRequired: true },
+          { category: 'property', documentType: 'purchase_contract', displayName: 'Purchase Contract', isRequired: true },
+          { category: 'property', documentType: 'rehab_budget', displayName: 'Rehab Budget & Plans', isRequired: true },
+          { category: 'property', documentType: 'arv_analysis', displayName: 'After Repair Value Analysis', isRequired: true }
+        ],
+        'bridge': [
+          { category: 'income', documentType: 'tax_return', displayName: 'Tax Returns (2 years)', isRequired: true },
+          { category: 'bank_statements', documentType: 'bank_statement', displayName: 'Bank Statements (3 months)', isRequired: true },
+          { category: 'property', documentType: 'purchase_contract', displayName: 'Purchase Contract', isRequired: true },
+          { category: 'property', documentType: 'exit_strategy', displayName: 'Exit Strategy Documentation', isRequired: true }
+        ],
+        'commercial': [
+          { category: 'income', documentType: 'tax_return', displayName: 'Tax Returns (3 years)', isRequired: true },
+          { category: 'income', documentType: 'financial_statement', displayName: 'Financial Statements', isRequired: true },
+          { category: 'bank_statements', documentType: 'bank_statement', displayName: 'Bank Statements (6 months)', isRequired: true },
+          { category: 'property', documentType: 'property_appraisal', displayName: 'Property Appraisal', isRequired: true },
+          { category: 'property', documentType: 'operating_statement', displayName: 'Property Operating Statements', isRequired: true },
+          { category: 'property', documentType: 'lease_agreements', displayName: 'Lease Agreements', isRequired: true }
+        ]
+      };
+
+      res.json({
+        success: true,
+        requirements: requirements[loanType] || [],
+        message: 'Document requirements retrieved successfully'
+      });
+    } catch (error) {
+      console.error('Get document requirements error:', error);
+      res.status(500).json({ 
+        error: error.message,
+        message: 'Failed to retrieve document requirements' 
+      });
     }
   });
 

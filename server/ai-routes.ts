@@ -1,6 +1,9 @@
 import { Router } from 'express';
 import { aiDocumentProcessor } from './ai-document-processor';
 import { aiChatbot } from './ai-chatbot';
+import { aiVoicebot } from './ai-voicebot';
+import { socialEnrichment } from './social-enrichment';
+import { crmIntegrations } from './crm-integrations';
 import { paymentProcessor } from './payment-processor';
 import { videoGenerator } from './video-generator';
 import { blockchainService } from './blockchain-service';
@@ -599,6 +602,474 @@ router.get('/ai/analytics/export/:format', async (req, res) => {
   }
 });
 
+// AI Voicebot Routes
+router.post('/ai/voice/initiate-call', async (req, res) => {
+  try {
+    const { contactId, phoneNumber, purpose } = req.body;
+
+    if (!contactId || !phoneNumber) {
+      return res.status(400).json({ error: 'contactId and phoneNumber are required' });
+    }
+
+    const sessionId = await aiVoicebot.initiateCall(contactId, phoneNumber, purpose);
+
+    res.json({
+      success: true,
+      sessionId,
+      message: 'Voice call initiated successfully'
+    });
+  } catch (error) {
+    console.error('Voice call initiation error:', error);
+    res.status(500).json({ 
+      error: 'Voice call initiation failed',
+      message: error.message 
+    });
+  }
+});
+
+router.post('/ai/voice/process-input', async (req, res) => {
+  try {
+    const { sessionId, transcript } = req.body;
+
+    if (!sessionId || !transcript) {
+      return res.status(400).json({ error: 'sessionId and transcript are required' });
+    }
+
+    const response = await aiVoicebot.processVoiceInput(sessionId, transcript);
+
+    res.json({
+      success: true,
+      response,
+      message: 'Voice input processed successfully'
+    });
+  } catch (error) {
+    console.error('Voice input processing error:', error);
+    res.status(500).json({ 
+      error: 'Voice input processing failed',
+      message: error.message 
+    });
+  }
+});
+
+router.post('/ai/voice/end-call', async (req, res) => {
+  try {
+    const { sessionId } = req.body;
+
+    if (!sessionId) {
+      return res.status(400).json({ error: 'sessionId is required' });
+    }
+
+    const outcome = await aiVoicebot.endCall(sessionId);
+
+    res.json({
+      success: true,
+      outcome,
+      message: 'Call ended successfully'
+    });
+  } catch (error) {
+    console.error('Call ending error:', error);
+    res.status(500).json({ 
+      error: 'Call ending failed',
+      message: error.message 
+    });
+  }
+});
+
+router.get('/ai/voice/transcript/:sessionId', async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const transcript = await aiVoicebot.getCallTranscript(sessionId);
+
+    res.json({
+      success: true,
+      transcript,
+      message: 'Call transcript retrieved successfully'
+    });
+  } catch (error) {
+    console.error('Transcript retrieval error:', error);
+    res.status(500).json({ 
+      error: 'Failed to retrieve transcript',
+      message: error.message 
+    });
+  }
+});
+
+router.post('/ai/voice/outbound-call', async (req, res) => {
+  try {
+    const { contactId, phoneNumber, script } = req.body;
+
+    if (!contactId || !phoneNumber || !script) {
+      return res.status(400).json({ error: 'contactId, phoneNumber, and script are required' });
+    }
+
+    const sessionId = await aiVoicebot.makeOutboundCall(contactId, phoneNumber, script);
+
+    res.json({
+      success: true,
+      sessionId,
+      message: 'Outbound call initiated successfully'
+    });
+  } catch (error) {
+    console.error('Outbound call error:', error);
+    res.status(500).json({ 
+      error: 'Outbound call failed',
+      message: error.message 
+    });
+  }
+});
+
+// CRM Integration Routes
+router.post('/ai/crm/contacts', async (req, res) => {
+  try {
+    const contactData = req.body;
+
+    if (!contactData.firstName || !contactData.lastName || !contactData.email) {
+      return res.status(400).json({ error: 'firstName, lastName, and email are required' });
+    }
+
+    const contact = await crmIntegrations.createContact(contactData);
+
+    res.json({
+      success: true,
+      contact,
+      message: 'CRM contact created successfully'
+    });
+  } catch (error) {
+    console.error('CRM contact creation error:', error);
+    res.status(500).json({ 
+      error: 'CRM contact creation failed',
+      message: error.message 
+    });
+  }
+});
+
+router.put('/ai/crm/contacts/:contactId', async (req, res) => {
+  try {
+    const { contactId } = req.params;
+    const updates = req.body;
+
+    const contact = await crmIntegrations.updateContact(contactId, updates);
+
+    res.json({
+      success: true,
+      contact,
+      message: 'CRM contact updated successfully'
+    });
+  } catch (error) {
+    console.error('CRM contact update error:', error);
+    res.status(500).json({ 
+      error: 'CRM contact update failed',
+      message: error.message 
+    });
+  }
+});
+
+router.get('/ai/crm/contacts', async (req, res) => {
+  try {
+    const contacts = await crmIntegrations.getAllContacts();
+
+    res.json({
+      success: true,
+      contacts,
+      message: 'CRM contacts retrieved successfully'
+    });
+  } catch (error) {
+    console.error('CRM contacts retrieval error:', error);
+    res.status(500).json({ 
+      error: 'Failed to retrieve CRM contacts',
+      message: error.message 
+    });
+  }
+});
+
+router.get('/ai/crm/contacts/search', async (req, res) => {
+  try {
+    const { q } = req.query;
+
+    if (!q) {
+      return res.status(400).json({ error: 'Search query (q) is required' });
+    }
+
+    const contacts = await crmIntegrations.searchContacts(q as string);
+
+    res.json({
+      success: true,
+      contacts,
+      message: 'Contact search completed successfully'
+    });
+  } catch (error) {
+    console.error('Contact search error:', error);
+    res.status(500).json({ 
+      error: 'Contact search failed',
+      message: error.message 
+    });
+  }
+});
+
+router.post('/ai/crm/deals', async (req, res) => {
+  try {
+    const dealData = req.body;
+
+    if (!dealData.contactId || !dealData.name || !dealData.value) {
+      return res.status(400).json({ error: 'contactId, name, and value are required' });
+    }
+
+    const deal = await crmIntegrations.createDeal(dealData);
+
+    res.json({
+      success: true,
+      deal,
+      message: 'CRM deal created successfully'
+    });
+  } catch (error) {
+    console.error('CRM deal creation error:', error);
+    res.status(500).json({ 
+      error: 'CRM deal creation failed',
+      message: error.message 
+    });
+  }
+});
+
+router.put('/ai/crm/deals/:dealId/stage', async (req, res) => {
+  try {
+    const { dealId } = req.params;
+    const { stage } = req.body;
+
+    if (!stage) {
+      return res.status(400).json({ error: 'stage is required' });
+    }
+
+    const deal = await crmIntegrations.updateDealStage(dealId, stage);
+
+    res.json({
+      success: true,
+      deal,
+      message: 'Deal stage updated successfully'
+    });
+  } catch (error) {
+    console.error('Deal stage update error:', error);
+    res.status(500).json({ 
+      error: 'Deal stage update failed',
+      message: error.message 
+    });
+  }
+});
+
+router.get('/ai/crm/deals', async (req, res) => {
+  try {
+    const { stage, contactId } = req.query;
+
+    let deals;
+    if (stage) {
+      deals = await crmIntegrations.getDealsByStage(stage as any);
+    } else if (contactId) {
+      deals = await crmIntegrations.getContactDeals(contactId as string);
+    } else {
+      deals = await crmIntegrations.getAllDeals();
+    }
+
+    res.json({
+      success: true,
+      deals,
+      message: 'CRM deals retrieved successfully'
+    });
+  } catch (error) {
+    console.error('CRM deals retrieval error:', error);
+    res.status(500).json({ 
+      error: 'Failed to retrieve CRM deals',
+      message: error.message 
+    });
+  }
+});
+
+router.post('/ai/crm/activities', async (req, res) => {
+  try {
+    const activityData = req.body;
+
+    if (!activityData.contactId || !activityData.type || !activityData.subject) {
+      return res.status(400).json({ error: 'contactId, type, and subject are required' });
+    }
+
+    const activity = await crmIntegrations.logActivity(activityData);
+
+    res.json({
+      success: true,
+      activity,
+      message: 'CRM activity logged successfully'
+    });
+  } catch (error) {
+    console.error('CRM activity logging error:', error);
+    res.status(500).json({ 
+      error: 'CRM activity logging failed',
+      message: error.message 
+    });
+  }
+});
+
+router.get('/ai/crm/contacts/:contactId/activities', async (req, res) => {
+  try {
+    const { contactId } = req.params;
+    const activities = await crmIntegrations.getContactActivities(contactId);
+
+    res.json({
+      success: true,
+      activities,
+      message: 'Contact activities retrieved successfully'
+    });
+  } catch (error) {
+    console.error('Contact activities retrieval error:', error);
+    res.status(500).json({ 
+      error: 'Failed to retrieve contact activities',
+      message: error.message 
+    });
+  }
+});
+
+router.get('/ai/crm/analytics', async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+
+    const start = startDate ? new Date(startDate as string) : undefined;
+    const end = endDate ? new Date(endDate as string) : undefined;
+
+    const analytics = await crmIntegrations.generateAnalytics(start, end);
+
+    res.json({
+      success: true,
+      analytics,
+      message: 'CRM analytics generated successfully'
+    });
+  } catch (error) {
+    console.error('CRM analytics error:', error);
+    res.status(500).json({ 
+      error: 'CRM analytics generation failed',
+      message: error.message 
+    });
+  }
+});
+
+router.get('/ai/crm/pipeline/:pipelineId?', async (req, res) => {
+  try {
+    const { pipelineId } = req.params;
+    const pipeline = await crmIntegrations.getPipeline(pipelineId);
+
+    if (!pipeline) {
+      return res.status(404).json({ error: 'Pipeline not found' });
+    }
+
+    res.json({
+      success: true,
+      pipeline,
+      message: 'CRM pipeline retrieved successfully'
+    });
+  } catch (error) {
+    console.error('CRM pipeline retrieval error:', error);
+    res.status(500).json({ 
+      error: 'Failed to retrieve CRM pipeline',
+      message: error.message 
+    });
+  }
+});
+
+router.post('/ai/crm/integrations', async (req, res) => {
+  try {
+    const { platform, apiKey, endpoint } = req.body;
+
+    if (!platform || !apiKey || !endpoint) {
+      return res.status(400).json({ error: 'platform, apiKey, and endpoint are required' });
+    }
+
+    const integration = await crmIntegrations.setupIntegration(platform, apiKey, endpoint);
+
+    res.json({
+      success: true,
+      integration,
+      message: 'CRM integration setup successfully'
+    });
+  } catch (error) {
+    console.error('CRM integration setup error:', error);
+    res.status(500).json({ 
+      error: 'CRM integration setup failed',
+      message: error.message 
+    });
+  }
+});
+
+router.post('/ai/crm/sync/:platform', async (req, res) => {
+  try {
+    const { platform } = req.params;
+    const result = await crmIntegrations.syncWithCRM(platform as any);
+
+    res.json({
+      success: true,
+      result,
+      message: 'CRM sync completed successfully'
+    });
+  } catch (error) {
+    console.error('CRM sync error:', error);
+    res.status(500).json({ 
+      error: 'CRM sync failed',
+      message: error.message 
+    });
+  }
+});
+
+// Social Enrichment Routes
+router.post('/ai/social/enrich-contact', async (req, res) => {
+  try {
+    const { contactId, email, name, phone, company, sources } = req.body;
+
+    if (!contactId || !sources || !Array.isArray(sources)) {
+      return res.status(400).json({ error: 'contactId and sources array are required' });
+    }
+
+    const enrichment = await socialEnrichment.enrichContact({
+      contactId,
+      email,
+      name,
+      phone,
+      company,
+      sources
+    });
+
+    res.json({
+      success: true,
+      enrichment,
+      message: 'Contact enrichment completed successfully'
+    });
+  } catch (error) {
+    console.error('Contact enrichment error:', error);
+    res.status(500).json({ 
+      error: 'Contact enrichment failed',
+      message: error.message 
+    });
+  }
+});
+
+router.post('/ai/social/marketing-insights', async (req, res) => {
+  try {
+    const { contactId } = req.body;
+
+    if (!contactId) {
+      return res.status(400).json({ error: 'contactId is required' });
+    }
+
+    const insights = await socialEnrichment.generateMarketingInsights(contactId);
+
+    res.json({
+      success: true,
+      insights,
+      message: 'Marketing insights generated successfully'
+    });
+  } catch (error) {
+    console.error('Marketing insights error:', error);
+    res.status(500).json({ 
+      error: 'Marketing insights generation failed',
+      message: error.message 
+    });
+  }
+});
+
 // AI Dashboard Status Route
 router.get('/ai/status', async (req, res) => {
   try {
@@ -606,14 +1077,26 @@ router.get('/ai/status', async (req, res) => {
       services: {
         documentProcessor: 'active',
         chatbot: 'active',
+        voicebot: 'active',
+        socialEnrichment: 'active',
         paymentProcessor: 'active',
         videoGenerator: 'active',
         blockchain: 'active',
         analytics: 'active'
       },
-      version: '1.0.0',
+      version: '2.0.0',
       uptime: process.uptime(),
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      features: [
+        'AI Document Processing with OCR',
+        'Intelligent Chatbot with GPT-4o',
+        'AI Voicebot with Claude Sonnet',
+        'Social Media Enrichment',
+        'Payment Processing & Loan Calculations',
+        'AI Video Generation',
+        'Blockchain Document Verification',
+        'Advanced Analytics & Predictive Modeling'
+      ]
     };
 
     res.json({
