@@ -14,34 +14,59 @@ import { apiRequest } from '@/lib/queryClient';
 import { GamifiedOnboarding } from '@/components/gamified-onboarding';
 
 interface BorrowerProfile {
-  // Required minimum fields
+  // Personal Information
   firstName?: string;
   lastName?: string;
-  homePhone?: string;
-  dateOfBirth?: string;
+  mobilePhone?: string;
   email?: string;
-  address?: string;
-  creditScore?: number;
-  homeValue?: number;
-  loanPurpose?: string;
-  propertyType?: string;
-  loanAmount?: number;
+  dateOfBirth?: string;
+  ssn?: string;
+  ficoScore?: number;
   
-  // Additional fields
-  experience?: string;
-  timelineToFunding?: string;
+  // Property Information
+  propertyStreetAddress?: string;
+  propertyCity?: string;
+  propertyState?: string;
+  propertyZip?: string;
+  propertyType?: string;
+  estimatedValue?: number;
+  appraisedValue?: number;
+  monthlyPropertyTaxes?: number;
+  monthlyPropertyInsurance?: number;
+  monthlyHOA?: number;
+  
+  // Entity Information
+  entityName?: string;
+  entityType?: string;
+  
+  // Loan Details
+  loanPurpose?: string;
+  loanType?: string;
+  cashOutAmount?: number;
+  loanAmount?: number;
+  currentBalance?: number;
+  currentRate?: number;
+  monthsRemaining?: number;
+  currentMonthlyPI?: number;
+  currentMonthlyTIA?: number;
+  currentTotalMonthlyPayment?: number;
+  downPaymentPercent?: number;
+  downPaymentAmount?: number;
+  reserves?: string;
+  prepaymentPenalty?: string;
+  
+  // Additional fields for calculations
   ltv?: number;
   dscrRatio?: number;
+  experience?: string;
+  timelineToFunding?: string;
   liquidityPosition?: string;
   flipsCompleted?: number;
   rentalsOwned?: number;
   yearBuilt?: number;
   squareFootage?: number;
-  propertyTaxes?: number;
-  insurance?: number;
   grossIncome?: number;
   netIncome?: number;
-  prepaymentPenalty?: string;
 }
 
 interface LoanRecommendation {
@@ -95,10 +120,10 @@ export default function AIAdvisor() {
     setProfile(prev => ({
       ...prev,
       [field]: value,
-      // Auto-calculate LTV if we have both loan amount and home value
-      ...(field === 'loanAmount' || field === 'homeValue' ? {
-        ltv: prev.homeValue && (field === 'loanAmount' ? value : prev.loanAmount) 
-          ? Math.round(((field === 'loanAmount' ? value : prev.loanAmount) / (field === 'homeValue' ? value : prev.homeValue)) * 100)
+      // Auto-calculate LTV if we have both loan amount and estimated value
+      ...(field === 'loanAmount' || field === 'estimatedValue' ? {
+        ltv: prev.estimatedValue && (field === 'loanAmount' ? value : prev.loanAmount) 
+          ? Math.round(((field === 'loanAmount' ? value : prev.loanAmount) / (field === 'estimatedValue' ? value : prev.estimatedValue)) * 100)
           : undefined
       } : {})
     }));
@@ -171,14 +196,17 @@ export default function AIAdvisor() {
     const requiredFields = [
       { field: 'firstName', name: 'First Name' },
       { field: 'lastName', name: 'Last Name' },
-      { field: 'homePhone', name: 'Home Phone' },
-      { field: 'dateOfBirth', name: 'Date of Birth' },
+      { field: 'mobilePhone', name: 'Mobile Phone' },
       { field: 'email', name: 'Email' },
-      { field: 'address', name: 'Address' },
-      { field: 'creditScore', name: 'Credit Score' },
-      { field: 'homeValue', name: 'Home Value' },
-      { field: 'loanPurpose', name: 'Loan Purpose' },
+      { field: 'ficoScore', name: 'FICO Score' },
+      { field: 'propertyStreetAddress', name: 'Property Street Address' },
+      { field: 'propertyCity', name: 'Property City' },
+      { field: 'propertyState', name: 'Property State' },
+      { field: 'propertyZip', name: 'Property Zip' },
       { field: 'propertyType', name: 'Property Type' },
+      { field: 'estimatedValue', name: 'Estimated Value' },
+      { field: 'loanPurpose', name: 'Loan Purpose' },
+      { field: 'loanType', name: 'Loan Type' },
       { field: 'loanAmount', name: 'Loan Amount' },
     ];
 
@@ -291,22 +319,13 @@ export default function AIAdvisor() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="homePhone">Home Phone *</Label>
+                      <Label htmlFor="mobilePhone">Mobile Phone *</Label>
                       <Input
-                        id="homePhone"
+                        id="mobilePhone"
                         type="tel"
                         placeholder="(555) 123-4567"
-                        value={profile.homePhone || ''}
-                        onChange={(e) => updateProfile('homePhone', e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="dateOfBirth">Date of Birth *</Label>
-                      <Input
-                        id="dateOfBirth"
-                        type="date"
-                        value={profile.dateOfBirth || ''}
-                        onChange={(e) => updateProfile('dateOfBirth', e.target.value)}
+                        value={profile.mobilePhone || ''}
+                        onChange={(e) => updateProfile('mobilePhone', e.target.value)}
                       />
                     </div>
                     <div className="space-y-2">
@@ -320,21 +339,215 @@ export default function AIAdvisor() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="address">Address *</Label>
+                      <Label htmlFor="dateOfBirth">Date of Birth (Optional)</Label>
                       <Input
-                        id="address"
+                        id="dateOfBirth"
+                        type="date"
+                        value={profile.dateOfBirth || ''}
+                        onChange={(e) => updateProfile('dateOfBirth', e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="ssn">SSN (Optional)</Label>
+                      <Input
+                        id="ssn"
                         type="text"
-                        placeholder="123 Main St, City, State 12345"
-                        value={profile.address || ''}
-                        onChange={(e) => updateProfile('address', e.target.value)}
+                        placeholder="XXX-XX-XXXX"
+                        value={profile.ssn || ''}
+                        onChange={(e) => updateProfile('ssn', e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <Label htmlFor="ficoScore">FICO Score (400-850) *</Label>
+                      <div className="flex items-center space-x-4">
+                        <Input
+                          id="ficoScore"
+                          type="range"
+                          min="400"
+                          max="850"
+                          value={profile.ficoScore || 740}
+                          onChange={(e) => updateProfile('ficoScore', parseInt(e.target.value))}
+                          className="flex-1"
+                        />
+                        <span className="text-lg font-semibold w-16 text-center">{profile.ficoScore || 740}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Property Information */}
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <h3 className="font-semibold text-green-900 mb-3">Property Information</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="propertyStreetAddress">Property Street Address *</Label>
+                      <Input
+                        id="propertyStreetAddress"
+                        type="text"
+                        placeholder="123 Main St"
+                        value={profile.propertyStreetAddress || ''}
+                        onChange={(e) => updateProfile('propertyStreetAddress', e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="propertyCity">Property City *</Label>
+                      <Input
+                        id="propertyCity"
+                        type="text"
+                        placeholder="Phoenix"
+                        value={profile.propertyCity || ''}
+                        onChange={(e) => updateProfile('propertyCity', e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="propertyState">Property State *</Label>
+                      <Input
+                        id="propertyState"
+                        type="text"
+                        placeholder="AZ"
+                        value={profile.propertyState || ''}
+                        onChange={(e) => updateProfile('propertyState', e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="propertyZip">Property Zip *</Label>
+                      <Input
+                        id="propertyZip"
+                        type="text"
+                        placeholder="85001"
+                        value={profile.propertyZip || ''}
+                        onChange={(e) => updateProfile('propertyZip', e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="propertyType">Property Type *</Label>
+                      <Select value={profile.propertyType} onValueChange={(value) => updateProfile('propertyType', value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select property type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="single_family">Single Family</SelectItem>
+                          <SelectItem value="condo">Condo</SelectItem>
+                          <SelectItem value="townhome">Townhome</SelectItem>
+                          <SelectItem value="2_unit">2 Unit</SelectItem>
+                          <SelectItem value="3_unit">3 Unit</SelectItem>
+                          <SelectItem value="4_unit">4 Unit</SelectItem>
+                          <SelectItem value="multifamily_5_8">Multifamily 5-8 Unit</SelectItem>
+                          <SelectItem value="multifamily_9_10">Multifamily 9-10 Unit</SelectItem>
+                          <SelectItem value="multifamily_10_plus">Multifamily 10+ Unit</SelectItem>
+                          <SelectItem value="mixed_use">Mixed-use</SelectItem>
+                          <SelectItem value="retail">Retail</SelectItem>
+                          <SelectItem value="office">Office</SelectItem>
+                          <SelectItem value="industrial">Industrial</SelectItem>
+                          <SelectItem value="warehouse">Warehouse</SelectItem>
+                          <SelectItem value="storage">Storage</SelectItem>
+                          <SelectItem value="senior_living">Senior Living</SelectItem>
+                          <SelectItem value="student_housing">Student Housing</SelectItem>
+                          <SelectItem value="hotel_motel">Hotel / Motel</SelectItem>
+                          <SelectItem value="condotel">Condotel</SelectItem>
+                          <SelectItem value="restaurant">Restaurant</SelectItem>
+                          <SelectItem value="bar">Bar</SelectItem>
+                          <SelectItem value="cannabis">Cannabis</SelectItem>
+                          <SelectItem value="strip_club">Strip Club</SelectItem>
+                          <SelectItem value="automotive">Automotive</SelectItem>
+                          <SelectItem value="special_use">Special Use Property</SelectItem>
+                          <SelectItem value="land_lot">Land Lot</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="estimatedValue">Estimated Value *</Label>
+                      <Input
+                        id="estimatedValue"
+                        type="number"
+                        placeholder="750000"
+                        value={profile.estimatedValue || ''}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value);
+                          updateProfile('estimatedValue', value);
+                          updateProfile('appraisedValue', value); // Auto-fill appraised value
+                        }}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="appraisedValue">Appraised Value</Label>
+                      <Input
+                        id="appraisedValue"
+                        type="number"
+                        placeholder="750000"
+                        value={profile.appraisedValue || ''}
+                        onChange={(e) => updateProfile('appraisedValue', parseInt(e.target.value))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="monthlyPropertyTaxes">Monthly Property Taxes ($)</Label>
+                      <Input
+                        id="monthlyPropertyTaxes"
+                        type="number"
+                        placeholder="800"
+                        value={profile.monthlyPropertyTaxes || ''}
+                        onChange={(e) => updateProfile('monthlyPropertyTaxes', parseInt(e.target.value))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="monthlyPropertyInsurance">Monthly Property Insurance ($)</Label>
+                      <Input
+                        id="monthlyPropertyInsurance"
+                        type="number"
+                        placeholder="200"
+                        value={profile.monthlyPropertyInsurance || ''}
+                        onChange={(e) => updateProfile('monthlyPropertyInsurance', parseInt(e.target.value))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="monthlyHOA">Monthly HOA ($)</Label>
+                      <Input
+                        id="monthlyHOA"
+                        type="number"
+                        placeholder="150"
+                        value={profile.monthlyHOA || ''}
+                        onChange={(e) => updateProfile('monthlyHOA', parseInt(e.target.value))}
                       />
                     </div>
                   </div>
                 </div>
 
+                {/* Entity Information */}
+                <div className="bg-purple-50 p-4 rounded-lg">
+                  <h3 className="font-semibold text-purple-900 mb-3">Entity Information</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="entityName">Entity Name</Label>
+                      <Input
+                        id="entityName"
+                        type="text"
+                        placeholder="AZ Property Holdings LLC"
+                        value={profile.entityName || ''}
+                        onChange={(e) => updateProfile('entityName', e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="entityType">Entity Type</Label>
+                      <Select value={profile.entityType} onValueChange={(value) => updateProfile('entityType', value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select entity type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="llc">LLC</SelectItem>
+                          <SelectItem value="llp">LLP</SelectItem>
+                          <SelectItem value="corporation">Corporation</SelectItem>
+                          <SelectItem value="partnership">Partnership</SelectItem>
+                          <SelectItem value="sole_proprietorship">Sole Proprietorship</SelectItem>
+                          <SelectItem value="trust">Trust</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Loan Details */}
-                <div className="bg-green-50 p-4 rounded-lg">
-                  <h3 className="font-semibold text-green-900 mb-3">Loan Details</h3>
+                <div className="bg-orange-50 p-4 rounded-lg">
+                  <h3 className="font-semibold text-orange-900 mb-3">Loan Details</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="loanAmount">Loan Amount *</Label>
@@ -347,116 +560,193 @@ export default function AIAdvisor() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="homeValue">Home Value *</Label>
+                      <Label htmlFor="cashOutAmount">Cash Out Amount ($)</Label>
                       <Input
-                        id="homeValue"
+                        id="cashOutAmount"
                         type="number"
-                        placeholder="750000"
-                        value={profile.homeValue || ''}
-                        onChange={(e) => updateProfile('homeValue', parseInt(e.target.value))}
+                        placeholder="100000"
+                        value={profile.cashOutAmount || ''}
+                        onChange={(e) => updateProfile('cashOutAmount', parseInt(e.target.value))}
                       />
                     </div>
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="loanPurpose">Loan Purpose *</Label>
-                  <Select value={profile.loanPurpose} onValueChange={(value) => updateProfile('loanPurpose', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select loan purpose" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="purchase">
-                        <div className="flex items-center gap-2">
-                          <Home className="h-4 w-4" />
-                          Purchase
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="cash_out_refinance">
-                        <div className="flex items-center gap-2">
-                          <CreditCard className="h-4 w-4" />
-                          Cash Out Refinance
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="refinance">
-                        <div className="flex items-center gap-2">
-                          <TrendingUp className="h-4 w-4" />
-                          Refinance
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="bridge">
-                        <div className="flex items-center gap-2">
-                          <Car className="h-4 w-4" />
-                          Bridge
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="construction">
-                        <div className="flex items-center gap-2">
-                          <Building className="h-4 w-4" />
-                          Construction
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="fix_and_flip">
-                        <div className="flex items-center gap-2">
-                          <Wrench className="h-4 w-4" />
-                          Fix and Flip
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="renovation">
-                        <div className="flex items-center gap-2">
-                          <Wrench className="h-4 w-4" />
-                          Renovation
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="heloc">
-                        <div className="flex items-center gap-2">
-                          <Home className="h-4 w-4" />
-                          HELOC
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="second_mortgage">
-                        <div className="flex items-center gap-2">
-                          <Building className="h-4 w-4" />
-                          Second Mortgage
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="propertyType">Property Type *</Label>
-                  <Select value={profile.propertyType} onValueChange={(value) => updateProfile('propertyType', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select property type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="single_family">Single Family</SelectItem>
-                      <SelectItem value="multi_family">Multi-Family</SelectItem>
-                      <SelectItem value="condo">Condo</SelectItem>
-                      <SelectItem value="townhouse">Townhouse</SelectItem>
-                      <SelectItem value="commercial">Commercial</SelectItem>
-                      <SelectItem value="mixed_use">Mixed Use</SelectItem>
-                      <SelectItem value="land">Land</SelectItem>
-                      <SelectItem value="manufactured">Manufactured</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Financial Information */}
-                <div className="bg-yellow-50 p-4 rounded-lg">
-                  <h3 className="font-semibold text-yellow-900 mb-3">Financial Information</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="creditScore">Credit Score (Decision Making: 740) *</Label>
+                      <Label htmlFor="loanPurpose">Loan Purpose *</Label>
+                      <Select value={profile.loanPurpose} onValueChange={(value) => updateProfile('loanPurpose', value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select loan purpose" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="purchase">Purchase</SelectItem>
+                          <SelectItem value="cash_out_refinance">Cash Out Refinance</SelectItem>
+                          <SelectItem value="refinance">Refinance</SelectItem>
+                          <SelectItem value="bridge">Bridge</SelectItem>
+                          <SelectItem value="construction">Construction</SelectItem>
+                          <SelectItem value="fix_and_flip">Fix and Flip</SelectItem>
+                          <SelectItem value="renovation">Renovation</SelectItem>
+                          <SelectItem value="heloc">HELOC</SelectItem>
+                          <SelectItem value="second_mortgage">Second Mortgage</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="loanType">Loan Type *</Label>
+                      <Select value={profile.loanType} onValueChange={(value) => updateProfile('loanType', value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select loan type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="dscr">DSCR</SelectItem>
+                          <SelectItem value="hard_money">Hard Money</SelectItem>
+                          <SelectItem value="private_money">Private Money</SelectItem>
+                          <SelectItem value="commercial">Commercial</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="currentBalance">Current Balance ($)</Label>
                       <Input
-                        id="creditScore"
+                        id="currentBalance"
                         type="number"
-                        placeholder="740"
-                        value={profile.creditScore || ''}
-                        onChange={(e) => updateProfile('creditScore', parseInt(e.target.value))}
+                        placeholder="350000"
+                        value={profile.currentBalance || ''}
+                        onChange={(e) => updateProfile('currentBalance', parseInt(e.target.value))}
                       />
                     </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="currentRate">Current Rate (%)</Label>
+                      <Input
+                        id="currentRate"
+                        type="number"
+                        step="0.1"
+                        placeholder="6.5"
+                        value={profile.currentRate || ''}
+                        onChange={(e) => updateProfile('currentRate', parseFloat(e.target.value))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="monthsRemaining">Months Remaining</Label>
+                      <Input
+                        id="monthsRemaining"
+                        type="number"
+                        placeholder="240"
+                        value={profile.monthsRemaining || ''}
+                        onChange={(e) => updateProfile('monthsRemaining', parseInt(e.target.value))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="currentMonthlyPI">Current Monthly P&I ($)</Label>
+                      <Input
+                        id="currentMonthlyPI"
+                        type="number"
+                        placeholder="2500"
+                        value={profile.currentMonthlyPI || ''}
+                        onChange={(e) => updateProfile('currentMonthlyPI', parseInt(e.target.value))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="currentMonthlyTIA">Current Monthly TIA ($)</Label>
+                      <Input
+                        id="currentMonthlyTIA"
+                        type="number"
+                        placeholder="1150"
+                        value={profile.currentMonthlyTIA || ''}
+                        onChange={(e) => updateProfile('currentMonthlyTIA', parseInt(e.target.value))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="currentTotalMonthlyPayment">Current Total Monthly Payment (PITIA) ($)</Label>
+                      <Input
+                        id="currentTotalMonthlyPayment"
+                        type="number"
+                        placeholder="3650"
+                        value={profile.currentTotalMonthlyPayment || ''}
+                        onChange={(e) => updateProfile('currentTotalMonthlyPayment', parseInt(e.target.value))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="downPaymentPercent">Down Payment (%)</Label>
+                      <Input
+                        id="downPaymentPercent"
+                        type="number"
+                        step="0.1"
+                        placeholder="25"
+                        value={profile.downPaymentPercent || ''}
+                        onChange={(e) => {
+                          const percent = parseFloat(e.target.value);
+                          updateProfile('downPaymentPercent', percent);
+                          if (profile.loanAmount && percent) {
+                            const dollarAmount = (profile.loanAmount * percent) / 100;
+                            updateProfile('downPaymentAmount', dollarAmount);
+                          }
+                        }}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="downPaymentAmount">Down Payment ($)</Label>
+                      <Input
+                        id="downPaymentAmount"
+                        type="number"
+                        placeholder="125000"
+                        value={profile.downPaymentAmount || ''}
+                        onChange={(e) => {
+                          const amount = parseInt(e.target.value);
+                          updateProfile('downPaymentAmount', amount);
+                          if (profile.loanAmount && amount) {
+                            const percent = (amount / profile.loanAmount) * 100;
+                            updateProfile('downPaymentPercent', percent);
+                          }
+                        }}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="reserves">Reserves</Label>
+                      <Select value={profile.reserves} onValueChange={(value) => updateProfile('reserves', value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select reserves" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="0">0 Months</SelectItem>
+                          <SelectItem value="1">1 Month</SelectItem>
+                          <SelectItem value="2">2 Months</SelectItem>
+                          <SelectItem value="3">3 Months</SelectItem>
+                          <SelectItem value="4">4 Months</SelectItem>
+                          <SelectItem value="5">5 Months</SelectItem>
+                          <SelectItem value="6">6 Months</SelectItem>
+                          <SelectItem value="7">7 Months</SelectItem>
+                          <SelectItem value="8">8 Months</SelectItem>
+                          <SelectItem value="9">9 Months</SelectItem>
+                          <SelectItem value="10">10 Months</SelectItem>
+                          <SelectItem value="11">11 Months</SelectItem>
+                          <SelectItem value="12">12 Months</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="prepaymentPenalty">Prepayment Penalty (PPP)</Label>
+                      <Select value={profile.prepaymentPenalty} onValueChange={(value) => updateProfile('prepaymentPenalty', value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select prepayment penalty" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">None</SelectItem>
+                          <SelectItem value="1_year">1 Year</SelectItem>
+                          <SelectItem value="2_year">2 Year</SelectItem>
+                          <SelectItem value="3_year">3 Year</SelectItem>
+                          <SelectItem value="4_year">4 Year</SelectItem>
+                          <SelectItem value="5_year">5 Year</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Additional Financial Information */}
+                <div className="bg-yellow-50 p-4 rounded-lg">
+                  <h3 className="font-semibold text-yellow-900 mb-3">Additional Financial Information</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="dscrRatio">DSCR Ratio (Optional)</Label>
                       <Input
@@ -466,6 +756,36 @@ export default function AIAdvisor() {
                         placeholder="1.25"
                         value={profile.dscrRatio || ''}
                         onChange={(e) => updateProfile('dscrRatio', parseFloat(e.target.value))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="grossIncome">Gross Income ($)</Label>
+                      <Input
+                        id="grossIncome"
+                        type="number"
+                        placeholder="120000"
+                        value={profile.grossIncome || ''}
+                        onChange={(e) => updateProfile('grossIncome', parseInt(e.target.value))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="netIncome">Net Income ($)</Label>
+                      <Input
+                        id="netIncome"
+                        type="number"
+                        placeholder="85000"
+                        value={profile.netIncome || ''}
+                        onChange={(e) => updateProfile('netIncome', parseInt(e.target.value))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="experience">Experience</Label>
+                      <Input
+                        id="experience"
+                        type="text"
+                        placeholder="5+ years in real estate"
+                        value={profile.experience || ''}
+                        onChange={(e) => updateProfile('experience', e.target.value)}
                       />
                     </div>
                   </div>

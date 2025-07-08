@@ -4,25 +4,59 @@ import OpenAI from "openai";
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export interface BorrowerProfile {
-  creditScore?: number;
-  experience?: string;
-  loanAmount?: number;
-  loanPurpose?: string;
+  // Personal Information
+  firstName?: string;
+  lastName?: string;
+  mobilePhone?: string;
+  email?: string;
+  dateOfBirth?: string;
+  ssn?: string;
+  ficoScore?: number;
+  
+  // Property Information
+  propertyStreetAddress?: string;
+  propertyCity?: string;
+  propertyState?: string;
+  propertyZip?: string;
   propertyType?: string;
-  propertyValue?: number;
-  timelineToFunding?: string;
+  estimatedValue?: number;
+  appraisedValue?: number;
+  monthlyPropertyTaxes?: number;
+  monthlyPropertyInsurance?: number;
+  monthlyHOA?: number;
+  
+  // Entity Information
+  entityName?: string;
+  entityType?: string;
+  
+  // Loan Details
+  loanPurpose?: string;
+  loanType?: string;
+  cashOutAmount?: number;
+  loanAmount?: number;
+  currentBalance?: number;
+  currentRate?: number;
+  monthsRemaining?: number;
+  currentMonthlyPI?: number;
+  currentMonthlyTIA?: number;
+  currentTotalMonthlyPayment?: number;
+  downPaymentPercent?: number;
+  downPaymentAmount?: number;
+  reserves?: string;
+  prepaymentPenalty?: string;
+  
+  // Additional fields for calculations
   ltv?: number;
   dscrRatio?: number;
+  experience?: string;
+  timelineToFunding?: string;
   liquidityPosition?: string;
   flipsCompleted?: number;
   rentalsOwned?: number;
   yearBuilt?: number;
   squareFootage?: number;
-  propertyTaxes?: number;
-  insurance?: number;
   grossIncome?: number;
   netIncome?: number;
-  prepaymentPenalty?: string;
 }
 
 export interface LoanRecommendation {
@@ -205,25 +239,54 @@ Previous conversation context: ${context}`
     return `Analyze this borrower profile and recommend the best loan product:
 
 BORROWER PROFILE:
-- Credit Score: ${profile.creditScore || 'Not provided'}
-- Real Estate Experience: ${profile.experience || 'Not provided'}
-- Loan Amount Requested: $${profile.loanAmount?.toLocaleString() || 'Not provided'}
-- Loan Purpose: ${loanPurposeDisplay}
+Personal Information:
+- Name: ${profile.firstName || 'Not provided'} ${profile.lastName || 'Not provided'}
+- Mobile: ${profile.mobilePhone || 'Not provided'}
+- Email: ${profile.email || 'Not provided'}
+- Date of Birth: ${profile.dateOfBirth || 'Not provided'}
+- SSN: ${profile.ssn ? 'Provided' : 'Not provided'}
+- FICO Score: ${profile.ficoScore || 'Not provided'}
+
+Property Information:
+- Address: ${profile.propertyStreetAddress || 'Not provided'} ${profile.propertyCity || ''} ${profile.propertyState || ''} ${profile.propertyZip || ''}
 - Property Type: ${profile.propertyType || 'Not provided'}
-- Property Value: $${profile.propertyValue?.toLocaleString() || 'Not provided'}
-- Timeline to Funding: ${profile.timelineToFunding || 'Not provided'}
-- Desired LTV: ${profile.ltv ? (profile.ltv * 100) + '%' : 'Not provided'}
+- Estimated Value: $${profile.estimatedValue?.toLocaleString() || 'Not provided'}
+- Appraised Value: $${profile.appraisedValue?.toLocaleString() || 'Not provided'}
+- Monthly Property Taxes: $${profile.monthlyPropertyTaxes || 'Not provided'}
+- Monthly Insurance: $${profile.monthlyPropertyInsurance || 'Not provided'}
+- Monthly HOA: $${profile.monthlyHOA || 'Not provided'}
+
+Entity Information:
+- Entity Name: ${profile.entityName || 'Not provided'}
+- Entity Type: ${profile.entityType || 'Not provided'}
+
+Loan Details:
+- Loan Purpose: ${loanPurposeDisplay}
+- Loan Type: ${profile.loanType || 'Not provided'}
+- Loan Amount Requested: $${profile.loanAmount?.toLocaleString() || 'Not provided'}
+- Cash Out Amount: $${profile.cashOutAmount?.toLocaleString() || 'Not provided'}
+- Current Balance: $${profile.currentBalance?.toLocaleString() || 'Not provided'}
+- Current Rate: ${profile.currentRate ? profile.currentRate + '%' : 'Not provided'}
+- Months Remaining: ${profile.monthsRemaining || 'Not provided'}
+- Current Monthly P&I: $${profile.currentMonthlyPI || 'Not provided'}
+- Current Monthly TIA: $${profile.currentMonthlyTIA || 'Not provided'}
+- Current Total Monthly Payment: $${profile.currentTotalMonthlyPayment || 'Not provided'}
+- Down Payment: ${profile.downPaymentPercent ? profile.downPaymentPercent + '%' : 'Not provided'} ($${profile.downPaymentAmount?.toLocaleString() || 'Not provided'})
+- Reserves: ${profile.reserves || 'Not provided'} months
+- Prepayment Penalty Preference: ${profile.prepaymentPenalty || 'Not specified'}
+
+Additional Information:
+- Desired LTV: ${profile.ltv ? profile.ltv + '%' : 'Not provided'}
 - DSCR Ratio: ${profile.dscrRatio || 'Not provided'}
-- Liquidity Position: ${profile.liquidityPosition || 'Not provided'}
+- Real Estate Experience: ${profile.experience || 'Not provided'}
+- Timeline to Funding: ${profile.timelineToFunding || 'Not provided'}
+- Gross Income: $${profile.grossIncome?.toLocaleString() || 'Not provided'}
+- Net Income: $${profile.netIncome?.toLocaleString() || 'Not provided'}
 - Flips Completed: ${profile.flipsCompleted || 0}
 - Rentals Owned: ${profile.rentalsOwned || 0}
 - Property Year Built: ${profile.yearBuilt || 'Not provided'}
 - Square Footage: ${profile.squareFootage || 'Not provided'}
-- Annual Property Taxes: $${profile.propertyTaxes || 'Not provided'}
-- Annual Insurance: $${profile.insurance || 'Not provided'}
-- Gross Income: $${profile.grossIncome?.toLocaleString() || 'Not provided'}
-- Net Income: $${profile.netIncome?.toLocaleString() || 'Not provided'}
-- Prepayment Penalty Preference: ${profile.prepaymentPenalty || 'Not specified'}
+- Liquidity Position: ${profile.liquidityPosition || 'Not provided'}
 
 LOAN PRODUCTS TO CONSIDER (Use current market rates):
 1. DSCR Loans - For rental properties with positive cash flow, rates 6.5-7.5% (CURRENT RANGE), up to 80% LTV, 30-year terms
@@ -329,7 +392,7 @@ Consider factors like experience level, timeline urgency, cash flow requirements
       loanType,
       loanProgram: `${loanType.toUpperCase()} Standard`,
       estimatedRate: adjustedRate,
-      maxLoanAmount: (profile.propertyValue || 500000) * 0.75,
+      maxLoanAmount: (profile.estimatedValue || profile.appraisedValue || 500000) * 0.75,
       ltv: 0.75,
       termLength: loanType === 'fix_flip' ? '12 months' : '30 years',
       prepaymentPenalty: loanType === 'fix_flip',
