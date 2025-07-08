@@ -391,7 +391,7 @@ export default function AIDashboard() {
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="font-medium">Escalation threshold</span>
-                    <Badge variant="secondary">Low confidence (< 60%)</Badge>
+                    <Badge variant="secondary">Low confidence (&lt; 60%)</Badge>
                   </div>
                   <Button className="w-full">Update Settings</Button>
                 </CardContent>
