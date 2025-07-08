@@ -14,12 +14,21 @@ import { apiRequest } from '@/lib/queryClient';
 import { GamifiedOnboarding } from '@/components/gamified-onboarding';
 
 interface BorrowerProfile {
+  // Required minimum fields
+  firstName?: string;
+  lastName?: string;
+  homePhone?: string;
+  dateOfBirth?: string;
+  email?: string;
+  address?: string;
   creditScore?: number;
-  experience?: string;
-  loanAmount?: number;
+  homeValue?: number;
   loanPurpose?: string;
   propertyType?: string;
-  propertyValue?: number;
+  loanAmount?: number;
+  
+  // Additional fields
+  experience?: string;
   timelineToFunding?: string;
   ltv?: number;
   dscrRatio?: number;
@@ -86,10 +95,10 @@ export default function AIAdvisor() {
     setProfile(prev => ({
       ...prev,
       [field]: value,
-      // Auto-calculate LTV if we have both loan amount and property value
-      ...(field === 'loanAmount' || field === 'propertyValue' ? {
-        ltv: prev.propertyValue && (field === 'loanAmount' ? value : prev.loanAmount) 
-          ? Math.round(((field === 'loanAmount' ? value : prev.loanAmount) / (field === 'propertyValue' ? value : prev.propertyValue)) * 100)
+      // Auto-calculate LTV if we have both loan amount and home value
+      ...(field === 'loanAmount' || field === 'homeValue' ? {
+        ltv: prev.homeValue && (field === 'loanAmount' ? value : prev.loanAmount) 
+          ? Math.round(((field === 'loanAmount' ? value : prev.loanAmount) / (field === 'homeValue' ? value : prev.homeValue)) * 100)
           : undefined
       } : {})
     }));
@@ -158,14 +167,32 @@ export default function AIAdvisor() {
   };
 
   const handleGetRecommendation = () => {
-    if (!profile.loanAmount || !profile.loanPurpose) {
+    // Check all required fields
+    const requiredFields = [
+      { field: 'firstName', name: 'First Name' },
+      { field: 'lastName', name: 'Last Name' },
+      { field: 'homePhone', name: 'Home Phone' },
+      { field: 'dateOfBirth', name: 'Date of Birth' },
+      { field: 'email', name: 'Email' },
+      { field: 'address', name: 'Address' },
+      { field: 'creditScore', name: 'Credit Score' },
+      { field: 'homeValue', name: 'Home Value' },
+      { field: 'loanPurpose', name: 'Loan Purpose' },
+      { field: 'propertyType', name: 'Property Type' },
+      { field: 'loanAmount', name: 'Loan Amount' },
+    ];
+
+    const missingFields = requiredFields.filter(({ field }) => !profile[field as keyof BorrowerProfile]);
+    
+    if (missingFields.length > 0) {
       toast({
         title: "Missing Information",
-        description: "Please fill in loan amount and purpose",
+        description: `Please fill in: ${missingFields.map(f => f.name).join(', ')}`,
         variant: "destructive",
       });
       return;
     }
+
     recommendationMutation.mutate(profile);
   };
 
@@ -239,46 +266,134 @@ export default function AIAdvisor() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="loanAmount">Loan Amount</Label>
-                    <Input
-                      id="loanAmount"
-                      type="number"
-                      placeholder="500000"
-                      value={profile.loanAmount || ''}
-                      onChange={(e) => updateProfile('loanAmount', parseInt(e.target.value))}
-                    />
+                {/* Personal Information */}
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <h3 className="font-semibold text-blue-900 mb-3">Personal Information</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="firstName">First Name *</Label>
+                      <Input
+                        id="firstName"
+                        type="text"
+                        placeholder="John"
+                        value={profile.firstName || ''}
+                        onChange={(e) => updateProfile('firstName', e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="lastName">Last Name *</Label>
+                      <Input
+                        id="lastName"
+                        type="text"
+                        placeholder="Smith"
+                        value={profile.lastName || ''}
+                        onChange={(e) => updateProfile('lastName', e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="homePhone">Home Phone *</Label>
+                      <Input
+                        id="homePhone"
+                        type="tel"
+                        placeholder="(555) 123-4567"
+                        value={profile.homePhone || ''}
+                        onChange={(e) => updateProfile('homePhone', e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="dateOfBirth">Date of Birth *</Label>
+                      <Input
+                        id="dateOfBirth"
+                        type="date"
+                        value={profile.dateOfBirth || ''}
+                        onChange={(e) => updateProfile('dateOfBirth', e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email *</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="john.smith@example.com"
+                        value={profile.email || ''}
+                        onChange={(e) => updateProfile('email', e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="address">Address *</Label>
+                      <Input
+                        id="address"
+                        type="text"
+                        placeholder="123 Main St, City, State 12345"
+                        value={profile.address || ''}
+                        onChange={(e) => updateProfile('address', e.target.value)}
+                      />
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="propertyValue">Property Value</Label>
-                    <Input
-                      id="propertyValue"
-                      type="number"
-                      placeholder="750000"
-                      value={profile.propertyValue || ''}
-                      onChange={(e) => updateProfile('propertyValue', parseInt(e.target.value))}
-                    />
+                </div>
+
+                {/* Loan Details */}
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <h3 className="font-semibold text-green-900 mb-3">Loan Details</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="loanAmount">Loan Amount *</Label>
+                      <Input
+                        id="loanAmount"
+                        type="number"
+                        placeholder="500000"
+                        value={profile.loanAmount || ''}
+                        onChange={(e) => updateProfile('loanAmount', parseInt(e.target.value))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="homeValue">Home Value *</Label>
+                      <Input
+                        id="homeValue"
+                        type="number"
+                        placeholder="750000"
+                        value={profile.homeValue || ''}
+                        onChange={(e) => updateProfile('homeValue', parseInt(e.target.value))}
+                      />
+                    </div>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="loanPurpose">Loan Purpose</Label>
+                  <Label htmlFor="loanPurpose">Loan Purpose *</Label>
                   <Select value={profile.loanPurpose} onValueChange={(value) => updateProfile('loanPurpose', value)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select loan purpose" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="rental_property_purchase">
+                      <SelectItem value="purchase">
                         <div className="flex items-center gap-2">
                           <Home className="h-4 w-4" />
-                          Rental Property Purchase
+                          Purchase
                         </div>
                       </SelectItem>
-                      <SelectItem value="commercial_property_purchase">
+                      <SelectItem value="cash_out_refinance">
+                        <div className="flex items-center gap-2">
+                          <CreditCard className="h-4 w-4" />
+                          Cash Out Refinance
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="refinance">
+                        <div className="flex items-center gap-2">
+                          <TrendingUp className="h-4 w-4" />
+                          Refinance
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="bridge">
+                        <div className="flex items-center gap-2">
+                          <Car className="h-4 w-4" />
+                          Bridge
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="construction">
                         <div className="flex items-center gap-2">
                           <Building className="h-4 w-4" />
-                          Commercial Property Purchase
+                          Construction
                         </div>
                       </SelectItem>
                       <SelectItem value="fix_and_flip">
@@ -287,67 +402,72 @@ export default function AIAdvisor() {
                           Fix and Flip
                         </div>
                       </SelectItem>
-                      <SelectItem value="bridge_financing">
+                      <SelectItem value="renovation">
                         <div className="flex items-center gap-2">
-                          <Car className="h-4 w-4" />
-                          Bridge Financing
+                          <Wrench className="h-4 w-4" />
+                          Renovation
                         </div>
                       </SelectItem>
-                      <SelectItem value="cash_out_refinance">
+                      <SelectItem value="heloc">
                         <div className="flex items-center gap-2">
-                          <CreditCard className="h-4 w-4" />
-                          Cash-Out Refinance
+                          <Home className="h-4 w-4" />
+                          HELOC
                         </div>
                       </SelectItem>
-                      <SelectItem value="rate_term_refinance">
-                        <div className="flex items-center gap-2">
-                          <TrendingUp className="h-4 w-4" />
-                          Rate & Term Refinance
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="business_acquisition">
-                        <div className="flex items-center gap-2">
-                          <Briefcase className="h-4 w-4" />
-                          Business Acquisition
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="construction_financing">
+                      <SelectItem value="second_mortgage">
                         <div className="flex items-center gap-2">
                           <Building className="h-4 w-4" />
-                          Construction Financing
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="land_acquisition">
-                        <div className="flex items-center gap-2">
-                          <Users className="h-4 w-4" />
-                          Land Acquisition
+                          Second Mortgage
                         </div>
                       </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="creditScore">Credit Score</Label>
-                    <Input
-                      id="creditScore"
-                      type="number"
-                      placeholder="720"
-                      value={profile.creditScore || ''}
-                      onChange={(e) => updateProfile('creditScore', parseInt(e.target.value))}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="dscrRatio">DSCR Ratio</Label>
-                    <Input
-                      id="dscrRatio"
-                      type="number"
-                      step="0.1"
-                      placeholder="1.25"
-                      value={profile.dscrRatio || ''}
-                      onChange={(e) => updateProfile('dscrRatio', parseFloat(e.target.value))}
-                    />
+                <div className="space-y-2">
+                  <Label htmlFor="propertyType">Property Type *</Label>
+                  <Select value={profile.propertyType} onValueChange={(value) => updateProfile('propertyType', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select property type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="single_family">Single Family</SelectItem>
+                      <SelectItem value="multi_family">Multi-Family</SelectItem>
+                      <SelectItem value="condo">Condo</SelectItem>
+                      <SelectItem value="townhouse">Townhouse</SelectItem>
+                      <SelectItem value="commercial">Commercial</SelectItem>
+                      <SelectItem value="mixed_use">Mixed Use</SelectItem>
+                      <SelectItem value="land">Land</SelectItem>
+                      <SelectItem value="manufactured">Manufactured</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Financial Information */}
+                <div className="bg-yellow-50 p-4 rounded-lg">
+                  <h3 className="font-semibold text-yellow-900 mb-3">Financial Information</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="creditScore">Credit Score (Decision Making: 740) *</Label>
+                      <Input
+                        id="creditScore"
+                        type="number"
+                        placeholder="740"
+                        value={profile.creditScore || ''}
+                        onChange={(e) => updateProfile('creditScore', parseInt(e.target.value))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="dscrRatio">DSCR Ratio (Optional)</Label>
+                      <Input
+                        id="dscrRatio"
+                        type="number"
+                        step="0.1"
+                        placeholder="1.25"
+                        value={profile.dscrRatio || ''}
+                        onChange={(e) => updateProfile('dscrRatio', parseFloat(e.target.value))}
+                      />
+                    </div>
                   </div>
                 </div>
 
