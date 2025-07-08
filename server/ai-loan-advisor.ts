@@ -22,6 +22,7 @@ export interface BorrowerProfile {
   insurance?: number;
   grossIncome?: number;
   netIncome?: number;
+  prepaymentPenalty?: string;
 }
 
 export interface LoanRecommendation {
@@ -72,6 +73,23 @@ Your expertise includes:
 - Cash-out refinancing
 - HELOC products
 - Commercial loans
+
+CURRENT MARKET RATES (Use these as guidance):
+- DSCR Loans: 6.5% - 7.5% (currently trending in this range)
+- Fix & Flip: 8.5% - 12.0%
+- Bridge Loans: 7.0% - 10.0%
+- Construction: 7.5% - 11.0%
+- Commercial: 6.0% - 8.5%
+- HELOC: 7.0% - 9.5%
+- Cash-Out Refi: 6.5% - 8.0%
+
+PREPAYMENT PENALTY RATE ADJUSTMENTS:
+- None: Add 0.25% to 0.50% to base rate (worst pricing)
+- 1 Year: Add 0.125% to 0.25% to base rate
+- 2 Year: Base rate (standard pricing)
+- 3 Year: Subtract 0.125% from base rate
+- 4 Year: Subtract 0.25% from base rate
+- 5 Year: Subtract 0.375% to 0.50% from base rate (best pricing)
 
 You must analyze borrower profiles and recommend the most appropriate loan product based on their specific circumstances. Consider all factors including credit score, experience, loan purpose, property type, timeline, and financial position.
 
@@ -154,13 +172,43 @@ Previous conversation context: ${context}`
   }
 
   private buildAnalysisPrompt(profile: BorrowerProfile): string {
+    const loanPurposeDescriptions = {
+      'purchase': 'Property Purchase',
+      'cash_out_refinance': 'Cash-Out Refinance',
+      'refinance': 'Rate & Term Refinance',
+      'bridge': 'Bridge Loan',
+      'construction': 'Construction Loan',
+      'fix_flip': 'Fix & Flip',
+      'heloc': 'Home Equity Line of Credit',
+      'second_mortgage': 'Second Mortgage',
+      'renovation': 'Renovation Loan',
+      'rental_investment': 'Rental Investment Property',
+      'commercial_purchase': 'Commercial Property Purchase',
+      'land_acquisition': 'Land Acquisition',
+      'ground_up_construction': 'Ground-Up Construction',
+      'business_purpose': 'Business Purpose Loan',
+      'debt_consolidation': 'Debt Consolidation',
+      'equipment_financing': 'Equipment Financing',
+      'working_capital': 'Working Capital Loan',
+      'investment_property': 'Investment Property',
+      'portfolio_refinance': 'Portfolio Refinance',
+      'multifamily_acquisition': 'Multifamily Acquisition',
+      'mixed_use': 'Mixed-Use Property',
+      'owner_occupied': 'Owner-Occupied Property',
+      'non_owner_occupied': 'Non-Owner Occupied Property',
+      'blanket_loan': 'Blanket Loan',
+      'cross_collateral': 'Cross-Collateral Loan'
+    };
+
+    const loanPurposeDisplay = profile.loanPurpose ? loanPurposeDescriptions[profile.loanPurpose] || profile.loanPurpose : 'Not provided';
+
     return `Analyze this borrower profile and recommend the best loan product:
 
 BORROWER PROFILE:
 - Credit Score: ${profile.creditScore || 'Not provided'}
 - Real Estate Experience: ${profile.experience || 'Not provided'}
 - Loan Amount Requested: $${profile.loanAmount?.toLocaleString() || 'Not provided'}
-- Loan Purpose: ${profile.loanPurpose || 'Not provided'}
+- Loan Purpose: ${loanPurposeDisplay}
 - Property Type: ${profile.propertyType || 'Not provided'}
 - Property Value: $${profile.propertyValue?.toLocaleString() || 'Not provided'}
 - Timeline to Funding: ${profile.timelineToFunding || 'Not provided'}
@@ -175,41 +223,117 @@ BORROWER PROFILE:
 - Annual Insurance: $${profile.insurance || 'Not provided'}
 - Gross Income: $${profile.grossIncome?.toLocaleString() || 'Not provided'}
 - Net Income: $${profile.netIncome?.toLocaleString() || 'Not provided'}
+- Prepayment Penalty Preference: ${profile.prepaymentPenalty || 'Not specified'}
 
-LOAN PRODUCTS TO CONSIDER:
-1. DSCR Loans - For rental properties with positive cash flow, rates 7.5-10.5%, up to 80% LTV
-2. Fix & Flip - For renovation projects, rates 9-14%, 12-18 month terms, up to 90% of purchase + rehab
-3. Bridge Loans - For quick closings/transitions, rates 8.5-12%, 6-24 month terms
-4. Construction Loans - For ground-up construction, rates 8-12%, interest-only during construction
-5. Rate & Term Refi - For better rates/terms, rates 6.5-9.5%, conventional underwriting
-6. Cash-Out Refi - For accessing equity, rates 7-10%, up to 80% LTV
-7. HELOC - For flexible access to equity, variable rates 7-11%
+LOAN PRODUCTS TO CONSIDER (Use current market rates):
+1. DSCR Loans - For rental properties with positive cash flow, rates 6.5-7.5% (CURRENT RANGE), up to 80% LTV, 30-year terms
+2. Fix & Flip - For renovation projects, rates 8.5-12%, 12-18 month terms, up to 90% of purchase + rehab
+3. Bridge Loans - For quick closings/transitions, rates 7.0-10.0%, 6-24 month terms
+4. Construction Loans - For ground-up construction, rates 7.5-11.0%, interest-only during construction
+5. Rate & Term Refi - For better rates/terms, rates 6.0-8.5%, conventional underwriting
+6. Cash-Out Refi - For accessing equity, rates 6.5-8.0%, up to 80% LTV
+7. HELOC - For flexible access to equity, variable rates 7.0-9.5%
+8. Second Mortgages - Fixed rate second liens, rates 7.5-10.0%
+9. Commercial Loans - For business properties, rates 6.0-8.5%, based on DSCR and NOI
+10. Equipment Financing - For business equipment, rates 5.0-12.0% depending on equipment type
+11. Working Capital - For business cash flow, rates 8.0-15.0%, short-term
+12. Blanket Loans - For multiple properties, rates 6.5-9.0%, portfolio approach
 
-Consider factors like experience level, timeline urgency, cash flow requirements, and exit strategy.`;
+PREPAYMENT PENALTY PRICING (Apply to all applicable loan types):
+- None: Worst pricing - add 0.25% to 0.50% to base rate
+- 1 Year: Add 0.125% to 0.25% to base rate
+- 2 Year: Standard pricing (use base rate)
+- 3 Year: Subtract 0.125% from base rate
+- 4 Year: Subtract 0.25% from base rate
+- 5 Year: Best pricing - subtract 0.375% to 0.50% from base rate
+
+IMPORTANT: When calculating rates, ALWAYS adjust for prepayment penalty preference. Show the impact in your reasoning.
+
+LOAN PURPOSE SPECIFIC GUIDANCE:
+- Purchase: Focus on down payment, DTI, creditworthiness
+- Cash-Out Refinance: Emphasize LTV limits, cash-out restrictions, seasoning requirements
+- Refinance: Look for rate improvement, better terms, cash flow optimization
+- Fix & Flip: Short-term focus, exit strategy, experience level crucial
+- HELOC: Existing equity, credit score, variable rate considerations
+- Construction: Detailed project plans, contractor requirements, draw schedule
+- Bridge: Quick closing capability, higher rates, clear exit strategy
+- Commercial: DSCR analysis, NOI, cap rates, property cash flow
+- Multifamily: Rent roll analysis, occupancy rates, market rents
+- Mixed-Use: Commercial and residential income analysis
+
+Consider factors like experience level, timeline urgency, cash flow requirements, exit strategy, and current market conditions.`;
   }
 
   private getFallbackRecommendation(profile: BorrowerProfile): LoanRecommendation {
     // Basic rule-based fallback if AI fails
     let loanType = 'dscr';
-    let estimatedRate = 0.095;
+    let baseRate = 0.07; // Updated to current DSCR rate range
     
-    if (profile.loanPurpose === 'flip' || profile.loanPurpose === 'renovation') {
+    if (profile.loanPurpose === 'fix_flip' || profile.loanPurpose === 'renovation') {
       loanType = 'fix_flip';
-      estimatedRate = 0.115;
-    } else if (profile.timelineToFunding === 'urgent' || profile.timelineToFunding === 'fast') {
+      baseRate = 0.10;
+    } else if (profile.loanPurpose === 'bridge' || profile.timelineToFunding === 'urgent') {
       loanType = 'bridge';
-      estimatedRate = 0.105;
+      baseRate = 0.085;
+    } else if (profile.loanPurpose === 'cash_out_refinance') {
+      loanType = 'cash_out_refi';
+      baseRate = 0.075;
+    } else if (profile.loanPurpose === 'refinance') {
+      loanType = 'rate_term_refi';
+      baseRate = 0.07;
+    } else if (profile.loanPurpose === 'heloc') {
+      loanType = 'heloc';
+      baseRate = 0.08;
+    } else if (profile.loanPurpose === 'construction' || profile.loanPurpose === 'ground_up_construction') {
+      loanType = 'construction';
+      baseRate = 0.09;
+    } else if (profile.loanPurpose?.includes('commercial')) {
+      loanType = 'commercial';
+      baseRate = 0.075;
+    }
+
+    // Apply prepayment penalty adjustments
+    let adjustedRate = baseRate;
+    let ppDescription = '';
+    
+    switch(profile.prepaymentPenalty) {
+      case 'none':
+        adjustedRate += 0.00375; // Add 0.375% (0.25% to 0.50% range)
+        ppDescription = ' (No PPP - higher rate)';
+        break;
+      case '1_year':
+        adjustedRate += 0.00188; // Add 0.188% (0.125% to 0.25% range)
+        ppDescription = ' (1 Year PPP)';
+        break;
+      case '2_year':
+        // Base rate - no adjustment
+        ppDescription = ' (2 Year PPP - standard)';
+        break;
+      case '3_year':
+        adjustedRate -= 0.00125; // Subtract 0.125%
+        ppDescription = ' (3 Year PPP)';
+        break;
+      case '4_year':
+        adjustedRate -= 0.0025; // Subtract 0.25%
+        ppDescription = ' (4 Year PPP)';
+        break;
+      case '5_year':
+        adjustedRate -= 0.004375; // Subtract 0.4375% (0.375% to 0.50% range)
+        ppDescription = ' (5 Year PPP - best rate)';
+        break;
+      default:
+        ppDescription = ' (Standard pricing)';
     }
 
     return {
       loanType,
       loanProgram: `${loanType.toUpperCase()} Standard`,
-      estimatedRate,
+      estimatedRate: adjustedRate,
       maxLoanAmount: (profile.propertyValue || 500000) * 0.75,
       ltv: 0.75,
       termLength: loanType === 'fix_flip' ? '12 months' : '30 years',
       prepaymentPenalty: loanType === 'fix_flip',
-      reasoning: 'Basic recommendation based on loan purpose and property value.',
+      reasoning: `Basic recommendation for ${profile.loanPurpose || 'investment property'} based on current market rates and property value${ppDescription}.`,
       confidence: 60,
       alternativeOptions: []
     };
