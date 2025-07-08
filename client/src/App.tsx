@@ -1,5 +1,5 @@
 import React from "react";
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -24,10 +24,12 @@ const MarketTrends = React.lazy(() => import("@/pages/market-trends"));
 const LoanRecommendation = React.lazy(() => import("@/pages/loan-recommendation"));
 const MortgageCalculator = React.lazy(() => import("@/pages/mortgage-calculator"));
 const Contacts = React.lazy(() => import("@/pages/contacts"));
+const ContactRecommendations = React.lazy(() => import("@/pages/contact-recommendations"));
 const TeamManagement = React.lazy(() => import("@/pages/team-management"));
 const Profile = React.lazy(() => import("@/pages/profile"));
 const Permissions = React.lazy(() => import("@/pages/permissions"));
 const AIDashboard = React.lazy(() => import("@/pages/ai-dashboard"));
+
 const AnalyticsDashboard = React.lazy(() => import("@/pages/analytics-dashboard"));
 const WorkflowAutomation = React.lazy(() => import("@/pages/workflow-automation"));
 const DocumentCenter = React.lazy(() => import("@/pages/document-center"));
@@ -37,7 +39,7 @@ const ComplianceCenter = React.lazy(() => import("@/pages/compliance-center"));
 const CustomerLogin = React.lazy(() => import("@/pages/customer/customer-login"));
 const CustomerSignup = React.lazy(() => import("@/pages/customer/customer-signup"));
 const CustomerDashboard = React.lazy(() => import("@/pages/customer/customer-dashboard"));
-const LoanApplication = React.lazy(() => import("@/pages/customer/loan-application"));
+const CustomerLoanApplication = React.lazy(() => import("@/pages/customer/loan-application"));
 const DocumentUpload = React.lazy(() => import("@/pages/customer/document-upload"));
 
 function Router() {
@@ -98,6 +100,11 @@ function Router() {
               <Contacts />
             </React.Suspense>
           )} />
+          <Route path="/contact-recommendations" component={() => (
+            <React.Suspense fallback={<div className="p-8">Loading Contact Recommendations...</div>}>
+              <ContactRecommendations />
+            </React.Suspense>
+          )} />
           <Route path="/team-management" component={() => (
             <React.Suspense fallback={<div className="p-8">Loading Team Management...</div>}>
               <TeamManagement />
@@ -144,56 +151,7 @@ function Router() {
               <p>Settings page coming soon...</p>
             </div>
           )} />
-          {/* Customer portal routes */}
-          <Route path="/customer/login" component={() => (
-            <React.Suspense fallback={<div className="p-8">Loading...</div>}>
-              <CustomerLogin />
-            </React.Suspense>
-          )} />
-          <Route path="/customer/signup" component={() => (
-            <React.Suspense fallback={<div className="p-8">Loading...</div>}>
-              <CustomerSignup />
-            </React.Suspense>
-          )} />
-          <Route path="/customer/dashboard" component={() => (
-            <React.Suspense fallback={<div className="p-8">Loading...</div>}>
-              <CustomerDashboard />
-            </React.Suspense>
-          )} />
-          <Route path="/customer/loan-application" component={() => (
-            <React.Suspense fallback={<div className="p-8">Loading...</div>}>
-              <LoanApplication />
-            </React.Suspense>
-          )} />
-          <Route path="/customer/loan-application/:id" component={() => (
-            <React.Suspense fallback={<div className="p-8">Loading...</div>}>
-              <LoanApplication />
-            </React.Suspense>
-          )} />
-          <Route path="/customer/documents" component={() => (
-            <React.Suspense fallback={<div className="p-8">Loading...</div>}>
-              <DocumentUpload />
-            </React.Suspense>
-          )} />
-          <Route path="/customer-portal" component={() => {
-            const params = new URLSearchParams(window.location.search);
-            const token = params.get('token');
-            if (!token) {
-              return (
-                <div className="p-8">
-                  <h1 className="text-2xl font-bold mb-4">Customer Portal Access Required</h1>
-                  <p className="text-text-secondary">This page requires a valid access token. Please use the link provided in your email or contact your loan officer.</p>
-                </div>
-              );
-            }
-            // Dynamically import CustomerPortal to avoid circular dependencies
-            const CustomerPortal = React.lazy(() => import("@/pages/customer-portal"));
-            return (
-              <React.Suspense fallback={<div className="p-8">Loading Customer Portal...</div>}>
-                <CustomerPortal token={token} />
-              </React.Suspense>
-            );
-          }} />
+
           <Route component={NotFound} />
         </Switch>
       </div>
@@ -206,9 +164,56 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
-        <Router />
+        <MainRouter />
       </TooltipProvider>
     </QueryClientProvider>
+  );
+}
+
+function MainRouter() {
+  const [location] = useLocation();
+  
+  // Check if we're in the customer portal
+  if (location.startsWith('/customer/')) {
+    return <CustomerRouter />;
+  }
+  
+  // Otherwise, render the main app with sidebar
+  return <Router />;
+}
+
+function CustomerRouter() {
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Switch>
+        <Route path="/customer/login" component={() => (
+          <React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+            <CustomerLogin />
+          </React.Suspense>
+        )} />
+        <Route path="/customer/signup" component={() => (
+          <React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+            <CustomerSignup />
+          </React.Suspense>
+        )} />
+        <Route path="/customer/dashboard" component={() => (
+          <React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+            <CustomerDashboard />
+          </React.Suspense>
+        )} />
+        <Route path="/customer/loan-application" component={() => (
+          <React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+            <CustomerLoanApplication />
+          </React.Suspense>
+        )} />
+        <Route path="/customer/documents" component={() => (
+          <React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+            <DocumentUpload />
+          </React.Suspense>
+        )} />
+        <Route component={NotFound} />
+      </Switch>
+    </div>
   );
 }
 

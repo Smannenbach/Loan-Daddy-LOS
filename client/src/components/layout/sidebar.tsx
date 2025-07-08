@@ -18,7 +18,8 @@ import {
   TrendingUp,
   Brain,
   Users,
-  Shield
+  Shield,
+  Target
 } from "lucide-react";
 
 const navigation = [
@@ -30,6 +31,7 @@ const navigation = [
   { name: 'Communications', href: '/communications', icon: MessageSquare },
   { name: 'Reports', href: '/reports', icon: ChartBar },
   { name: 'Contacts', href: '/contacts', icon: Users },
+  { name: 'Contact Recommendations', href: '/contact-recommendations', icon: Target },
   { name: 'Team Management', href: '/team-management', icon: UserCheck },
   { name: 'Customer Portal', href: '/customer-portal', icon: UserCheck },
   { name: 'AI Dashboard', href: '/ai-dashboard', icon: Brain },

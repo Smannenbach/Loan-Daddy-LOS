@@ -23,6 +23,7 @@ import { linkedInIntegration } from "./linkedin-integration";
 import { aiChatbot } from "./ai-chatbot";
 import { aiVoicebot } from "./ai-voicebot";
 import { socialEnrichment } from "./social-enrichment";
+import { contactRecommendationService } from "./contact-recommendation";
 import { customerAuth } from "./customer-auth";
 import { customerOAuth } from "./customer-oauth";
 import aiRoutes from "./ai-routes";
@@ -1559,11 +1560,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: 'Contact not found' });
       }
 
-      const suggestions = socialEnrichmentService.getSuggestedEnrichments(contact);
+      const suggestions = socialEnrichment.getSuggestedEnrichments(contact);
       res.json({ suggestions });
     } catch (error) {
       console.error('Enrichment suggestions error:', error);
       res.status(500).json({ error: 'Failed to get enrichment suggestions' });
+    }
+  });
+
+  // Contact recommendation system routes
+  app.get('/api/contacts/recommendations', async (req, res) => {
+    try {
+      const filters = {
+        category: req.query.category ? String(req.query.category).split(',') : undefined,
+        minScore: req.query.minScore ? parseInt(String(req.query.minScore)) : undefined,
+        maxResults: req.query.maxResults ? parseInt(String(req.query.maxResults)) : undefined,
+        loanTypes: req.query.loanTypes ? String(req.query.loanTypes).split(',') : undefined,
+        geography: req.query.geography ? String(req.query.geography).split(',') : undefined,
+        priorityLevel: req.query.priorityLevel as 'high' | 'medium' | 'low' | undefined
+      };
+      
+      const recommendations = await contactRecommendationService.getContactRecommendations(filters);
+      res.json({ recommendations });
+    } catch (error) {
+      console.error('Contact recommendations error:', error);
+      res.status(500).json({ error: 'Failed to get contact recommendations' });
+    }
+  });
+
+  app.get('/api/contacts/:id/insights', async (req, res) => {
+    try {
+      const contactId = parseInt(req.params.id);
+      const insights = await contactRecommendationService.getContactInsights(contactId);
+      res.json({ insights });
+    } catch (error) {
+      console.error('Contact insights error:', error);
+      res.status(500).json({ error: 'Failed to get contact insights' });
+    }
+  });
+
+  app.get('/api/contacts/:id/follow-up-suggestions', async (req, res) => {
+    try {
+      const contactId = parseInt(req.params.id);
+      const suggestions = await contactRecommendationService.getFollowUpSuggestions(contactId);
+      res.json({ suggestions });
+    } catch (error) {
+      console.error('Follow-up suggestions error:', error);
+      res.status(500).json({ error: 'Failed to get follow-up suggestions' });
     }
   });
 
