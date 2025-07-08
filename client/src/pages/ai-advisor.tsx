@@ -455,41 +455,113 @@ export default function AIAdvisor() {
                   <h3 className="font-semibold text-purple-900 mb-3">Loan Information</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="loanPurpose">Loan Purpose</Label>
+                      <Label htmlFor="loanPurpose">Loan Purpose *</Label>
                       <Select value={profile.loanPurpose || ''} onValueChange={(value) => updateProfile('loanPurpose', value)}>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select purpose" />
+                          <SelectValue placeholder="Select loan purpose" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="purchase">Purchase</SelectItem>
                           <SelectItem value="refinance">Refinance</SelectItem>
-                          <SelectItem value="cash_out">Cash Out</SelectItem>
-                          <SelectItem value="bridge">Bridge</SelectItem>
+                          <SelectItem value="cash_out_refinance">Cash Out Refinance</SelectItem>
+                          <SelectItem value="bridge">Bridge Loan</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="loanType">Loan Type</Label>
+                      <Label htmlFor="loanType">Loan Type *</Label>
                       <Select value={profile.loanType || ''} onValueChange={(value) => updateProfile('loanType', value)}>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select type" />
+                          <SelectValue placeholder="Select loan type" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="dscr">DSCR</SelectItem>
                           <SelectItem value="fix_flip">Fix & Flip</SelectItem>
                           <SelectItem value="bridge">Bridge</SelectItem>
                           <SelectItem value="commercial">Commercial</SelectItem>
+                          <SelectItem value="hard_money">Hard Money</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="loanAmount">Loan Amount ($)</Label>
+                      <Label htmlFor="cashOutAmount">Cash Out Amount ($)</Label>
+                      <Input
+                        id="cashOutAmount"
+                        type="number"
+                        placeholder="50000"
+                        value={profile.cashOutAmount || ''}
+                        onChange={(e) => updateProfile('cashOutAmount', parseInt(e.target.value))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="loanAmount">Loan Amount ($) *</Label>
                       <Input
                         id="loanAmount"
                         type="number"
-                        placeholder="400000"
+                        placeholder="600000"
                         value={profile.loanAmount || ''}
                         onChange={(e) => updateProfile('loanAmount', parseInt(e.target.value))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="currentBalance">Current Balance ($)</Label>
+                      <Input
+                        id="currentBalance"
+                        type="number"
+                        placeholder="400000"
+                        value={profile.currentBalance || ''}
+                        onChange={(e) => updateProfile('currentBalance', parseInt(e.target.value))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="currentRate">Current Rate (%)</Label>
+                      <Input
+                        id="currentRate"
+                        type="number"
+                        step="0.01"
+                        placeholder="5.5"
+                        value={profile.currentRate || ''}
+                        onChange={(e) => updateProfile('currentRate', parseFloat(e.target.value))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="monthsRemaining">Months Remaining</Label>
+                      <Input
+                        id="monthsRemaining"
+                        type="number"
+                        placeholder="240"
+                        value={profile.monthsRemaining || ''}
+                        onChange={(e) => updateProfile('monthsRemaining', parseInt(e.target.value))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="currentMonthlyPI">Current Monthly P&I ($)</Label>
+                      <Input
+                        id="currentMonthlyPI"
+                        type="number"
+                        placeholder="2400"
+                        value={profile.currentMonthlyPI || ''}
+                        onChange={(e) => updateProfile('currentMonthlyPI', parseInt(e.target.value))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="currentMonthlyTIA">Current Monthly TIA ($)</Label>
+                      <Input
+                        id="currentMonthlyTIA"
+                        type="number"
+                        placeholder="1200"
+                        value={profile.currentMonthlyTIA || ''}
+                        onChange={(e) => updateProfile('currentMonthlyTIA', parseInt(e.target.value))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="currentTotalMonthlyPayment">Current Total Monthly Payment ($)</Label>
+                      <Input
+                        id="currentTotalMonthlyPayment"
+                        type="number"
+                        placeholder="3600"
+                        value={profile.currentTotalMonthlyPayment || ''}
+                        onChange={(e) => updateProfile('currentTotalMonthlyPayment', parseInt(e.target.value))}
                       />
                     </div>
                     <div className="space-y-2">
@@ -497,9 +569,155 @@ export default function AIAdvisor() {
                       <Input
                         id="downPaymentPercent"
                         type="number"
-                        placeholder="20"
+                        placeholder="25"
                         value={profile.downPaymentPercent || ''}
                         onChange={(e) => updateProfile('downPaymentPercent', parseInt(e.target.value))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="downPaymentAmount">Down Payment Amount ($)</Label>
+                      <Input
+                        id="downPaymentAmount"
+                        type="number"
+                        placeholder="150000"
+                        value={profile.downPaymentAmount || ''}
+                        onChange={(e) => updateProfile('downPaymentAmount', parseInt(e.target.value))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="reserves">Reserves</Label>
+                      <Select value={profile.reserves || ''} onValueChange={(value) => updateProfile('reserves', value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select reserves" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="0_months">0 Months</SelectItem>
+                          <SelectItem value="1_month">1 Month</SelectItem>
+                          <SelectItem value="2_months">2 Months</SelectItem>
+                          <SelectItem value="3_months">3 Months</SelectItem>
+                          <SelectItem value="4_months">4 Months</SelectItem>
+                          <SelectItem value="5_months">5 Months</SelectItem>
+                          <SelectItem value="6_months">6 Months</SelectItem>
+                          <SelectItem value="more_than_6">More than 6 Months</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="prepaymentPenalty">Prepayment Penalty</Label>
+                      <Select value={profile.prepaymentPenalty || ''} onValueChange={(value) => updateProfile('prepaymentPenalty', value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select penalty" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">None</SelectItem>
+                          <SelectItem value="1_year">1 Year</SelectItem>
+                          <SelectItem value="2_year">2 Year</SelectItem>
+                          <SelectItem value="3_year">3 Year</SelectItem>
+                          <SelectItem value="4_year">4 Year</SelectItem>
+                          <SelectItem value="5_year">5 Year</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Additional Financial Information */}
+                <div className="bg-yellow-50 p-4 rounded-lg">
+                  <h3 className="font-semibold text-yellow-900 mb-3">Additional Financial Information</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="dscrRatio">DSCR Ratio (Optional)</Label>
+                      <Input
+                        id="dscrRatio"
+                        type="number"
+                        step="0.1"
+                        placeholder="1.25"
+                        value={profile.dscrRatio || ''}
+                        onChange={(e) => updateProfile('dscrRatio', parseFloat(e.target.value))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="grossIncome">Gross Income ($)</Label>
+                      <Input
+                        id="grossIncome"
+                        type="number"
+                        placeholder="120000"
+                        value={profile.grossIncome || ''}
+                        onChange={(e) => updateProfile('grossIncome', parseInt(e.target.value))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="netIncome">Net Income ($)</Label>
+                      <Input
+                        id="netIncome"
+                        type="number"
+                        placeholder="85000"
+                        value={profile.netIncome || ''}
+                        onChange={(e) => updateProfile('netIncome', parseInt(e.target.value))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="experience">Experience</Label>
+                      <Select value={profile.experience || ''} onValueChange={(value) => updateProfile('experience', value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select experience" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="new_investor">New Investor</SelectItem>
+                          <SelectItem value="1_5_years">1-5 Years</SelectItem>
+                          <SelectItem value="5_10_years">5-10 Years</SelectItem>
+                          <SelectItem value="10_plus_years">10+ Years</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="timelineToFunding">Timeline to Funding</Label>
+                      <Select value={profile.timelineToFunding || ''} onValueChange={(value) => updateProfile('timelineToFunding', value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select timeline" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="asap">ASAP</SelectItem>
+                          <SelectItem value="1_week">1 Week</SelectItem>
+                          <SelectItem value="2_weeks">2 Weeks</SelectItem>
+                          <SelectItem value="1_month">1 Month</SelectItem>
+                          <SelectItem value="2_months">2 Months</SelectItem>
+                          <SelectItem value="3_months">3+ Months</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="liquidityPosition">Liquidity Position</Label>
+                      <Select value={profile.liquidityPosition || ''} onValueChange={(value) => updateProfile('liquidityPosition', value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select liquidity" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="excellent">Excellent</SelectItem>
+                          <SelectItem value="good">Good</SelectItem>
+                          <SelectItem value="fair">Fair</SelectItem>
+                          <SelectItem value="poor">Poor</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="flipsCompleted">Flips Completed</Label>
+                      <Input
+                        id="flipsCompleted"
+                        type="number"
+                        placeholder="5"
+                        value={profile.flipsCompleted || ''}
+                        onChange={(e) => updateProfile('flipsCompleted', parseInt(e.target.value))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="rentalsOwned">Rentals Owned</Label>
+                      <Input
+                        id="rentalsOwned"
+                        type="number"
+                        placeholder="3"
+                        value={profile.rentalsOwned || ''}
+                        onChange={(e) => updateProfile('rentalsOwned', parseInt(e.target.value))}
                       />
                     </div>
                   </div>

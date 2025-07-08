@@ -21,7 +21,7 @@ const PropertySearch = React.lazy(() => import("@/pages/property-search"));
 const PropertyMap = React.lazy(() => import("@/pages/property-map"));
 const PropertyComparison = React.lazy(() => import("@/pages/property-comparison"));
 const MarketTrends = React.lazy(() => import("@/pages/market-trends"));
-const LoanRecommendation = React.lazy(() => import("@/pages/loan-recommendation"));
+
 const MortgageCalculator = React.lazy(() => import("@/pages/mortgage-calculator"));
 const Contacts = React.lazy(() => import("@/pages/contacts"));
 const ContactRecommendations = React.lazy(() => import("@/pages/contact-recommendations"));
@@ -85,11 +85,7 @@ function Router() {
               <MarketTrends />
             </React.Suspense>
           )} />
-          <Route path="/loan-recommendation" component={() => (
-            <React.Suspense fallback={<div className="p-8">Loading AI Loan Advisor...</div>}>
-              <LoanRecommendation />
-            </React.Suspense>
-          )} />
+
           <Route path="/mortgage-calculator" component={() => (
             <React.Suspense fallback={<div className="p-8">Loading Mortgage Calculator...</div>}>
               <MortgageCalculator />
