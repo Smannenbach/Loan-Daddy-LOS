@@ -498,3 +498,5 @@ export default function GamifiedOnboarding({ isVisible, onClose, onNavigate }: G
     </div>
   );
 }
+
+export { GamifiedOnboarding };
