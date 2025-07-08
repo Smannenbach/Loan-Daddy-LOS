@@ -140,10 +140,12 @@ export default function AIAdvisor() {
   // AI chat mutation
   const chatMutation = useMutation({
     mutationFn: async (message: string) => {
-      return await apiRequest('/api/ai/chat', {
-        method: 'POST',
-        body: JSON.stringify({ message, profile, context: chatMessages })
+      const response = await apiRequest('POST', '/api/ai/chat', { 
+        message, 
+        profile, 
+        context: chatMessages 
       });
+      return await response.json();
     },
     onSuccess: (data: { response: string }) => {
       setChatMessages(prev => [...prev, {
@@ -155,7 +157,7 @@ export default function AIAdvisor() {
     onError: (error) => {
       toast({
         title: "Error",
-        description: "Failed to get AI response",
+        description: "Failed to send message",
         variant: "destructive",
       });
     },
