@@ -24,9 +24,11 @@ import { aiChatbot } from "./ai-chatbot";
 import { aiVoicebot } from "./ai-voicebot";
 import { socialEnrichment } from "./social-enrichment";
 import { customerAuth } from "./customer-auth";
+import { customerOAuth } from "./customer-oauth";
 import aiRoutes from "./ai-routes";
 import multer from "multer";
 import cookieParser from "cookie-parser";
+import passport from "passport";
 import path from "path";
 import fs from "fs";
 import { z } from "zod";
@@ -60,6 +62,89 @@ const upload = multer({
 export async function registerRoutes(app: Express): Promise<Server> {
   // Configure middleware
   app.use(cookieParser());
+  
+  // Initialize OAuth system
+  customerOAuth.setupSession(app);
+  customerOAuth.initializeStrategies();
+
+  // OAuth routes for customer authentication
+  app.get("/api/customer/oauth/providers", (req, res) => {
+    const providers = customerOAuth.getAvailableProviders();
+    res.json(providers);
+  });
+
+  // Google OAuth
+  app.get("/api/customer/auth/google", 
+    passport.authenticate('google', { scope: ['profile', 'email'] })
+  );
+
+  app.get("/api/customer/auth/google/callback",
+    passport.authenticate('google', { failureRedirect: '/customer/login?error=oauth_failed' }),
+    (req, res) => {
+      res.redirect('/customer/dashboard');
+    }
+  );
+
+  // Facebook OAuth
+  app.get("/api/customer/auth/facebook", 
+    passport.authenticate('facebook', { scope: ['email'] })
+  );
+
+  app.get("/api/customer/auth/facebook/callback",
+    passport.authenticate('facebook', { failureRedirect: '/customer/login?error=oauth_failed' }),
+    (req, res) => {
+      res.redirect('/customer/dashboard');
+    }
+  );
+
+  // LinkedIn OAuth
+  app.get("/api/customer/auth/linkedin", 
+    passport.authenticate('linkedin', { scope: ['r_emailaddress', 'r_liteprofile'] })
+  );
+
+  app.get("/api/customer/auth/linkedin/callback",
+    passport.authenticate('linkedin', { failureRedirect: '/customer/login?error=oauth_failed' }),
+    (req, res) => {
+      res.redirect('/customer/dashboard');
+    }
+  );
+
+  // Twitter OAuth
+  app.get("/api/customer/auth/twitter", 
+    passport.authenticate('twitter')
+  );
+
+  app.get("/api/customer/auth/twitter/callback",
+    passport.authenticate('twitter', { failureRedirect: '/customer/login?error=oauth_failed' }),
+    (req, res) => {
+      res.redirect('/customer/dashboard');
+    }
+  );
+
+  // GitHub OAuth
+  app.get("/api/customer/auth/github", 
+    passport.authenticate('github', { scope: ['user:email'] })
+  );
+
+  app.get("/api/customer/auth/github/callback",
+    passport.authenticate('github', { failureRedirect: '/customer/login?error=oauth_failed' }),
+    (req, res) => {
+      res.redirect('/customer/dashboard');
+    }
+  );
+
+  // Apple OAuth
+  app.get("/api/customer/auth/apple", 
+    passport.authenticate('apple')
+  );
+
+  app.get("/api/customer/auth/apple/callback",
+    passport.authenticate('apple', { failureRedirect: '/customer/login?error=oauth_failed' }),
+    (req, res) => {
+      res.redirect('/customer/dashboard');
+    }
+  );
+  
   // Dashboard stats
   app.get("/api/dashboard/stats", async (req, res) => {
     try {

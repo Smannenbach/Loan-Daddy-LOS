@@ -113,8 +113,8 @@ export default function CustomerDashboard() {
               </div>
             </div>
             
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              <div className="hidden sm:flex items-center space-x-2">
                 <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
                   <User className="w-5 h-5 text-gray-600" />
                 </div>
@@ -126,14 +126,21 @@ export default function CustomerDashboard() {
                 </div>
               </div>
               
+              <div className="flex sm:hidden items-center">
+                <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+                  <User className="w-5 h-5 text-gray-600" />
+                </div>
+              </div>
+              
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleLogout}
                 disabled={logoutMutation.isPending}
+                className="text-xs sm:text-sm"
               >
-                <LogOut className="w-4 h-4 mr-2" />
-                Sign Out
+                <LogOut className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Sign Out</span>
               </Button>
             </div>
           </div>
@@ -143,53 +150,53 @@ export default function CustomerDashboard() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Section */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+        <div className="mb-6 sm:mb-8">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
             Welcome back, {user.firstName}!
           </h2>
-          <p className="text-gray-600">
+          <p className="text-sm sm:text-base text-gray-600">
             Manage your loan applications and track your progress
           </p>
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <Card>
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total Applications</p>
-                  <p className="text-2xl font-bold text-gray-900">{sampleApplications.length}</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Total Applications</p>
+                  <p className="text-lg sm:text-2xl font-bold text-gray-900">{sampleApplications.length}</p>
                 </div>
-                <FileText className="w-8 h-8 text-blue-600" />
+                <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
               </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Active Applications</p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Active Applications</p>
+                  <p className="text-lg sm:text-2xl font-bold text-gray-900">
                     {sampleApplications.filter(app => app.status !== 'declined').length}
                   </p>
                 </div>
-                <Clock className="w-8 h-8 text-yellow-600" />
+                <Clock className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-600" />
               </div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardContent className="p-6">
+          <Card className="col-span-2 md:col-span-1">
+            <CardContent className="p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total Requested</p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Total Requested</p>
+                  <p className="text-lg sm:text-2xl font-bold text-gray-900">
                     ${sampleApplications.reduce((sum, app) => sum + app.requestedAmount, 0).toLocaleString()}
                   </p>
                 </div>
-                <DollarSign className="w-8 h-8 text-green-600" />
+                <DollarSign className="w-6 h-6 sm:w-8 sm:h-8 text-green-600" />
               </div>
             </CardContent>
           </Card>

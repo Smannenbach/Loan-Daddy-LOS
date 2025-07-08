@@ -2,6 +2,38 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  /* Ensure proper mobile form inputs */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+  
+  /* Mobile-specific adjustments */
+  @media (max-width: 640px) {
+    input, select, textarea {
+      font-size: 16px !important;
+    }
+    
+    /* Prevent zoom on iOS */
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    input[type="tel"],
+    select,
+    textarea {
+      font-size: 16px !important;
+      transform: translateZ(0);
+    }
+  }
+  
+  /* Ensure touch targets are large enough */
+  button, [role="button"], input[type="submit"], input[type="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
 :root {
   --background: hsl(0, 0%, 100%);
   --foreground: hsl(212, 13%, 13%);

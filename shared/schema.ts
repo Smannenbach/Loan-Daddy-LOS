@@ -250,14 +250,16 @@ export const contacts = pgTable("contacts", {
 export const customerUsers = pgTable("customer_users", {
   id: serial("id").primaryKey(),
   email: text("email").notNull().unique(),
-  password: text("password").notNull(),
+  password: text("password"), // Now optional for OAuth users
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
   phone: text("phone"),
+  profilePicture: text("profile_picture"),
   isEmailVerified: boolean("is_email_verified").default(false),
   emailVerificationToken: text("email_verification_token"),
   passwordResetToken: text("password_reset_token"),
   passwordResetExpires: timestamp("password_reset_expires"),
+  oauthAccounts: jsonb("oauth_accounts").default([]), // Store OAuth provider info
   lastLogin: timestamp("last_login"),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),
