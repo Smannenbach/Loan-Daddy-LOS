@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ContactImportWizard } from "@/components/ContactImportWizard";
 import { AchievementPanel } from "@/components/AchievementPanel";
 import SocialEnrichmentWidget from "@/components/social-enrichment-widget";
+import LinkedInIntegration from "@/components/linkedin-integration";
 import { 
   Users, 
   Plus, 
@@ -415,6 +416,16 @@ export default function Contacts() {
             Manage borrowers, agents, loan officers, and other contacts
           </p>
         </div>
+
+        {/* Add tabs structure */}
+        <Tabs defaultValue="contacts" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="contacts">Contact Management</TabsTrigger>
+            <TabsTrigger value="linkedin">LinkedIn Integration</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="contacts" className="space-y-6">
+            <div className="space-y-6">
 
         {/* Header Actions */}
         {/* User Stats and Achievements Bar */}
@@ -1260,16 +1271,23 @@ export default function Contacts() {
           level={Math.floor(contactsArray.length / 10) + 1}
         />
 
-        {/* Social Enrichment Widget */}
-        {selectedContact && (
-          <SocialEnrichmentWidget
-            contactId={selectedContact.id}
-            contactName={`${selectedContact.firstName} ${selectedContact.lastName}`}
-            contactEmail={selectedContact.email}
-            isOpen={showEnrichmentWidget}
-            onClose={() => setShowEnrichmentWidget(false)}
-          />
-        )}
+            {/* Social Enrichment Widget */}
+            {selectedContact && (
+              <SocialEnrichmentWidget
+                contactId={selectedContact.id}
+                contactName={`${selectedContact.firstName} ${selectedContact.lastName}`}
+                contactEmail={selectedContact.email}
+                isOpen={showEnrichmentWidget}
+                onClose={() => setShowEnrichmentWidget(false)}
+              />
+            )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="linkedin" className="space-y-6">
+            <LinkedInIntegration />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

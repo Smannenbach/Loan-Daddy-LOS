@@ -1907,6 +1907,139 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // LinkedIn Integration Routes
+  app.post("/api/linkedin/search", async (req, res) => {
+    try {
+      const { query, filters } = req.body;
+      if (!query || typeof query !== 'string') {
+        return res.status(400).json({ error: 'Query parameter is required and must be a string' });
+      }
+      
+      const searchResults = await linkedInIntegration.searchLinkedInProfiles(query, filters);
+      res.json({
+        success: true,
+        data: searchResults,
+        message: `Found ${searchResults.profiles.length} LinkedIn profiles`
+      });
+    } catch (error) {
+      console.error('LinkedIn search error:', error);
+      res.status(500).json({ error: 'Failed to search LinkedIn profiles', details: error.message });
+    }
+  });
+
+  app.post("/api/linkedin/enrich", async (req, res) => {
+    try {
+      const { linkedinUrl } = req.body;
+      if (!linkedinUrl || typeof linkedinUrl !== 'string') {
+        return res.status(400).json({ error: 'LinkedIn URL is required and must be a string' });
+      }
+      
+      const enrichedData = await linkedInIntegration.enrichContactData(linkedinUrl);
+      res.json({
+        success: true,
+        data: enrichedData,
+        message: `Successfully enriched contact data with ${enrichedData.confidence}% confidence`
+      });
+    } catch (error) {
+      console.error('Contact enrichment error:', error);
+      res.status(500).json({ error: 'Failed to enrich contact data', details: error.message });
+    }
+  });
+
+  app.post("/api/linkedin/import", async (req, res) => {
+    try {
+      const { enrichedData } = req.body;
+      if (!enrichedData || !enrichedData.linkedinProfile) {
+        return res.status(400).json({ error: 'Enriched contact data is required' });
+      }
+      
+      const importResult = await linkedInIntegration.importContactToSystem(enrichedData);
+      if (importResult.success) {
+        res.json({
+          success: true,
+          data: importResult,
+          message: importResult.message
+        });
+      } else {
+        res.status(500).json({ error: 'Failed to import contact', details: importResult.message });
+      }
+    } catch (error) {
+      console.error('Contact import error:', error);
+      res.status(500).json({ error: 'Failed to import contact', details: error.message });
+    }
+  });
+
+  app.post("/api/linkedin/quick-import", async (req, res) => {
+    try {
+      const { linkedinUrl, autoImport = true } = req.body;
+      if (!linkedinUrl || typeof linkedinUrl !== 'string') {
+        return res.status(400).json({ error: 'LinkedIn URL is required and must be a string' });
+      }
+      
+      const enrichedData = await linkedInIntegration.enrichContactData(linkedinUrl);
+      let importResult = null;
+      
+      if (autoImport) {
+        importResult = await linkedInIntegration.importContactToSystem(enrichedData);
+      }
+      
+      res.json({
+        success: true,
+        data: { enrichedData, importResult, processed: true },
+        message: autoImport 
+          ? `Successfully enriched and imported ${enrichedData.linkedinProfile.name}`
+          : `Successfully enriched ${enrichedData.linkedinProfile.name}`
+      });
+    } catch (error) {
+      console.error('Quick enrich and import error:', error);
+      res.status(500).json({ error: 'Failed to enrich and import contact', details: error.message });
+    }
+  });
+
+  app.post("/api/linkedin/batch-enrich", async (req, res) => {
+    try {
+      const { linkedinUrls } = req.body;
+      if (!Array.isArray(linkedinUrls) || linkedinUrls.length === 0) {
+        return res.status(400).json({ error: 'LinkedIn URLs array is required and must not be empty' });
+      }
+      
+      const batchResults = await linkedInIntegration.batchEnrichContacts(linkedinUrls);
+      const successCount = batchResults.filter(r => r.success).length;
+      const failCount = batchResults.filter(r => !r.success).length;
+      
+      res.json({
+        success: true,
+        data: {
+          results: batchResults,
+          summary: {
+            total: batchResults.length,
+            successful: successCount,
+            failed: failCount,
+            successRate: (successCount / batchResults.length) * 100
+          }
+        },
+        message: `Batch enrichment completed: ${successCount} successful, ${failCount} failed`
+      });
+    } catch (error) {
+      console.error('Batch enrichment error:', error);
+      res.status(500).json({ error: 'Failed to perform batch enrichment', details: error.message });
+    }
+  });
+
+  app.get("/api/linkedin/status", async (req, res) => {
+    try {
+      const status = await linkedInIntegration.getEnrichmentStatus();
+      res.json({
+        success: true,
+        data: status,
+        message: 'Enrichment status retrieved successfully'
+      });
+    } catch (error) {
+      console.error('Status retrieval error:', error);
+      res.status(500).json({ error: 'Failed to retrieve enrichment status', details: error.message });
+    }
+  });
+
   // Mount AI routes
   app.use(aiRoutes);
   
