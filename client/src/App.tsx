@@ -34,6 +34,7 @@ const AnalyticsDashboard = React.lazy(() => import("@/pages/analytics-dashboard"
 const WorkflowAutomation = React.lazy(() => import("@/pages/workflow-automation"));
 const DocumentCenter = React.lazy(() => import("@/pages/document-center"));
 const ComplianceCenter = React.lazy(() => import("@/pages/compliance-center"));
+const PropertyTaxManager = React.lazy(() => import("@/pages/property-tax-manager"));
 
 // Customer portal pages
 const CustomerLogin = React.lazy(() => import("@/pages/customer/customer-login"));
@@ -139,6 +140,11 @@ function Router() {
           <Route path="/compliance" component={() => (
             <React.Suspense fallback={<div className="p-8">Loading Compliance Center...</div>}>
               <ComplianceCenter />
+            </React.Suspense>
+          )} />
+          <Route path="/property-tax-manager" component={() => (
+            <React.Suspense fallback={<div className="p-8">Loading Property Tax Manager...</div>}>
+              <PropertyTaxManager />
             </React.Suspense>
           )} />
           <Route path="/settings" component={() => (

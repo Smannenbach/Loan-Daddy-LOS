@@ -8,6 +8,7 @@ import { paymentProcessor } from './payment-processor';
 import { videoGenerator } from './video-generator';
 import { blockchainService } from './blockchain-service';
 import { advancedAnalytics } from './advanced-analytics';
+import { propertyTaxService } from './property-tax-service';
 import multer from 'multer';
 import { nanoid } from 'nanoid';
 import { join } from 'path';
@@ -1108,6 +1109,155 @@ router.get('/ai/status', async (req, res) => {
     console.error('Status error:', error);
     res.status(500).json({ 
       error: 'Failed to retrieve status',
+      message: error.message 
+    });
+  }
+});
+
+// Property Tax and Ownership Information Routes
+router.post('/ai/property-tax/search', async (req, res) => {
+  try {
+    const { propertyAddress, parcelNumber, ownerName } = req.body;
+
+    if (!propertyAddress) {
+      return res.status(400).json({ error: 'propertyAddress is required' });
+    }
+
+    const result = await propertyTaxService.searchPropertyTaxInfo(
+      propertyAddress,
+      parcelNumber,
+      ownerName
+    );
+
+    res.json({
+      success: true,
+      result,
+      message: 'Property tax information retrieved successfully'
+    });
+  } catch (error) {
+    console.error('Property tax search error:', error);
+    res.status(500).json({ 
+      error: 'Property tax search failed',
+      message: error.message 
+    });
+  }
+});
+
+router.post('/ai/property-tax/process-document', upload.single('document'), async (req, res) => {
+  try {
+    const { propertyId, loanApplicationId, documentType } = req.body;
+    const file = req.file;
+
+    if (!file || !propertyId || !loanApplicationId || !documentType) {
+      return res.status(400).json({ error: 'file, propertyId, loanApplicationId, and documentType are required' });
+    }
+
+    const document = await propertyTaxService.processTaxDocument(
+      file.path,
+      parseInt(propertyId),
+      parseInt(loanApplicationId),
+      documentType
+    );
+
+    res.json({
+      success: true,
+      document,
+      message: 'Tax document processed successfully'
+    });
+  } catch (error) {
+    console.error('Tax document processing error:', error);
+    res.status(500).json({ 
+      error: 'Tax document processing failed',
+      message: error.message 
+    });
+  }
+});
+
+router.post('/ai/property-tax/auto-download', async (req, res) => {
+  try {
+    const { propertyAddress, parcelNumber, years } = req.body;
+
+    if (!propertyAddress || !parcelNumber) {
+      return res.status(400).json({ error: 'propertyAddress and parcelNumber are required' });
+    }
+
+    const downloadedFiles = await propertyTaxService.autoDownloadTaxBills(
+      propertyAddress,
+      parcelNumber,
+      years
+    );
+
+    res.json({
+      success: true,
+      downloadedFiles,
+      message: 'Tax bills downloaded successfully'
+    });
+  } catch (error) {
+    console.error('Auto-download error:', error);
+    res.status(500).json({ 
+      error: 'Auto-download failed',
+      message: error.message 
+    });
+  }
+});
+
+router.get('/ai/property-tax/documents/:propertyId', async (req, res) => {
+  try {
+    const { propertyId } = req.params;
+    const documents = await propertyTaxService.getPropertyTaxDocuments(parseInt(propertyId));
+
+    res.json({
+      success: true,
+      documents,
+      message: 'Property tax documents retrieved successfully'
+    });
+  } catch (error) {
+    console.error('Get documents error:', error);
+    res.status(500).json({ 
+      error: 'Failed to retrieve documents',
+      message: error.message 
+    });
+  }
+});
+
+router.post('/ai/property-tax/validate', async (req, res) => {
+  try {
+    const { loanApplicationId } = req.body;
+
+    if (!loanApplicationId) {
+      return res.status(400).json({ error: 'loanApplicationId is required' });
+    }
+
+    const validation = await propertyTaxService.validateTaxDocuments(parseInt(loanApplicationId));
+
+    res.json({
+      success: true,
+      validation,
+      message: 'Tax documents validated successfully'
+    });
+  } catch (error) {
+    console.error('Validation error:', error);
+    res.status(500).json({ 
+      error: 'Validation failed',
+      message: error.message 
+    });
+  }
+});
+
+router.get('/ai/property-tax/report/:propertyId', async (req, res) => {
+  try {
+    const { propertyId } = req.params;
+    const report = await propertyTaxService.generateTaxBillReport(parseInt(propertyId));
+
+    res.json({
+      success: true,
+      report,
+      message: 'Tax bill report generated successfully'
+    });
+  } catch (error) {
+    console.error('Report generation error:', error);
+    res.status(500).json({ 
+      error: 'Report generation failed',
       message: error.message 
     });
   }

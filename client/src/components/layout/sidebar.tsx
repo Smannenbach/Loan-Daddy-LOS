@@ -19,7 +19,8 @@ import {
   Brain,
   Users,
   Shield,
-  Target
+  Target,
+  DollarSign
 } from "lucide-react";
 
 const navigation = [
@@ -40,6 +41,7 @@ const navigation = [
   { name: 'Workflow Automation', href: '/workflow-automation', icon: Settings },
   { name: 'Document Center', href: '/document-center', icon: FileText },
   { name: 'Compliance', href: '/compliance', icon: Shield },
+  { name: 'Property Tax Manager', href: '/property-tax-manager', icon: DollarSign },
   { name: 'Marketing', href: '/marketing', icon: Share2 },
   { name: 'Property Search', href: '/property-search', icon: MapPin },
   { name: 'Property Map', href: '/property-map', icon: MapPin },

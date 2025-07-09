@@ -132,12 +132,8 @@ export default function AIAdvisor() {
 
   const getRecommendationMutation = useMutation({
     mutationFn: async (profileData: BorrowerProfile) => {
-      const response = await apiRequest('/api/ai/loan-recommendation', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(profileData)
-      });
-      return response;
+      const response = await apiRequest('POST', '/api/ai/loan-recommendation', profileData);
+      return response.json();
     },
     onSuccess: (data) => {
       setRecommendation(data);
@@ -157,17 +153,13 @@ export default function AIAdvisor() {
 
   const chatMutation = useMutation({
     mutationFn: async ({ message, profile }: { message: string; profile: BorrowerProfile }) => {
-      const response = await apiRequest('/api/ai/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          message, 
-          sessionId,
-          profile, 
-          messages: chatMessages 
-        })
+      const response = await apiRequest('POST', '/api/ai/chat', { 
+        message, 
+        sessionId,
+        profile, 
+        messages: chatMessages 
       });
-      return response;
+      return response.json();
     },
     onSuccess: (data) => {
       setChatMessages(prev => [...prev, {
