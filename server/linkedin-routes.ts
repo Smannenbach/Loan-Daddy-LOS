@@ -1,191 +1,173 @@
-import { Request, Response } from 'express';
-import { linkedInIntegration } from './linkedin-integration.js';
+import { Router, Request, Response, NextFunction } from 'express';
+import { linkedInEnhanced } from './linkedin-enhanced-integration.js';
+import { z } from 'zod';
 
-export async function searchLinkedInProfiles(req: Request, res: Response) {
+// Simple authentication middleware
+const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
+  // TODO: Implement proper authentication
+  // For now, we'll extract userId from the session or a default
+  (req as any).userId = 1;
+  (req as any).organizationId = 1;
+  next();
+};
+
+const router = Router();
+
+// LinkedIn OAuth login
+router.get('/api/linkedin/connect', isAuthenticated, async (req, res) => {
   try {
-    const { query, filters } = req.body;
+    const userId = (req as any).userId;
+    const authUrl = await linkedInEnhanced.authenticateLinkedIn(userId);
+    res.json({ authUrl });
+  } catch (error) {
+    console.error('LinkedIn auth error:', error);
+    res.status(500).json({ error: 'Failed to generate LinkedIn auth URL' });
+  }
+});
 
-    if (!query || typeof query !== 'string') {
-      return res.status(400).json({
-        error: 'Query parameter is required and must be a string'
-      });
+// LinkedIn OAuth callback
+router.get('/api/linkedin/callback', async (req, res) => {
+  try {
+    const { code, state } = req.query;
+    if (!code || !state) {
+      return res.redirect('/contacts?error=linkedin_auth_failed');
     }
 
-    console.log(`LinkedIn search request: ${query}`);
+    const result = await linkedInEnhanced.handleCallback(code as string, state as string);
+    
+    // Redirect to contacts page with success message
+    res.redirect('/contacts?linkedin=connected');
+  } catch (error) {
+    console.error('LinkedIn callback error:', error);
+    res.redirect('/contacts?error=linkedin_auth_failed');
+  }
+});
 
-    const searchResults = await linkedInIntegration.searchLinkedInProfiles(query, filters);
+// Import contacts from LinkedIn
+router.post('/api/linkedin/import-contacts', isAuthenticated, async (req, res) => {
+  try {
+    const userId = (req as any).userId;
+    const organizationId = (req as any).organizationId;
+    const { accessToken } = req.body;
+
+    if (!accessToken) {
+      return res.status(400).json({ error: 'Access token required' });
+    }
+
+    // Set up SSE for progress updates
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive'
+    });
+
+    const sendProgress = (progress: number, message: string) => {
+      res.write(`data: ${JSON.stringify({ progress, message })}\n\n`);
+    };
+
+    const results = await linkedInEnhanced.batchImportContacts(
+      userId,
+      organizationId,
+      accessToken,
+      sendProgress
+    );
+
+    res.write(`data: ${JSON.stringify({ complete: true, results })}\n\n`);
+    res.end();
+  } catch (error) {
+    console.error('Import contacts error:', error);
+    res.write(`data: ${JSON.stringify({ error: 'Import failed' })}\n\n`);
+    res.end();
+  }
+});
+
+// Extract contacts with email/phone guessing
+router.post('/api/linkedin/extract-contacts', isAuthenticated, async (req, res) => {
+  try {
+    const userId = (req as any).userId;
+    const organizationId = (req as any).organizationId;
+    const { accessToken, connectionIds } = req.body;
+
+    if (!accessToken) {
+      return res.status(400).json({ error: 'Access token required' });
+    }
+
+    const extractedContacts = await linkedInEnhanced.extractLinkedInContacts(userId, accessToken);
+    
+    // Filter by specific connection IDs if provided
+    let contactsToSave = extractedContacts;
+    if (connectionIds && connectionIds.length > 0) {
+      contactsToSave = extractedContacts.filter(c => connectionIds.includes(c.profile.id));
+    }
+
+    const savedCount = await linkedInEnhanced.saveExtractedContacts(
+      userId,
+      organizationId,
+      contactsToSave
+    );
 
     res.json({
       success: true,
-      data: searchResults,
-      message: `Found ${searchResults.profiles.length} LinkedIn profiles`
+      extracted: contactsToSave.length,
+      saved: savedCount,
+      contacts: contactsToSave.map(c => ({
+        name: `${c.profile.firstName} ${c.profile.lastName}`,
+        email: c.extractedEmail,
+        emailConfidence: c.emailConfidence,
+        phones: c.extractedPhones,
+        phoneConfidence: c.phoneConfidence,
+        company: c.profile.currentPosition?.companyName,
+        title: c.profile.currentPosition?.title
+      }))
     });
   } catch (error) {
-    console.error('LinkedIn search error:', error);
-    res.status(500).json({
-      error: 'Failed to search LinkedIn profiles',
-      details: error.message
-    });
+    console.error('Extract contacts error:', error);
+    res.status(500).json({ error: 'Failed to extract contacts' });
   }
-}
+});
 
-export async function enrichContactData(req: Request, res: Response) {
+// Search for contact email/phone
+router.post('/api/linkedin/enrich-contact', isAuthenticated, async (req, res) => {
   try {
-    const { linkedinUrl } = req.body;
+    const enrichSchema = z.object({
+      firstName: z.string(),
+      lastName: z.string(),
+      company: z.string().optional(),
+      linkedinUrl: z.string().optional()
+    });
 
-    if (!linkedinUrl || typeof linkedinUrl !== 'string') {
-      return res.status(400).json({
-        error: 'LinkedIn URL is required and must be a string'
-      });
-    }
+    const data = enrichSchema.parse(req.body);
+    
+    // Create a profile object for enrichment
+    const profile = {
+      id: '',
+      firstName: data.firstName,
+      lastName: data.lastName,
+      currentPosition: data.company ? { 
+        title: '', 
+        companyName: data.company,
+        startDate: ''
+      } : undefined,
+      publicProfileUrl: data.linkedinUrl
+    };
 
-    console.log(`Contact enrichment request: ${linkedinUrl}`);
-
-    const enrichedData = await linkedInIntegration.enrichContactData(linkedinUrl);
+    // Use the enhanced integration to guess email and extract phone
+    const guessedEmail = await (linkedInEnhanced as any).guessEmail(profile);
+    const extractedPhones = await (linkedInEnhanced as any).extractPhoneNumbers(profile);
+    const enrichedData = await (linkedInEnhanced as any).enrichContactData(profile);
 
     res.json({
       success: true,
-      data: enrichedData,
-      message: `Successfully enriched contact data with ${enrichedData.confidence}% confidence`
+      email: guessedEmail.email,
+      emailConfidence: guessedEmail.confidence,
+      phones: extractedPhones,
+      phoneConfidence: extractedPhones.length > 0 ? 0.8 : 0,
+      enrichedData
     });
   } catch (error) {
-    console.error('Contact enrichment error:', error);
-    res.status(500).json({
-      error: 'Failed to enrich contact data',
-      details: error.message
-    });
+    console.error('Enrich contact error:', error);
+    res.status(500).json({ error: 'Failed to enrich contact' });
   }
-}
+});
 
-export async function importContact(req: Request, res: Response) {
-  try {
-    const { enrichedData } = req.body;
-
-    if (!enrichedData || !enrichedData.linkedinProfile) {
-      return res.status(400).json({
-        error: 'Enriched contact data is required'
-      });
-    }
-
-    console.log(`Contact import request: ${enrichedData.linkedinProfile.name}`);
-
-    const importResult = await linkedInIntegration.importContactToSystem(enrichedData);
-
-    if (importResult.success) {
-      res.json({
-        success: true,
-        data: importResult,
-        message: importResult.message
-      });
-    } else {
-      res.status(500).json({
-        error: 'Failed to import contact',
-        details: importResult.message
-      });
-    }
-  } catch (error) {
-    console.error('Contact import error:', error);
-    res.status(500).json({
-      error: 'Failed to import contact',
-      details: error.message
-    });
-  }
-}
-
-export async function batchEnrichContacts(req: Request, res: Response) {
-  try {
-    const { linkedinUrls } = req.body;
-
-    if (!Array.isArray(linkedinUrls) || linkedinUrls.length === 0) {
-      return res.status(400).json({
-        error: 'LinkedIn URLs array is required and must not be empty'
-      });
-    }
-
-    console.log(`Batch enrichment request: ${linkedinUrls.length} URLs`);
-
-    const batchResults = await linkedInIntegration.batchEnrichContacts(linkedinUrls);
-
-    const successCount = batchResults.filter(r => r.success).length;
-    const failCount = batchResults.filter(r => !r.success).length;
-
-    res.json({
-      success: true,
-      data: {
-        results: batchResults,
-        summary: {
-          total: batchResults.length,
-          successful: successCount,
-          failed: failCount,
-          successRate: (successCount / batchResults.length) * 100
-        }
-      },
-      message: `Batch enrichment completed: ${successCount} successful, ${failCount} failed`
-    });
-  } catch (error) {
-    console.error('Batch enrichment error:', error);
-    res.status(500).json({
-      error: 'Failed to perform batch enrichment',
-      details: error.message
-    });
-  }
-}
-
-export async function getEnrichmentStatus(req: Request, res: Response) {
-  try {
-    const status = await linkedInIntegration.getEnrichmentStatus();
-
-    res.json({
-      success: true,
-      data: status,
-      message: 'Enrichment status retrieved successfully'
-    });
-  } catch (error) {
-    console.error('Status retrieval error:', error);
-    res.status(500).json({
-      error: 'Failed to retrieve enrichment status',
-      details: error.message
-    });
-  }
-}
-
-export async function quickEnrichAndImport(req: Request, res: Response) {
-  try {
-    const { linkedinUrl, autoImport = true } = req.body;
-
-    if (!linkedinUrl || typeof linkedinUrl !== 'string') {
-      return res.status(400).json({
-        error: 'LinkedIn URL is required and must be a string'
-      });
-    }
-
-    console.log(`Quick enrich and import request: ${linkedinUrl}`);
-
-    // First enrich the contact
-    const enrichedData = await linkedInIntegration.enrichContactData(linkedinUrl);
-
-    let importResult = null;
-    if (autoImport) {
-      // Then import to system
-      importResult = await linkedInIntegration.importContactToSystem(enrichedData);
-    }
-
-    res.json({
-      success: true,
-      data: {
-        enrichedData,
-        importResult,
-        processed: true
-      },
-      message: autoImport 
-        ? `Successfully enriched and imported ${enrichedData.linkedinProfile.name}`
-        : `Successfully enriched ${enrichedData.linkedinProfile.name}`
-    });
-  } catch (error) {
-    console.error('Quick enrich and import error:', error);
-    res.status(500).json({
-      error: 'Failed to enrich and import contact',
-      details: error.message
-    });
-  }
-}
+export default router;

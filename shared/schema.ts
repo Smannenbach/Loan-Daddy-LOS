@@ -217,30 +217,44 @@ export const callLogs = pgTable("call_logs", {
 
 export const contacts = pgTable("contacts", {
   id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").references(() => organizations.id),
+  userId: integer("user_id").references(() => users.id),
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
-  email: text("email").notNull(),
-  phone: text("phone").notNull(),
+  email: text("email"),
+  mobilePhone: text("mobile_phone"),
+  businessPhone: text("business_phone"),
   profilePhoto: text("profile_photo"),
   dateOfBirth: text("date_of_birth"),
   ssn: text("ssn"),
   relationshipStatus: text("relationship_status"),
   company: text("company"),
-  title: text("title"),
-  contactType: text("contact_type").notNull(), // borrower, agent, vendor, lender, referral_partner
+  jobTitle: text("job_title"),
+  contactType: text("contact_type"), // borrower, agent, vendor, lender, referral_partner
+  type: text("type").notNull().default('lead'), // lead, client, prospect, etc.
   notes: text("notes"),
   streetAddress: text("street_address"),
   city: text("city"),
   state: text("state"),
   zipCode: text("zip_code"),
   country: text("country").default("United States"),
-  linkedInUrl: text("linkedin_url"),
+  linkedinUrl: text("linkedin_url"),
+  profileImageUrl: text("profile_image_url"),
   website: text("website"),
   licenseNumber: text("license_number"),
   mlsId: text("mls_id"),
-  source: text("source").notNull(),
+  source: text("source").notNull().default('manual'), // manual, linkedin, import, web
+  status: text("status").notNull().default('active'), // active, inactive, archived
   tags: text("tags").array().default([]),
-  linkedInProfile: text("linkedin_profile"),
+  industry: text("industry"),
+  location: text("location"),
+  customFields: jsonb("custom_fields").$type<{
+    linkedinId?: string;
+    emailConfidence?: number;
+    phoneConfidence?: number;
+    connections?: number;
+    enrichedData?: any;
+  }>(),
   linkedInData: jsonb("linkedin_data").$type<{
     headline?: string;
     summary?: string;
@@ -264,6 +278,7 @@ export const contacts = pgTable("contacts", {
     source: string;
     isValid?: boolean;
   }>>(),
+  lastContactedAt: timestamp("last_contacted_at"),
   lastLinkedInSync: timestamp("last_linkedin_sync"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),

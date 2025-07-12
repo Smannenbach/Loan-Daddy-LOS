@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -57,6 +57,7 @@ const DocumentUpload = React.lazy(() => import("@/pages/customer/document-upload
 
 // Borrower portal pages
 const BorrowerPortal = React.lazy(() => import("@/pages/borrower-portal"));
+const BorrowerPortalV2 = React.lazy(() => import("@/pages/borrower-portal-v2"));
 const BorrowerLogin = React.lazy(() => import("@/pages/borrower-login"));
 const BorrowerApplication = React.lazy(() => import("@/pages/borrower-application"));
 const BorrowerDashboard = React.lazy(() => import("@/pages/borrower-dashboard"));
@@ -64,10 +65,72 @@ const RealtorPortal = React.lazy(() => import("@/pages/realtor-portal"));
 const RealtorLogin = React.lazy(() => import("@/pages/realtor-login"));
 const LoanOfficerLogin = React.lazy(() => import("@/pages/loan-officer-login"));
 
+// Detect which portal to show based on subdomain
+function getPortalType() {
+  const hostname = window.location.hostname;
+  const pathname = window.location.pathname;
+  const searchParams = new URLSearchParams(window.location.search);
+  
+  // Check for apply subdomain (borrower portal)
+  if (hostname.includes('apply.loangenius.ai') || 
+      hostname.includes('apply-') || 
+      pathname.startsWith('/apply') ||
+      searchParams.get('apply') === 'true') {
+    return 'borrower';
+  }
+  
+  // Check for realtor subdomain
+  if (hostname.includes('realtor.loangenius.ai') || 
+      hostname.includes('realtor-') || 
+      pathname.startsWith('/realtor') ||
+      searchParams.get('realtor') === 'true') {
+    return 'realtor';
+  }
+  
+  // Check for app subdomain (loan officer portal)
+  if (hostname.includes('app.loangenius.ai') || 
+      hostname.includes('app-') || 
+      pathname.startsWith('/app') ||
+      searchParams.get('app') === 'true') {
+    return 'loan-officer';
+  }
+  
+  // Check for branded subdomains (e.g., johndoe.loangenius.ai)
+  const hostParts = hostname.split('.');
+  if (hostParts.length >= 3 && hostname.includes('loangenius.ai')) {
+    const subdomain = hostParts[0];
+    if (!['app', 'apply', 'www', 'realtor'].includes(subdomain)) {
+      return 'borrower'; // Branded subdomains show borrower portal
+    }
+  }
+  
+  // Default to loan officer portal for development
+  return 'loan-officer';
+}
+
 function Router() {
   const [location, setLocation] = useLocation();
+  const [portalType] = useState(getPortalType());
   const isAuthenticated = localStorage.getItem('authToken');
   
+  // Render different portals based on subdomain
+  if (portalType === 'borrower') {
+    return (
+      <React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+        <BorrowerPortalV2 />
+      </React.Suspense>
+    );
+  }
+  
+  if (portalType === 'realtor') {
+    return (
+      <React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+        <RealtorPortal />
+      </React.Suspense>
+    );
+  }
+  
+  // Default loan officer portal logic
   useEffect(() => {
     if (!isAuthenticated && location !== '/login' && location !== '/signup') {
       setLocation('/login');
@@ -321,7 +384,7 @@ function BorrowerRouter() {
       )} />
       <Route path="/" component={() => (
         <React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading LoanGenius...</div>}>
-          <BorrowerPortal />
+          <BorrowerPortalV2 />
         </React.Suspense>
       )} />
       <Route path="/borrower-dashboard" component={() => (

@@ -16,7 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ContactImportWizard } from "@/components/ContactImportWizard";
 import { AchievementPanel } from "@/components/AchievementPanel";
 import SocialEnrichmentWidget from "@/components/social-enrichment-widget";
-import LinkedInIntegration from "@/components/linkedin-integration";
+import LinkedInImport from "@/components/linkedin-import";
 import { 
   Users, 
   Plus, 
@@ -1285,7 +1285,7 @@ export default function Contacts() {
           </TabsContent>
 
           <TabsContent value="linkedin" className="space-y-6">
-            <LinkedInIntegration />
+            <LinkedInImport />
           </TabsContent>
         </Tabs>
       </div>

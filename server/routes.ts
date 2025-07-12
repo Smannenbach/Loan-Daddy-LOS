@@ -30,6 +30,7 @@ import { propertyTaxService } from "./property-tax-service";
 import aiRoutes from "./ai-routes";
 import loanOfficerRoutes from "./loan-officer-routes";
 import autonomousAIRoutes from "./autonomous-ai-routes";
+import linkedInRoutes from "./linkedin-routes";
 import { borrowerAuthRoutes, borrowerMiddleware } from "./borrower-auth";
 import { realtorAuthRoutes, realtorMiddleware } from "./realtor-auth";
 import multer from "multer";
@@ -2569,6 +2570,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Mount autonomous AI routes
   app.use('/api/autonomous', autonomousAIRoutes);
+  
+  // Mount LinkedIn integration routes
+  app.use(linkedInRoutes);
   
   // No public website routes here - they will be handled by vite.ts
   
