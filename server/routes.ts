@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import express, { type Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { databaseStorage } from "./database-storage";
@@ -2047,7 +2047,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Mount AI routes
   app.use(aiRoutes);
   
-  // Serve public website
+  // Serve public website - add static file serving for CSS and assets
+  app.use("/public", express.static(path.join(__dirname, "../public-site")));
+  
+  // Serve public website pages
   app.get("/public", (req, res) => {
     res.sendFile(path.join(__dirname, "../public-site/index.html"));
   });
