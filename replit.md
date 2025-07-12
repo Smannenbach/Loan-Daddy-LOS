@@ -4,6 +4,10 @@
 
 LoanDaddy Enterprise is a comprehensive commercial loan origination system designed for managing DSCR (Debt Service Coverage Ratio), Fix-and-Flip, Bridge, and Commercial loans. The platform provides a complete enterprise-grade workflow from lead generation through loan closing, featuring advanced AI capabilities, blockchain document verification, payment processing, video generation, and comprehensive analytics.
 
+The system features a dual-site architecture:
+- **Public Website**: Served at the root domain (https://loangenius.ai) - A professional landing page matching Arive.com's structure with enhanced AI features
+- **Application Platform**: Accessed via subdomain (https://app.loangenius.ai) - The full loan origination system with all tools and features
+
 ## System Architecture
 
 ### Frontend Architecture
@@ -175,6 +179,9 @@ Changelog:
 - July 08, 2025. Resolved mismatched component tags and import issues with GamifiedOnboarding component
 - July 08, 2025. Rebuilt AI Advisor page with proper React JSX structure and TypeScript compatibility
 - July 08, 2025. Application now fully functional and ready for production deployment
+- July 12, 2025. Implemented dual-site architecture: public website at root domain (loangenius.ai), application at subdomain (app.loangenius.ai)
+- July 12, 2025. Built complete public-facing website matching Arive.com structure with enhanced AI features
+- July 12, 2025. Configured smart routing to serve appropriate content based on domain access pattern
 ```
 
 ## User Preferences

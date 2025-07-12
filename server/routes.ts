@@ -68,6 +68,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Configure middleware
   app.use(cookieParser());
   
+  // Serve public website for root domain
+  app.use((req, res, next) => {
+    const host = req.get('host') || '';
+    const url = req.path;
+    
+    // Skip API routes
+    if (url.startsWith('/api')) {
+      return next();
+    }
+    
+    // Check if we're on the app subdomain or accessing the app
+    const isAppSubdomain = host.includes('app.loangenius.ai') || 
+                          host.includes('app-') || 
+                          url.startsWith('/app');
+    
+    // If not on app subdomain and not an API route, serve public website
+    if (!isAppSubdomain) {
+      const publicPath = path.join(__dirname, "../public-site");
+      
+      // Handle specific routes
+      if (url === '/' || url === '') {
+        return res.sendFile(path.join(publicPath, "index.html"));
+      } else if (url === '/privacy' || url === '/privacy.html') {
+        return res.sendFile(path.join(publicPath, "privacy.html"));
+      } else if (url === '/terms' || url === '/terms.html') {
+        return res.sendFile(path.join(publicPath, "terms.html"));
+      }
+      
+      // Check if file exists in public-site
+      const filePath = path.join(publicPath, url);
+      if (fs.existsSync(filePath)) {
+        return res.sendFile(filePath);
+      }
+    }
+    
+    // Continue to next middleware (React app)
+    next();
+  });
+  
   // Initialize OAuth system
   customerOAuth.setupSession(app);
   customerOAuth.initializeStrategies();
@@ -2047,21 +2086,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Mount AI routes
   app.use(aiRoutes);
   
-  // Serve public website - add static file serving for CSS and assets
-  app.use("/public", express.static(path.join(__dirname, "../public-site")));
-  
-  // Serve public website pages
-  app.get("/public", (req, res) => {
-    res.sendFile(path.join(__dirname, "../public-site/index.html"));
-  });
-  
-  app.get("/public/privacy", (req, res) => {
-    res.sendFile(path.join(__dirname, "../public-site/privacy.html"));
-  });
-  
-  app.get("/public/terms", (req, res) => {
-    res.sendFile(path.join(__dirname, "../public-site/terms.html"));
-  });
+  // No public website routes here - they will be handled by vite.ts
   
   const httpServer = createServer(app);
   return httpServer;
