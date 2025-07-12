@@ -182,6 +182,8 @@ Changelog:
 - July 12, 2025. Implemented dual-site architecture: public website at root domain (loangenius.ai), application at subdomain (app.loangenius.ai)
 - July 12, 2025. Built complete public-facing website matching Arive.com structure with enhanced AI features
 - July 12, 2025. Configured smart routing to serve appropriate content based on domain access pattern
+- July 12, 2025. Simplified application navigation with 5 main tabs (Dashboard, Pipeline, Contacts, Properties, AI Tools) plus expandable "More Tools" section
+- July 12, 2025. Added testing capability with ?app=true parameter to simulate app.loangenius.ai subdomain in development
 ```
 
 ## User Preferences

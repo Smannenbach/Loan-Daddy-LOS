@@ -72,16 +72,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use((req, res, next) => {
     const host = req.get('host') || '';
     const url = req.path;
+    const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
     
-    // Skip API routes
-    if (url.startsWith('/api')) {
+    // Skip API routes and static assets
+    if (url.startsWith('/api') || url.startsWith('/src') || url.startsWith('/assets') || url.includes('.')) {
       return next();
     }
     
     // Check if we're on the app subdomain or accessing the app
+    // In production: app.loangenius.ai
+    // In Replit: URLs with /app prefix or query param ?app=true
     const isAppSubdomain = host.includes('app.loangenius.ai') || 
                           host.includes('app-') || 
-                          url.startsWith('/app');
+                          url.startsWith('/app') ||
+                          req.query.app === 'true' ||
+                          fullUrl.includes('app.loangenius.ai');
+    
+    // Log for debugging in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Route detection:', { host, url, isAppSubdomain });
+    }
     
     // If not on app subdomain and not an API route, serve public website
     if (!isAppSubdomain) {
@@ -98,7 +108,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Check if file exists in public-site
       const filePath = path.join(publicPath, url);
-      if (fs.existsSync(filePath)) {
+      if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
         return res.sendFile(filePath);
       }
     }
