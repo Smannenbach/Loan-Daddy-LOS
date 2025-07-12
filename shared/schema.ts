@@ -409,6 +409,108 @@ export const documentRequirements = pgTable("document_requirements", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Borrower authentication table
+export const borrowerAuth = pgTable("borrower_auth", {
+  id: serial("id").primaryKey(),
+  email: text("email").notNull().unique(),
+  password: text("password"),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  phone: text("phone"),
+  isEmailVerified: boolean("is_email_verified").default(false),
+  emailVerificationToken: text("email_verification_token"),
+  passwordResetToken: text("password_reset_token"),
+  passwordResetExpires: timestamp("password_reset_expires"),
+  plaidAccessToken: text("plaid_access_token"),
+  plaidItemId: text("plaid_item_id"),
+  linkedAccounts: jsonb("linked_accounts").default([]),
+  lastLogin: timestamp("last_login"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+// Realtor authentication table
+export const realtorAuth = pgTable("realtor_auth", {
+  id: serial("id").primaryKey(),
+  email: text("email").notNull().unique(),
+  password: text("password").notNull(),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  phone: text("phone"),
+  brokerageName: text("brokerage_name"),
+  licenseNumber: text("license_number"),
+  licenseState: text("license_state"),
+  profilePicture: text("profile_picture"),
+  bio: text("bio"),
+  yearsExperience: integer("years_experience"),
+  specializations: text("specializations").array().default([]),
+  referralCode: text("referral_code").unique(),
+  totalReferrals: integer("total_referrals").default(0),
+  totalCommissionsEarned: decimal("total_commissions_earned", { precision: 12, scale: 2 }).default('0'),
+  isEmailVerified: boolean("is_email_verified").default(false),
+  emailVerificationToken: text("email_verification_token"),
+  passwordResetToken: text("password_reset_token"),
+  passwordResetExpires: timestamp("password_reset_expires"),
+  lastLogin: timestamp("last_login"),
+  isActive: boolean("is_active").default(true),
+  isApproved: boolean("is_approved").default(false),
+  approvedAt: timestamp("approved_at"),
+  approvedBy: integer("approved_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+// Referral tracking table
+export const referrals = pgTable("referrals", {
+  id: serial("id").primaryKey(),
+  realtorId: integer("realtor_id").references(() => realtorAuth.id).notNull(),
+  borrowerId: integer("borrower_id").references(() => borrowers.id),
+  applicationId: integer("application_id").references(() => loanApplications.id),
+  
+  // Client Information
+  clientName: text("client_name").notNull(),
+  clientEmail: text("client_email").notNull(),
+  clientPhone: text("client_phone").notNull(),
+  propertyAddress: text("property_address").notNull(),
+  
+  // Loan Details
+  estimatedLoanAmount: decimal("estimated_loan_amount", { precision: 12, scale: 2 }),
+  loanType: text("loan_type"),
+  loanPurpose: text("loan_purpose"),
+  
+  // Status Tracking
+  status: text("status").notNull().default('contacted'), // contacted, pre-qualified, application, processing, approved, closed, declined
+  statusUpdates: jsonb("status_updates").default([]),
+  
+  // Commission Details
+  commissionRate: decimal("commission_rate", { precision: 5, scale: 2 }).default('0.3'), // 0.3% default
+  estimatedCommission: decimal("estimated_commission", { precision: 12, scale: 2 }),
+  actualCommission: decimal("actual_commission", { precision: 12, scale: 2 }),
+  commissionStatus: text("commission_status").default('pending'), // pending, approved, paid
+  paidAt: timestamp("paid_at"),
+  
+  // Notes
+  referralNotes: text("referral_notes"),
+  internalNotes: text("internal_notes"),
+  
+  // Tracking
+  lastContactedAt: timestamp("last_contacted_at"),
+  assignedLoanOfficer: integer("assigned_loan_officer").references(() => users.id),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+// Sessions table for authentication
+export const sessions = pgTable("sessions", {
+  id: text("id").primaryKey(),
+  userType: text("user_type").notNull(), // 'user', 'borrower', 'realtor'
+  userId: integer("user_id").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow()
+});
+
 // Schemas
 export const insertBorrowerSchema = createInsertSchema(borrowers);
 export const insertPropertySchema = createInsertSchema(properties);
@@ -469,6 +571,37 @@ export const insertCustomerDocumentSchema = createInsertSchema(customerDocuments
   uploadedAt: true,
   verifiedAt: true,
   createdAt: true,
+});
+
+// Authentication schemas
+export const insertBorrowerAuthSchema = createInsertSchema(borrowerAuth).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  lastLogin: true,
+  emailVerificationToken: true,
+  passwordResetToken: true,
+  passwordResetExpires: true,
+});
+
+export const insertRealtorAuthSchema = createInsertSchema(realtorAuth).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  lastLogin: true,
+  emailVerificationToken: true,
+  passwordResetToken: true,
+  passwordResetExpires: true,
+  approvedAt: true,
+  totalReferrals: true,
+  totalCommissionsEarned: true,
+});
+
+export const insertReferralSchema = createInsertSchema(referrals).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  paidAt: true,
 });
 
 export const insertDocumentRequirementSchema = createInsertSchema(documentRequirements).omit({

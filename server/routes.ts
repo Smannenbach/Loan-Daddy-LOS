@@ -29,6 +29,8 @@ import { customerOAuth } from "./customer-oauth";
 import aiRoutes from "./ai-routes";
 import loanOfficerRoutes from "./loan-officer-routes";
 import autonomousAIRoutes from "./autonomous-ai-routes";
+import { borrowerAuthRoutes, borrowerMiddleware } from "./borrower-auth";
+import { realtorAuthRoutes, realtorMiddleware } from "./realtor-auth";
 import multer from "multer";
 import cookieParser from "cookie-parser";
 import passport from "passport";
@@ -2133,6 +2135,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Borrower Authentication Routes
+  app.post('/api/borrower/login', borrowerAuthRoutes.login);
+  app.post('/api/borrower/signup', borrowerAuthRoutes.signup);
+  app.get('/api/borrower/profile', borrowerMiddleware, borrowerAuthRoutes.getProfile);
+  
+  // Realtor Authentication Routes
+  app.post('/api/realtor/login', realtorAuthRoutes.login);
+  app.post('/api/realtor/signup', realtorAuthRoutes.signup);
+  app.get('/api/realtor/profile', realtorMiddleware, realtorAuthRoutes.getProfile);
+  
   // Mount AI routes
   app.use(aiRoutes);
   

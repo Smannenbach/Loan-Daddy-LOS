@@ -64,7 +64,15 @@ app.use((req, res, next) => {
     port,
     host: "0.0.0.0",
     reusePort: true,
-  }, () => {
+  }, async () => {
     log(`serving on port ${port}`);
+    
+    // Initialize database with test data if needed
+    try {
+      const { initializeDatabase } = await import('./db-init');
+      await initializeDatabase();
+    } catch (error: any) {
+      console.log('Database initialization:', error.message);
+    }
   });
 })();

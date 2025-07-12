@@ -131,6 +131,7 @@ export class MemStorage implements IStorage {
     // Create default user
     this.users.set(1, {
       id: 1,
+      organizationId: 1,
       username: 'admin',
       password: 'password',
       firstName: 'Sarah',

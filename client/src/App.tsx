@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -50,9 +50,39 @@ const DocumentUpload = React.lazy(() => import("@/pages/customer/document-upload
 
 // Borrower portal pages
 const BorrowerPortal = React.lazy(() => import("@/pages/borrower-portal"));
+const BorrowerLogin = React.lazy(() => import("@/pages/borrower-login"));
 const RealtorPortal = React.lazy(() => import("@/pages/realtor-portal"));
+const RealtorLogin = React.lazy(() => import("@/pages/realtor-login"));
+const LoanOfficerLogin = React.lazy(() => import("@/pages/loan-officer-login"));
 
 function Router() {
+  const [location, setLocation] = useLocation();
+  const isAuthenticated = localStorage.getItem('authToken');
+  
+  useEffect(() => {
+    if (!isAuthenticated && location !== '/login' && location !== '/signup') {
+      setLocation('/login');
+    }
+  }, [isAuthenticated, location, setLocation]);
+  
+  // Show login/signup pages without sidebar
+  if (location === '/login' || location === '/signup') {
+    return (
+      <Switch>
+        <Route path="/login" component={() => (
+          <React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+            <LoanOfficerLogin />
+          </React.Suspense>
+        )} />
+        <Route path="/signup" component={() => (
+          <React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+            <Signup />
+          </React.Suspense>
+        )} />
+      </Switch>
+    );
+  }
+  
   return (
     <div className="flex h-screen bg-surface">
       <Sidebar />
@@ -219,19 +249,11 @@ function MainRouter() {
     (hostname.includes('replit.dev') && window.location.search.includes('realtor=true'));
   
   if (isApplySubdomain) {
-    return (
-      <React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading LoanGenius...</div>}>
-        <BorrowerPortal />
-      </React.Suspense>
-    );
+    return <BorrowerRouter />;
   }
   
   if (isRealtorSubdomain) {
-    return (
-      <React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading LoanGenius Realtor Portal...</div>}>
-        <RealtorPortal />
-      </React.Suspense>
-    );
+    return <RealtorRouter />;
   }
   
   // Check if we're in the customer portal
@@ -241,6 +263,60 @@ function MainRouter() {
   
   // Otherwise, render the main app with sidebar
   return <Router />;
+}
+
+function BorrowerRouter() {
+  const [location, setLocation] = useLocation();
+  const isAuthenticated = localStorage.getItem('borrowerToken');
+  
+  useEffect(() => {
+    if (!isAuthenticated && location !== '/login') {
+      setLocation('/login');
+    }
+  }, [isAuthenticated, location, setLocation]);
+  
+  return (
+    <Switch>
+      <Route path="/login" component={() => (
+        <React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+          <BorrowerLogin />
+        </React.Suspense>
+      )} />
+      <Route path="/" component={() => (
+        <React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading LoanGenius...</div>}>
+          <BorrowerPortal />
+        </React.Suspense>
+      )} />
+      <Route component={NotFound} />
+    </Switch>
+  );
+}
+
+function RealtorRouter() {
+  const [location, setLocation] = useLocation();
+  const isAuthenticated = localStorage.getItem('realtorToken');
+  
+  useEffect(() => {
+    if (!isAuthenticated && location !== '/login') {
+      setLocation('/login');
+    }
+  }, [isAuthenticated, location, setLocation]);
+  
+  return (
+    <Switch>
+      <Route path="/login" component={() => (
+        <React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+          <RealtorLogin />
+        </React.Suspense>
+      )} />
+      <Route path="/" component={() => (
+        <React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading LoanGenius Realtor Portal...</div>}>
+          <RealtorPortal />
+        </React.Suspense>
+      )} />
+      <Route component={NotFound} />
+    </Switch>
+  );
 }
 
 function CustomerRouter() {

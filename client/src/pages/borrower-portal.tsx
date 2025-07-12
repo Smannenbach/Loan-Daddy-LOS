@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,11 +11,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   Send, Upload, FileText, CheckCircle2, Clock, AlertCircle,
   Home, DollarSign, User, MessageSquare, Phone, Mail,
-  Download, Eye, Camera, Mic, Calculator
+  Download, Eye, Camera, Mic, Calculator, LogOut
 } from "lucide-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { motion, AnimatePresence } from "framer-motion";
+import { useToast } from "@/hooks/use-toast";
 
 interface ChatMessage {
   id: string;
@@ -225,6 +227,18 @@ export default function BorrowerPortal() {
               <Button variant="outline" size="sm">
                 <Mail className="h-4 w-4 mr-2" />
                 Email Us
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  localStorage.removeItem('borrowerToken');
+                  localStorage.removeItem('borrowerData');
+                  window.location.href = '/login';
+                }}
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Logout
               </Button>
             </div>
           </div>
