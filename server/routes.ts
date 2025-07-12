@@ -27,6 +27,8 @@ import { contactRecommendationService } from "./contact-recommendation";
 import { customerAuth } from "./customer-auth";
 import { customerOAuth } from "./customer-oauth";
 import aiRoutes from "./ai-routes";
+import loanOfficerRoutes from "./loan-officer-routes";
+import autonomousAIRoutes from "./autonomous-ai-routes";
 import multer from "multer";
 import cookieParser from "cookie-parser";
 import passport from "passport";
@@ -88,9 +90,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
                           req.query.app === 'true' ||
                           fullUrl.includes('app.loangenius.ai');
     
+    // Check if we're on the apply subdomain (borrower portal)
+    // In production: apply.loangenius.ai
+    // In Replit: URLs with /apply prefix or query param ?apply=true
+    const isApplySubdomain = host.includes('apply.loangenius.ai') || 
+                            host.includes('apply-') || 
+                            url.startsWith('/apply') ||
+                            req.query.apply === 'true' ||
+                            fullUrl.includes('apply.loangenius.ai');
+    
+    // Check for custom branded subdomains (e.g., johndoe.loangenius.ai)
+    let brandedSubdomain: string | null = null;
+    const hostParts = host.split('.');
+    if (hostParts.length >= 3 && host.includes('loangenius.ai')) {
+      const subdomain = hostParts[0];
+      // If it's not app, apply, or www, it's a custom branded subdomain
+      if (!['app', 'apply', 'www'].includes(subdomain)) {
+        brandedSubdomain = subdomain;
+      }
+    }
+    
     // Log for debugging in development
     if (process.env.NODE_ENV === 'development') {
       console.log('Route detection:', { host, url, isAppSubdomain });
+    }
+    
+    // Store subdomain info in request for later use
+    if (brandedSubdomain) {
+      (req as any).brandedSubdomain = brandedSubdomain;
+    }
+    
+    // If on apply subdomain or branded subdomain, serve borrower portal
+    if (isApplySubdomain || brandedSubdomain) {
+      // Set a flag to indicate borrower portal
+      (req as any).isBorrowerPortal = true;
+      return next();
     }
     
     // If not on app subdomain and not an API route, serve public website
@@ -2101,6 +2135,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Mount AI routes
   app.use(aiRoutes);
+  
+  // Mount loan officer routes
+  app.use('/api/loan-officer', loanOfficerRoutes);
+  
+  // Mount autonomous AI routes
+  app.use('/api/autonomous', autonomousAIRoutes);
   
   // No public website routes here - they will be handled by vite.ts
   

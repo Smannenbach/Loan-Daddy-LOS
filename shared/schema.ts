@@ -1,9 +1,30 @@
 import { pgTable, text, serial, integer, boolean, timestamp, decimal, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { sql } from "drizzle-orm";
+
+// Organizations table - for companies/loan officer businesses
+export const organizations = pgTable("organizations", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  subdomain: text("subdomain").notNull().unique(),
+  customDomain: text("custom_domain"),
+  plan: text("plan").notNull().default('starter'), // starter, professional, enterprise
+  status: text("status").notNull().default('trial'), // trial, active, suspended, cancelled
+  trialEndsAt: timestamp("trial_ends_at"),
+  logo: text("logo"),
+  primaryColor: text("primary_color").default('#4f46e5'),
+  secondaryColor: text("secondary_color").default('#3730a3'),
+  settings: jsonb("settings").default(sql`'{}'::jsonb`),
+  nmls: text("nmls"),
+  website: text("website"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").references(() => organizations.id).notNull(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
   firstName: text("first_name").notNull(),
@@ -81,6 +102,7 @@ export const calendarEvents = pgTable("calendar_events", {
 
 export const borrowers = pgTable("borrowers", {
   id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").references(() => organizations.id).notNull(),
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
   email: text("email").notNull(),
@@ -112,6 +134,7 @@ export const properties = pgTable("properties", {
 
 export const loanApplications = pgTable("loan_applications", {
   id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").references(() => organizations.id).notNull(),
   borrowerId: integer("borrower_id").notNull(),
   propertyId: integer("property_id").notNull(),
   loanOfficerId: integer("loan_officer_id").notNull(),
@@ -454,7 +477,15 @@ export const insertDocumentRequirementSchema = createInsertSchema(documentRequir
   updatedAt: true,
 });
 
+// Insert schemas for organizations
+export const insertOrganizationSchema = createInsertSchema(organizations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
+export type Organization = typeof organizations.$inferSelect;
 export type User = typeof users.$inferSelect;
 export type Borrower = typeof borrowers.$inferSelect;
 export type Property = typeof properties.$inferSelect;
@@ -482,6 +513,9 @@ export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type InsertTemplate = z.infer<typeof insertTemplateSchema>;
 export type InsertCallLog = z.infer<typeof insertCallLogSchema>;
 export type InsertContact = z.infer<typeof insertContactSchema>;
+
+// Customer insert types
+export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;
 
 // Customer insert types
 export type InsertCustomerUser = z.infer<typeof insertCustomerUserSchema>;

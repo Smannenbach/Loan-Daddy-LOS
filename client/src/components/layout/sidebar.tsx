@@ -75,14 +75,8 @@ export default function Sidebar() {
     <div className="w-64 bg-white shadow-lg border-r border-gray-200 flex flex-col">
       {/* Logo Section */}
       <div className="p-6 border-b border-gray-200">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-            <BarChart3 className="text-white text-lg" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-text-primary">LoanGenius</h1>
-            <p className="text-sm text-text-secondary">Enterprise LOS</p>
-          </div>
+        <div className="flex items-center justify-center">
+          <img src="/logo.png" alt="LoanGenius AI" className="h-12" />
         </div>
       </div>
 

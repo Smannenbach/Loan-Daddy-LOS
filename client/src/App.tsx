@@ -35,6 +35,11 @@ const WorkflowAutomation = React.lazy(() => import("@/pages/workflow-automation"
 const DocumentCenter = React.lazy(() => import("@/pages/document-center"));
 const ComplianceCenter = React.lazy(() => import("@/pages/compliance-center"));
 const PropertyTaxManager = React.lazy(() => import("@/pages/property-tax-manager"));
+const Comparison = React.lazy(() => import("@/pages/comparison"));
+const LoanRecommendationEngine = React.lazy(() => import("@/pages/loan-recommendation-engine"));
+const Pricing = React.lazy(() => import("@/pages/pricing"));
+const Signup = React.lazy(() => import("@/pages/signup"));
+const AIVoiceAssistant = React.lazy(() => import("@/pages/ai-voice-assistant"));
 
 // Customer portal pages
 const CustomerLogin = React.lazy(() => import("@/pages/customer/customer-login"));
@@ -42,6 +47,10 @@ const CustomerSignup = React.lazy(() => import("@/pages/customer/customer-signup
 const CustomerDashboard = React.lazy(() => import("@/pages/customer/customer-dashboard"));
 const CustomerLoanApplication = React.lazy(() => import("@/pages/customer/loan-application"));
 const DocumentUpload = React.lazy(() => import("@/pages/customer/document-upload"));
+
+// Borrower portal pages
+const BorrowerPortal = React.lazy(() => import("@/pages/borrower-portal"));
+const RealtorPortal = React.lazy(() => import("@/pages/realtor-portal"));
 
 function Router() {
   return (
@@ -147,6 +156,31 @@ function Router() {
               <PropertyTaxManager />
             </React.Suspense>
           )} />
+          <Route path="/comparison" component={() => (
+            <React.Suspense fallback={<div className="p-8">Loading Comparison...</div>}>
+              <Comparison />
+            </React.Suspense>
+          )} />
+          <Route path="/loan-recommendation" component={() => (
+            <React.Suspense fallback={<div className="p-8">Loading Loan Recommendation Engine...</div>}>
+              <LoanRecommendationEngine />
+            </React.Suspense>
+          )} />
+          <Route path="/pricing" component={() => (
+            <React.Suspense fallback={<div className="p-8">Loading Pricing...</div>}>
+              <Pricing />
+            </React.Suspense>
+          )} />
+          <Route path="/signup" component={() => (
+            <React.Suspense fallback={<div className="p-8">Loading Signup...</div>}>
+              <Signup />
+            </React.Suspense>
+          )} />
+          <Route path="/ai-voice-assistant" component={() => (
+            <React.Suspense fallback={<div className="p-8">Loading AI Voice Assistant...</div>}>
+              <AIVoiceAssistant />
+            </React.Suspense>
+          )} />
           <Route path="/settings" component={() => (
             <div className="p-8">
               <h1 className="text-2xl font-bold mb-4">Settings</h1>
@@ -174,6 +208,31 @@ function App() {
 
 function MainRouter() {
   const [location] = useLocation();
+  
+  // Check if we're on the apply subdomain (borrower portal)
+  const hostname = window.location.hostname;
+  const isApplySubdomain = hostname.startsWith('apply.') || 
+    (hostname.includes('replit.dev') && window.location.search.includes('apply=true'));
+  
+  // Check if we're on the realtor subdomain
+  const isRealtorSubdomain = hostname.startsWith('realtor.') || 
+    (hostname.includes('replit.dev') && window.location.search.includes('realtor=true'));
+  
+  if (isApplySubdomain) {
+    return (
+      <React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading LoanGenius...</div>}>
+        <BorrowerPortal />
+      </React.Suspense>
+    );
+  }
+  
+  if (isRealtorSubdomain) {
+    return (
+      <React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading LoanGenius Realtor Portal...</div>}>
+        <RealtorPortal />
+      </React.Suspense>
+    );
+  }
   
   // Check if we're in the customer portal
   if (location.startsWith('/customer/')) {
