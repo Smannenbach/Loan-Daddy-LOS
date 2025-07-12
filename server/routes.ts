@@ -2574,6 +2574,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Mount LinkedIn integration routes
   app.use(linkedInRoutes);
   
+  // Serve LinkedIn test demo
+  app.get('/test-linkedin-demo.html', (req, res) => {
+    res.sendFile(path.join(__dirname, '../test-linkedin-demo.html'));
+  });
+  
   // No public website routes here - they will be handled by vite.ts
   
   const httpServer = createServer(app);

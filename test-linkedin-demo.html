@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LinkedIn Integration Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .demo-section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .button {
+            background-color: #0077B5;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        .button:hover {
+            background-color: #005885;
+        }
+        .results {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .contact-card {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        .confidence-high { color: green; }
+        .confidence-medium { color: orange; }
+        .confidence-low { color: red; }
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>LinkedIn Integration Demo</h1>
+    
+    <div class="demo-section">
+        <h2>1. Test LinkedIn Connection</h2>
+        <button class="button" onclick="testConnection()">Get Auth URL</button>
+        <div id="connectionResult" class="results"></div>
+    </div>
+
+    <div class="demo-section">
+        <h2>2. Test Profile Search</h2>
+        <input type="text" id="searchQuery" placeholder="Search for: real estate investor" value="real estate investor" style="padding: 8px; width: 300px;">
+        <button class="button" onclick="testSearch()">Search LinkedIn</button>
+        <div id="searchResult" class="results"></div>
+    </div>
+
+    <div class="demo-section">
+        <h2>3. Test Contact Extraction</h2>
+        <button class="button" onclick="testExtraction()">Extract Sample Contacts</button>
+        <div id="extractionResult" class="results"></div>
+    </div>
+
+    <div class="demo-section">
+        <h2>4. Test Integration Status</h2>
+        <button class="button" onclick="checkStatus()">Check All Endpoints</button>
+        <div id="statusResult" class="results"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000';
+
+        async function testConnection() {
+            const resultDiv = document.getElementById('connectionResult');
+            resultDiv.innerHTML = 'Testing connection...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/linkedin/connect`);
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <h3>✅ Connection Endpoint Working</h3>
+                    <p><strong>Auth URL Generated:</strong></p>
+                    <pre>${data.authUrl}</pre>
+                    <p>This URL would redirect users to LinkedIn for authorization.</p>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<h3>❌ Error:</h3><pre>${error.message}</pre>`;
+            }
+        }
+
+        async function testSearch() {
+            const resultDiv = document.getElementById('searchResult');
+            const query = document.getElementById('searchQuery').value;
+            resultDiv.innerHTML = 'Searching LinkedIn profiles...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/linkedin/test-integration`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ testType: 'profileSearch', query })
+                });
+                const data = await response.json();
+                
+                if (data.profiles && data.profiles.length > 0) {
+                    let html = `<h3>✅ Found ${data.profiles.length} Profiles</h3>`;
+                    data.profiles.forEach(profile => {
+                        html += `
+                            <div class="contact-card">
+                                <h4>${profile.name}</h4>
+                                ${profile.title ? `<p><strong>Title:</strong> ${profile.title}</p>` : ''}
+                                ${profile.company ? `<p><strong>Company:</strong> ${profile.company}</p>` : ''}
+                                ${profile.location ? `<p><strong>Location:</strong> ${profile.location}</p>` : ''}
+                                ${profile.realEstateScore ? `<p><strong>Real Estate Score:</strong> ${profile.realEstateScore}/10</p>` : ''}
+                            </div>
+                        `;
+                    });
+                    resultDiv.innerHTML = html;
+                } else {
+                    resultDiv.innerHTML = '<h3>No profiles found</h3>';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<h3>❌ Error:</h3><pre>${error.message}</pre>`;
+            }
+        }
+
+        async function testExtraction() {
+            const resultDiv = document.getElementById('extractionResult');
+            resultDiv.innerHTML = 'Extracting contact information...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/linkedin/test-integration`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ testType: 'contactExtraction' })
+                });
+                const data = await response.json();
+                
+                if (data.extractedContacts && data.extractedContacts.length > 0) {
+                    let html = `<h3>✅ Extracted ${data.extractedContacts.length} Contacts</h3>`;
+                    data.extractedContacts.forEach(contact => {
+                        const emailClass = contact.emailConfidence >= 0.8 ? 'confidence-high' : 
+                                         contact.emailConfidence >= 0.5 ? 'confidence-medium' : 'confidence-low';
+                        
+                        html += `
+                            <div class="contact-card">
+                                <h4>${contact.profile.firstName} ${contact.profile.lastName}</h4>
+                                ${contact.profile.headline ? `<p>${contact.profile.headline}</p>` : ''}
+                                ${contact.extractedEmail ? `
+                                    <p><strong>Email:</strong> ${contact.extractedEmail} 
+                                    <span class="${emailClass}">(${Math.round(contact.emailConfidence * 100)}% confidence)</span></p>
+                                ` : ''}
+                                ${contact.extractedPhones && contact.extractedPhones.length > 0 ? `
+                                    <p><strong>Phones:</strong> ${contact.extractedPhones.join(', ')}</p>
+                                ` : ''}
+                            </div>
+                        `;
+                    });
+                    resultDiv.innerHTML = html;
+                } else {
+                    resultDiv.innerHTML = '<h3>No contacts extracted</h3>';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<h3>❌ Error:</h3><pre>${error.message}</pre>`;
+            }
+        }
+
+        async function checkStatus() {
+            const resultDiv = document.getElementById('statusResult');
+            resultDiv.innerHTML = 'Checking all endpoints...';
+            
+            const endpoints = [
+                { name: 'Connection', url: '/api/linkedin/connect', method: 'GET' },
+                { name: 'Test Integration', url: '/api/linkedin/test-integration', method: 'POST', body: { testType: 'status' } },
+                { name: 'Extract Contacts', url: '/api/linkedin/extract-contacts', method: 'POST', body: { accessToken: 'test' } },
+                { name: 'Import Contacts', url: '/api/linkedin/import-contacts', method: 'POST', body: { contacts: [] } }
+            ];
+            
+            let html = '<h3>LinkedIn Integration Status</h3>';
+            
+            for (const endpoint of endpoints) {
+                try {
+                    const options = {
+                        method: endpoint.method,
+                        headers: { 'Content-Type': 'application/json' }
+                    };
+                    
+                    if (endpoint.body) {
+                        options.body = JSON.stringify(endpoint.body);
+                    }
+                    
+                    const response = await fetch(`${API_BASE}${endpoint.url}`, options);
+                    const status = response.ok ? '✅' : '❌';
+                    html += `<p>${status} ${endpoint.name}: ${response.status} ${response.statusText}</p>`;
+                } catch (error) {
+                    html += `<p>❌ ${endpoint.name}: Failed to connect</p>`;
+                }
+            }
+            
+            resultDiv.innerHTML = html;
+        }
+
+        // Auto-run status check on load
+        window.onload = () => {
+            checkStatus();
+        };
+    </script>
+</body>
+</html>
