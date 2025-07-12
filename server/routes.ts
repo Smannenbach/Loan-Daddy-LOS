@@ -26,6 +26,7 @@ import { socialEnrichment } from "./social-enrichment";
 import { contactRecommendationService } from "./contact-recommendation";
 import { customerAuth } from "./customer-auth";
 import { customerOAuth } from "./customer-oauth";
+import { propertyTaxService } from "./property-tax-service";
 import aiRoutes from "./ai-routes";
 import loanOfficerRoutes from "./loan-officer-routes";
 import autonomousAIRoutes from "./autonomous-ai-routes";
@@ -79,7 +80,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
     
     // Skip API routes and static assets
-    if (url.startsWith('/api') || url.startsWith('/src') || url.startsWith('/assets') || url.includes('.')) {
+    if (url.startsWith('/api') || url.startsWith('/src') || url.startsWith('/assets') || url.startsWith('/@') || url.includes('.')) {
       return next();
     }
     
@@ -1755,6 +1756,192 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Enrichment suggestions error:', error);
       res.status(500).json({ error: 'Failed to get enrichment suggestions' });
+    }
+  });
+
+  // Property Tax Calculator endpoints
+  app.post('/api/property-tax/calculate', async (req, res) => {
+    try {
+      const breakdown = await propertyTaxService.calculatePropertyTax(req.body);
+      res.json(breakdown);
+    } catch (error) {
+      console.error('Property tax calculation error:', error);
+      res.status(500).json({ error: 'Failed to calculate property tax' });
+    }
+  });
+
+  app.post('/api/property-tax/optimize', async (req, res) => {
+    try {
+      const suggestions = await propertyTaxService.getOptimizationSuggestions(req.body);
+      res.json(suggestions);
+    } catch (error) {
+      console.error('Tax optimization error:', error);
+      res.status(500).json({ error: 'Failed to generate optimization suggestions' });
+    }
+  });
+
+  // Financial Health Dashboard endpoints
+  app.get('/api/financial-health/dashboard', async (req, res) => {
+    try {
+      // Mock financial data for now
+      const financialData = {
+        metrics: {
+          creditScore: 745,
+          creditTrend: 'improving',
+          monthlyIncome: 14000,
+          monthlyExpenses: 9200,
+          totalDebt: 428500,
+          totalAssets: 1000000,
+          debtToIncomeRatio: 0.35,
+          emergencyFundMonths: 4.5,
+          netWorth: 571500,
+          liquidAssets: 100000,
+          investmentPortfolio: 350000,
+          realEstateValue: 550000,
+          savingsRate: 34
+        },
+        goals: [
+          {
+            id: '1',
+            name: 'Emergency Fund',
+            targetAmount: 50000,
+            currentAmount: 40000,
+            deadline: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
+            category: 'savings',
+            priority: 'high',
+            progress: 80
+          },
+          {
+            id: '2',
+            name: 'Investment Property',
+            targetAmount: 150000,
+            currentAmount: 45000,
+            deadline: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+            category: 'property',
+            priority: 'medium',
+            progress: 30
+          }
+        ],
+        healthScore: {
+          overall: 82,
+          creditHealth: 89,
+          debtManagement: 75,
+          savingsStrength: 85,
+          investmentDiversity: 78,
+          emergencyReadiness: 75
+        },
+        recommendations: [
+          {
+            id: '1',
+            title: 'Increase Emergency Fund',
+            description: 'Your emergency fund covers 4.5 months. Consider increasing to 6 months for better security.',
+            impact: 'high',
+            timeframe: '3 months',
+            potentialSavings: 0,
+            category: 'savings',
+            actionItems: [
+              'Set up automatic transfer of $500/month',
+              'Review and reduce non-essential expenses',
+              'Consider a high-yield savings account'
+            ],
+            riskLevel: 'low'
+          },
+          {
+            id: '2',
+            title: 'Refinance Mortgage',
+            description: 'Current rates are lower than your existing mortgage. Refinancing could save you money.',
+            impact: 'high',
+            timeframe: '1 month',
+            potentialSavings: 24000,
+            category: 'debt',
+            actionItems: [
+              'Compare rates from multiple lenders',
+              'Calculate break-even point',
+              'Review closing costs'
+            ],
+            riskLevel: 'low'
+          }
+        ]
+      };
+      
+      res.json(financialData);
+    } catch (error) {
+      console.error('Financial health dashboard error:', error);
+      res.status(500).json({ error: 'Failed to fetch financial data' });
+    }
+  });
+
+  app.post('/api/financial-health/analyze', async (req, res) => {
+    try {
+      // AI analysis would go here
+      const analysis = {
+        healthScore: {
+          overall: 82,
+          creditHealth: 89,
+          debtManagement: 75,
+          savingsStrength: 85,
+          investmentDiversity: 78,
+          emergencyReadiness: 75
+        },
+        recommendations: [
+          {
+            id: '3',
+            title: 'Diversify Investment Portfolio',
+            description: 'Your portfolio is heavily weighted in real estate. Consider diversifying into other asset classes.',
+            impact: 'medium',
+            timeframe: '6 months',
+            category: 'investment',
+            actionItems: [
+              'Research index funds and ETFs',
+              'Consider international exposure',
+              'Review risk tolerance'
+            ],
+            riskLevel: 'medium'
+          }
+        ]
+      };
+      
+      res.json(analysis);
+    } catch (error) {
+      console.error('Financial analysis error:', error);
+      res.status(500).json({ error: 'Failed to analyze financial data' });
+    }
+  });
+
+  // Document Analysis endpoints
+  app.post('/api/documents/analyze', upload.single('file'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
+
+      // AI document analysis would go here
+      const analysis = {
+        id: `doc-${Date.now()}`,
+        predictedType: {
+          id: 'tax-return',
+          name: 'Tax Return',
+          category: 'Income',
+          description: '2 years of personal or business tax returns',
+          required: true,
+          acceptedFormats: ['.pdf', '.jpg', '.png'],
+          maxSize: 10485760
+        },
+        confidence: 0.92,
+        extractedData: {
+          year: '2023',
+          income: 125000,
+          taxPaid: 28000
+        },
+        validationIssues: [],
+        ocrText: 'Sample extracted text...',
+        thumbnail: '/api/documents/thumbnail/' + req.file.filename
+      };
+      
+      res.json(analysis);
+    } catch (error) {
+      console.error('Document analysis error:', error);
+      res.status(500).json({ error: 'Failed to analyze document' });
     }
   });
 

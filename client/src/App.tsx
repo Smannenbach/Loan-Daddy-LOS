@@ -43,6 +43,11 @@ const Pricing = React.lazy(() => import("@/pages/pricing"));
 const Signup = React.lazy(() => import("@/pages/signup"));
 const AIVoiceAssistant = React.lazy(() => import("@/pages/ai-voice-assistant"));
 
+// New feature pages
+const PropertyTaxCalculator = React.lazy(() => import("@/pages/property-tax-calculator"));
+const FinancialHealthDashboard = React.lazy(() => import("@/pages/financial-health-dashboard"));
+const SmartDocumentUpload = React.lazy(() => import("@/pages/smart-document-upload"));
+
 // Customer portal pages
 const CustomerLogin = React.lazy(() => import("@/pages/customer/customer-login"));
 const CustomerSignup = React.lazy(() => import("@/pages/customer/customer-signup"));
@@ -225,6 +230,24 @@ function Router() {
               <AIVoiceAssistant />
             </React.Suspense>
           )} />
+          
+          {/* New Feature Routes */}
+          <Route path="/property-tax-calculator" component={() => (
+            <React.Suspense fallback={<div className="p-8">Loading Property Tax Calculator...</div>}>
+              <PropertyTaxCalculator />
+            </React.Suspense>
+          )} />
+          <Route path="/financial-health" component={() => (
+            <React.Suspense fallback={<div className="p-8">Loading Financial Health Dashboard...</div>}>
+              <FinancialHealthDashboard />
+            </React.Suspense>
+          )} />
+          <Route path="/smart-document-upload" component={() => (
+            <React.Suspense fallback={<div className="p-8">Loading Smart Document Upload...</div>}>
+              <SmartDocumentUpload />
+            </React.Suspense>
+          )} />
+          
           <Route path="/settings" component={() => (
             <div className="p-8">
               <h1 className="text-2xl font-bold mb-4">Settings</h1>
