@@ -117,6 +117,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   });
   
+  // Add convenient redirect for testing
+  app.get('/app', (req, res) => {
+    // Redirect to root with app=true parameter
+    res.redirect('/?app=true');
+  });
+  
   // Initialize OAuth system
   customerOAuth.setupSession(app);
   customerOAuth.initializeStrategies();
