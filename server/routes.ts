@@ -2140,6 +2140,140 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/borrower/signup', borrowerAuthRoutes.signup);
   app.get('/api/borrower/profile', borrowerMiddleware, borrowerAuthRoutes.getProfile);
   
+  // Borrower Loan Application Routes
+  app.post('/api/borrower/loan-applications', borrowerMiddleware, async (req: any, res) => {
+    try {
+      const borrowerId = req.borrower.id;
+      const applicationData = req.body;
+      
+      // Create property record
+      const propertyData = insertPropertySchema.parse({
+        address: applicationData.propertyAddress,
+        city: applicationData.propertyCity,
+        state: applicationData.propertyState,
+        zipCode: applicationData.propertyZip,
+        propertyType: applicationData.propertyType,
+        estimatedValue: parseFloat(applicationData.purchasePrice),
+        purchasePrice: parseFloat(applicationData.purchasePrice),
+        yearBuilt: applicationData.yearBuilt || null,
+        squareFootage: applicationData.squareFootage || null,
+        units: applicationData.units || null,
+        occupancy: applicationData.propertyUse,
+        propertyUse: applicationData.propertyUse
+      });
+      const property = await storage.createProperty(propertyData);
+      
+      // Create loan application
+      const loanData = insertLoanApplicationSchema.parse({
+        borrowerId: borrowerId,
+        propertyId: property.id,
+        loanType: applicationData.loanType,
+        loanAmount: parseFloat(applicationData.loanAmount),
+        purchasePrice: parseFloat(applicationData.purchasePrice),
+        downPayment: parseFloat(applicationData.downPayment),
+        creditScore: parseInt(applicationData.creditScore),
+        status: 'application',
+        submittedDate: new Date(),
+        loanPurpose: applicationData.loanPurpose,
+        currentMonthlyPI: applicationData.currentMonthlyPI || null,
+        notes: applicationData.additionalNotes || null
+      });
+      const loanApplication = await storage.createLoanApplication(loanData);
+      
+      // Create initial task for loan processing
+      await storage.createTask({
+        loanApplicationId: loanApplication.id,
+        assignedToId: 1, // Default to admin user
+        title: "New Application - Review Required",
+        description: `New ${applicationData.loanType} loan application from ${req.borrower.firstName} ${req.borrower.lastName}`,
+        priority: "high",
+        status: "pending",
+        dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000) // 1 day from now
+      });
+      
+      // Send confirmation notification
+      await storage.createNotification({
+        loanApplicationId: loanApplication.id,
+        borrowerId: borrowerId,
+        type: 'email',
+        recipient: req.borrower.email,
+        subject: 'Loan Application Received',
+        message: `Thank you for submitting your loan application. Your application ID is LA-${loanApplication.id}. We will review your application and contact you within 24 hours.`,
+        status: 'sent'
+      });
+      
+      res.status(201).json({
+        success: true,
+        application: loanApplication,
+        message: 'Loan application submitted successfully'
+      });
+    } catch (error) {
+      console.error('Loan application submission error:', error);
+      res.status(400).json({ 
+        error: error instanceof Error ? error.message : 'Failed to submit loan application',
+        message: 'Failed to submit loan application' 
+      });
+    }
+  });
+  
+  app.get('/api/borrower/loan-applications', borrowerMiddleware, async (req: any, res) => {
+    try {
+      const borrowerId = req.borrower.id;
+      const applications = await storage.getLoanApplicationsByBorrower(borrowerId);
+      
+      res.json({
+        success: true,
+        applications: applications.map(app => ({
+          ...app,
+          applicationNumber: `LA-${app.id}`,
+          statusDisplay: app.status.replace('_', ' ').charAt(0).toUpperCase() + app.status.slice(1).replace('_', ' ')
+        }))
+      });
+    } catch (error) {
+      console.error('Get loan applications error:', error);
+      res.status(500).json({ 
+        error: 'Failed to retrieve loan applications',
+        message: 'Failed to retrieve loan applications' 
+      });
+    }
+  });
+  
+  app.get('/api/borrower/loan-applications/:id', borrowerMiddleware, async (req: any, res) => {
+    try {
+      const borrowerId = req.borrower.id;
+      const applicationId = parseInt(req.params.id);
+      
+      const application = await storage.getLoanApplicationWithDetails(applicationId);
+      
+      if (!application || application.borrowerId !== borrowerId) {
+        return res.status(404).json({ error: 'Application not found' });
+      }
+      
+      res.json({
+        success: true,
+        application: {
+          ...application,
+          applicationNumber: `LA-${application.id}`,
+          statusDisplay: application.status.replace('_', ' ').charAt(0).toUpperCase() + application.status.slice(1).replace('_', ' ')
+        }
+      });
+    } catch (error) {
+      console.error('Get loan application error:', error);
+      res.status(500).json({ 
+        error: 'Failed to retrieve loan application',
+        message: 'Failed to retrieve loan application' 
+      });
+    }
+  });
+  
+  // Borrower Document Upload Routes
+  const documentUploadRouter = (await import('./document-upload')).default;
+  app.use('/api/borrower', documentUploadRouter);
+  
+  // Borrower Plaid Integration Routes  
+  const plaidIntegrationRouter = (await import('./plaid-integration')).default;
+  app.use('/api/borrower/plaid', plaidIntegrationRouter);
+  
   // Realtor Authentication Routes
   app.post('/api/realtor/login', realtorAuthRoutes.login);
   app.post('/api/realtor/signup', realtorAuthRoutes.signup);

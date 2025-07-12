@@ -31,6 +31,7 @@ export interface IStorage {
   createLoanApplication(application: InsertLoanApplication): Promise<LoanApplication>;
   updateLoanApplication(id: number, application: Partial<InsertLoanApplication>): Promise<LoanApplication | undefined>;
   getLoanApplicationsByStatus(status: string): Promise<LoanApplication[]>;
+  getLoanApplicationsByBorrower(borrowerId: number): Promise<LoanApplication[]>;
 
   // Documents
   getDocument(id: number): Promise<Document | undefined>;
@@ -348,6 +349,10 @@ export class MemStorage implements IStorage {
 
   async getLoanApplicationsByStatus(status: string): Promise<LoanApplication[]> {
     return Array.from(this.loanApplications.values()).filter(app => app.status === status);
+  }
+
+  async getLoanApplicationsByBorrower(borrowerId: number): Promise<LoanApplication[]> {
+    return Array.from(this.loanApplications.values()).filter(app => app.borrowerId === borrowerId);
   }
 
   // Documents

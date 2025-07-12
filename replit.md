@@ -193,6 +193,14 @@ Changelog:
 - July 12, 2025. Implemented realtor portal at realtor.loangenius.ai for real estate agents to refer clients and track commissions
 - July 12, 2025. Fixed server-side import issues by converting @/ aliases to relative imports in autonomous-ai-routes.ts and autonomous-ai-advisor.ts
 - July 12, 2025. Integrated LoanGenius branding assets (logos) across all portals for consistent brand experience
+- July 12, 2025. Implemented comprehensive document upload system for borrowers with file storage, categorization, and loan-type specific requirements
+- July 12, 2025. Integrated Plaid bank verification API endpoints for secure bank account connection, transaction history, and asset verification
+- July 12, 2025. Created multi-step loan application form with validation, progress tracking, and seamless data submission
+- July 12, 2025. Enhanced borrower authentication with JWT tokens and secure middleware for all protected endpoints
+- July 12, 2025. Built comprehensive borrower dashboard with loan application tracking, status monitoring, and document management
+- July 12, 2025. Integrated AI-powered chat widget for 24/7 borrower assistance with confidence scoring and suggested actions
+- July 12, 2025. Added loan application submission endpoints that create property records, loan applications, tasks, and notifications
+- July 12, 2025. Implemented getLoanApplicationsByBorrower method in storage layer for borrower-specific application retrieval
 ```
 
 ## Multi-Tenant Architecture

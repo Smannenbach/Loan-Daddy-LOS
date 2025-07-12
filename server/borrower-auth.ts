@@ -70,6 +70,9 @@ export const borrowerMiddleware = async (
   }
 };
 
+// Export middleware with alias for consistency
+export const authenticateBorrower = borrowerMiddleware;
+
 export const borrowerAuthRoutes = {
   login: async (req: Request, res: Response) => {
     try {

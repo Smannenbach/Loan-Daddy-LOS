@@ -45,6 +45,7 @@ interface ApplicationStatus {
 }
 
 export default function BorrowerPortal() {
+  const [, setLocation] = useLocation();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState("");
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -58,6 +59,17 @@ export default function BorrowerPortal() {
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Check if user is authenticated
+  const borrowerToken = localStorage.getItem('borrowerToken');
+  const borrowerData = JSON.parse(localStorage.getItem('borrowerData') || '{}');
+  
+  // Redirect to dashboard if authenticated
+  useEffect(() => {
+    if (borrowerToken && borrowerData.id) {
+      setLocation('/borrower-dashboard');
+    }
+  }, [borrowerToken, borrowerData, setLocation]);
 
   // Start conversation when component mounts
   useEffect(() => {

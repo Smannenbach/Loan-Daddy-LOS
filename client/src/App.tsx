@@ -51,6 +51,8 @@ const DocumentUpload = React.lazy(() => import("@/pages/customer/document-upload
 // Borrower portal pages
 const BorrowerPortal = React.lazy(() => import("@/pages/borrower-portal"));
 const BorrowerLogin = React.lazy(() => import("@/pages/borrower-login"));
+const BorrowerApplication = React.lazy(() => import("@/pages/borrower-application"));
+const BorrowerDashboard = React.lazy(() => import("@/pages/borrower-dashboard"));
 const RealtorPortal = React.lazy(() => import("@/pages/realtor-portal"));
 const RealtorLogin = React.lazy(() => import("@/pages/realtor-login"));
 const LoanOfficerLogin = React.lazy(() => import("@/pages/loan-officer-login"));
@@ -285,6 +287,16 @@ function BorrowerRouter() {
       <Route path="/" component={() => (
         <React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading LoanGenius...</div>}>
           <BorrowerPortal />
+        </React.Suspense>
+      )} />
+      <Route path="/borrower-dashboard" component={() => (
+        <React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading Dashboard...</div>}>
+          <BorrowerDashboard />
+        </React.Suspense>
+      )} />
+      <Route path="/borrower-application" component={() => (
+        <React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading Application...</div>}>
+          <BorrowerApplication />
         </React.Suspense>
       )} />
       <Route component={NotFound} />
