@@ -215,6 +215,8 @@ Changelog:
 - July 12, 2025. Enhanced loan officer dashboard with quick access cards to all new features and integrated gamification progress display
 - July 12, 2025. Added comprehensive API endpoints for property tax calculation, financial health analysis, and document AI processing
 - July 12, 2025. Platform now features 100% functionality with all core infrastructure operational and advanced features fully integrated
+- July 12, 2025. Fixed LinkedIn integration API request issues and added demo contacts feature for immediate testing
+- July 12, 2025. LinkedIn integration now includes "Load Demo Contacts" button to test email/phone extraction without authentication
 ```
 
 ## Multi-Tenant Architecture

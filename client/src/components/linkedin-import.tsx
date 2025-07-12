@@ -50,12 +50,85 @@ export default function LinkedInImport() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterBy, setFilterBy] = useState('all');
   const { toast } = useToast();
+  
+  // Demo data for testing
+  const loadDemoContacts = () => {
+    const demoContacts: LinkedInContact[] = [
+      {
+        id: '1',
+        name: 'John Smith',
+        email: 'john.smith@realestateinvest.com',
+        emailConfidence: 0.92,
+        phones: ['+1 (555) 123-4567'],
+        phoneConfidence: 0.85,
+        company: 'Smith Real Estate Investments',
+        title: 'CEO & Real Estate Investor',
+        profileUrl: 'https://linkedin.com/in/johnsmith',
+        profileImage: 'https://ui-avatars.com/api/?name=John+Smith'
+      },
+      {
+        id: '2',
+        name: 'Sarah Johnson',
+        email: 'sarah@johnsonproperties.com',
+        emailConfidence: 0.88,
+        phones: [],
+        phoneConfidence: 0,
+        company: 'Johnson Properties LLC',
+        title: 'Property Investment Manager',
+        profileUrl: 'https://linkedin.com/in/sarahjohnson',
+        profileImage: 'https://ui-avatars.com/api/?name=Sarah+Johnson'
+      },
+      {
+        id: '3',
+        name: 'Michael Chen',
+        email: 'mchen@commercialrealty.net',
+        emailConfidence: 0.75,
+        phones: ['+1 (555) 987-6543', '+1 (555) 555-1234'],
+        phoneConfidence: 0.90,
+        company: 'Commercial Realty Partners',
+        title: 'Senior Real Estate Broker',
+        profileUrl: 'https://linkedin.com/in/michaelchen',
+        profileImage: 'https://ui-avatars.com/api/?name=Michael+Chen'
+      },
+      {
+        id: '4',
+        name: 'Emily Davis',
+        email: 'emily.davis@residentialinvest.com',
+        emailConfidence: 0.65,
+        phones: [],
+        phoneConfidence: 0,
+        company: 'Davis Residential Investments',
+        title: 'Real Estate Development Director',
+        profileUrl: 'https://linkedin.com/in/emilydavis',
+        profileImage: 'https://ui-avatars.com/api/?name=Emily+Davis'
+      },
+      {
+        id: '5',
+        name: 'Robert Martinez',
+        email: 'rmartinez@propertyflippers.com',
+        emailConfidence: 0.82,
+        phones: ['+1 (555) 246-8135'],
+        phoneConfidence: 0.78,
+        company: 'Property Flippers Inc.',
+        title: 'Fix & Flip Specialist',
+        profileUrl: 'https://linkedin.com/in/robertmartinez',
+        profileImage: 'https://ui-avatars.com/api/?name=Robert+Martinez'
+      }
+    ];
+    
+    setContacts(demoContacts);
+    setIsConnected(true);
+    toast({
+      title: "Demo contacts loaded",
+      description: "Showing 5 sample LinkedIn contacts for testing"
+    });
+  };
 
   // Connect to LinkedIn
   const connectMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest('/api/linkedin/connect');
-      return response;
+      const response = await apiRequest('GET', '/api/linkedin/connect');
+      return response.json();
     },
     onSuccess: (data) => {
       if (data.authUrl) {
@@ -74,14 +147,10 @@ export default function LinkedInImport() {
   // Extract contacts
   const extractMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest('/api/linkedin/extract-contacts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          accessToken: localStorage.getItem('linkedinToken') // Temporary storage
-        })
+      const response = await apiRequest('POST', '/api/linkedin/extract-contacts', {
+        accessToken: localStorage.getItem('linkedinToken') // Temporary storage
       });
-      return response;
+      return response.json();
     },
     onSuccess: (data) => {
       if (data.contacts) {
@@ -210,17 +279,25 @@ export default function LinkedInImport() {
             </CardDescription>
           </div>
           {!isConnected && (
-            <Button 
-              onClick={() => connectMutation.mutate()}
-              disabled={connectMutation.isPending}
-            >
-              {connectMutation.isPending ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Linkedin className="h-4 w-4 mr-2" />
-              )}
-              Connect LinkedIn
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                onClick={() => connectMutation.mutate()}
+                disabled={connectMutation.isPending}
+              >
+                {connectMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Linkedin className="h-4 w-4 mr-2" />
+                )}
+                Connect LinkedIn
+              </Button>
+              <Button 
+                onClick={loadDemoContacts}
+                variant="outline"
+              >
+                Load Demo Contacts
+              </Button>
+            </div>
           )}
         </div>
       </CardHeader>
