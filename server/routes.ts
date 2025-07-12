@@ -1206,11 +1206,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // LinkedIn integration endpoints
+  app.get('/api/linkedin/test', async (req, res) => {
+    try {
+      console.log('Testing LinkedIn integration...');
+      console.log('Client ID:', process.env.LINKEDIN_CLIENT_ID ? '✓ Configured' : '✗ Missing');
+      console.log('Client Secret:', process.env.LINKEDIN_CLIENT_SECRET ? '✓ Configured' : '✗ Missing');
+      
+      // Test LinkedIn profile search
+      const searchResults = await linkedInIntegration.searchLinkedInProfiles(
+        'real estate investor', 
+        {
+          location: 'Texas',
+          industry: 'Real Estate',
+          company: 'Investment'
+        }
+      );
+      
+      res.json({
+        success: true,
+        clientIdConfigured: !!process.env.LINKEDIN_CLIENT_ID,
+        clientSecretConfigured: !!process.env.LINKEDIN_CLIENT_SECRET,
+        searchResults,
+        message: 'LinkedIn integration test completed successfully'
+      });
+    } catch (error) {
+      console.error('LinkedIn integration test failed:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message,
+        message: 'LinkedIn integration test failed'
+      });
+    }
+  });
+
   app.get('/api/linkedin/search', async (req, res) => {
     try {
       const { query, location, industry, currentCompany, title, limit = 25, offset = 0 } = req.query;
       
-      // Mock LinkedIn search results for demo purposes
+      if (!query) {
+        return res.status(400).json({ error: 'Search query is required' });
+      }
+      
+      // Use real LinkedIn integration service
+      const searchResults = await linkedInIntegration.searchLinkedInProfiles(
+        query as string, 
+        {
+          location: location as string,
+          industry: industry as string,
+          company: currentCompany as string,
+          title: title as string
+        }
+      );
+      
+      res.json({
+        success: true,
+        profiles: searchResults.profiles.slice(Number(offset), Number(offset) + Number(limit)),
+        totalResults: searchResults.totalResults,
+        confidence: searchResults.confidence,
+        message: `Found ${searchResults.profiles.length} LinkedIn profiles`
+      });
+    } catch (error) {
+      console.error('LinkedIn search error:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message,
+        message: 'LinkedIn search failed'
+      });
+    }
+  });
+
+  app.post('/api/linkedin/enrich', async (req, res) => {
+    try {
+      const { linkedinUrl } = req.body;
+      
+      if (!linkedinUrl) {
+        return res.status(400).json({ error: 'LinkedIn URL is required' });
+      }
+      
+      // Use real LinkedIn integration service
+      const enrichedData = await linkedInIntegration.enrichContactData(linkedinUrl);
+      
+      res.json({
+        success: true,
+        data: enrichedData,
+        message: `Successfully enriched contact data with ${enrichedData.confidence * 100}% confidence`
+      });
+    } catch (error) {
+      console.error('LinkedIn enrichment error:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message,
+        message: 'LinkedIn enrichment failed'
+      });
+    }
+  });
+
+  app.get('/api/linkedin/search-mock', async (req, res) => {
+    try {
+      const { query, location, industry, currentCompany, title, limit = 25, offset = 0 } = req.query;
+      
+      // Mock LinkedIn search results for demo purposes (fallback)
       const mockResults = [
         {
           id: 1,

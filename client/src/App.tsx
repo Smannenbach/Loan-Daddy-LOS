@@ -33,6 +33,8 @@ const AIDashboard = React.lazy(() => import("@/pages/ai-dashboard"));
 const AnalyticsDashboard = React.lazy(() => import("@/pages/analytics-dashboard"));
 const WorkflowAutomation = React.lazy(() => import("@/pages/workflow-automation"));
 const DocumentCenter = React.lazy(() => import("@/pages/document-center"));
+const DocumentProcessor = React.lazy(() => import("@/pages/document-processor"));
+const PaymentProcessing = React.lazy(() => import("@/pages/payment-processing"));
 const ComplianceCenter = React.lazy(() => import("@/pages/compliance-center"));
 const PropertyTaxManager = React.lazy(() => import("@/pages/property-tax-manager"));
 const Comparison = React.lazy(() => import("@/pages/comparison"));
@@ -176,6 +178,16 @@ function Router() {
           <Route path="/document-center" component={() => (
             <React.Suspense fallback={<div className="p-8">Loading Document Center...</div>}>
               <DocumentCenter />
+            </React.Suspense>
+          )} />
+          <Route path="/document-processor" component={() => (
+            <React.Suspense fallback={<div className="p-8">Loading Document Processor...</div>}>
+              <DocumentProcessor />
+            </React.Suspense>
+          )} />
+          <Route path="/payment-processing" component={() => (
+            <React.Suspense fallback={<div className="p-8">Loading Payment Processing...</div>}>
+              <PaymentProcessing />
             </React.Suspense>
           )} />
           <Route path="/compliance" component={() => (

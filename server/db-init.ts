@@ -6,7 +6,7 @@ export async function initializeDatabase() {
   try {
     console.log('Initializing database with test data...');
     
-    // Create test organization
+    // Create test organization (with conflict handling)
     const [org] = await db.insert(organizations).values({
       name: 'LoanGenius Demo',
       subdomain: 'demo',
@@ -14,6 +14,14 @@ export async function initializeDatabase() {
       status: 'active',
       nmls: '123456',
       website: 'https://loangenius.ai'
+    }).onConflictDoUpdate({
+      target: organizations.subdomain,
+      set: {
+        name: 'LoanGenius Demo',
+        plan: 'enterprise',
+        status: 'active',
+        updatedAt: new Date()
+      }
     }).returning();
     
     // Create test loan officer
@@ -29,6 +37,16 @@ export async function initializeDatabase() {
       phone: '(555) 123-4567',
       nmlsId: '789012',
       isActive: true
+    }).onConflictDoUpdate({
+      target: users.username,
+      set: {
+        firstName: 'John',
+        lastName: 'Smith',
+        email: 'john@loangenius.ai',
+        phone: '(555) 123-4567',
+        isActive: true,
+        updatedAt: new Date()
+      }
     }).returning();
     
     // Create test borrower
@@ -40,6 +58,15 @@ export async function initializeDatabase() {
       phone: '(555) 987-6543',
       isEmailVerified: true,
       isActive: true
+    }).onConflictDoUpdate({
+      target: borrowerAuth.email,
+      set: {
+        firstName: 'Jane',
+        lastName: 'Doe',
+        phone: '(555) 987-6543',
+        isActive: true,
+        updatedAt: new Date()
+      }
     }).returning();
     
     // Create test realtor
@@ -56,6 +83,16 @@ export async function initializeDatabase() {
       isEmailVerified: true,
       isActive: true,
       isApproved: true
+    }).onConflictDoUpdate({
+      target: realtorAuth.email,
+      set: {
+        firstName: 'Mike',
+        lastName: 'Johnson',
+        phone: '(555) 456-7890',
+        isActive: true,
+        isApproved: true,
+        updatedAt: new Date()
+      }
     }).returning();
     
     console.log('Test data created successfully!');
