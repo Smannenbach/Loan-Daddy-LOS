@@ -2,7 +2,7 @@ import { Check, X, Trophy, TrendingUp, Shield, Brain, Zap, Users } from "lucide-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useNavigate } from "wouter";
+import { useLocation } from "wouter";
 
 const competitors = [
   {
@@ -161,7 +161,7 @@ const featureCategories = [
 ];
 
 export default function Comparison() {
-  const navigate = useNavigate();
+  const [location, setLocation] = useLocation();
 
   const getFeatureIcon = (value: boolean | string) => {
     if (value === true) {
@@ -193,7 +193,7 @@ export default function Comparison() {
             <div className="flex items-center">
               <img src="/loangenius-logo.png" alt="LoanGenius" className="h-8 w-auto" />
             </div>
-            <Button onClick={() => navigate("/signup")} className="bg-indigo-600 hover:bg-indigo-700">
+            <Button onClick={() => setLocation("/signup")} className="bg-indigo-600 hover:bg-indigo-700">
               Get Started
             </Button>
           </div>
@@ -407,7 +407,7 @@ export default function Comparison() {
             <Button 
               size="lg" 
               variant="secondary"
-              onClick={() => navigate("/signup")}
+              onClick={() => setLocation("/signup")}
             >
               Start Free Trial
             </Button>
@@ -415,7 +415,7 @@ export default function Comparison() {
               size="lg" 
               variant="outline"
               className="bg-white/10 text-white border-white/30 hover:bg-white/20"
-              onClick={() => navigate("/demo")}
+              onClick={() => setLocation("/demo")}
             >
               Watch Demo
             </Button>
