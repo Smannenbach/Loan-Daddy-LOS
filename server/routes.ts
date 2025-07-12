@@ -32,7 +32,11 @@ import cookieParser from "cookie-parser";
 import passport from "passport";
 import path from "path";
 import fs from "fs";
+import { fileURLToPath } from "url";
 import { z } from "zod";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Configure multer for file uploads
 const upload = multer({
@@ -2042,6 +2046,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Mount AI routes
   app.use(aiRoutes);
+  
+  // Serve public website
+  app.get("/public", (req, res) => {
+    res.sendFile(path.join(__dirname, "../public-site/index.html"));
+  });
+  
+  app.get("/public/privacy", (req, res) => {
+    res.sendFile(path.join(__dirname, "../public-site/privacy.html"));
+  });
+  
+  app.get("/public/terms", (req, res) => {
+    res.sendFile(path.join(__dirname, "../public-site/terms.html"));
+  });
   
   const httpServer = createServer(app);
   return httpServer;
