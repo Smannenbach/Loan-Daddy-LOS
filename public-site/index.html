@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LoanGenius AI - Intelligent Commercial Lending Platform</title>
+    <meta name="description" content="Revolutionary AI-powered commercial lending platform for DSCR, Fix-and-Flip, Bridge, and Commercial loans. Streamline your loan origination process with intelligent automation.">
+    <meta name="keywords" content="commercial lending, loan origination, AI lending, DSCR loans, fix and flip loans, bridge loans, commercial real estate financing">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://loangenius.ai/">
+    <meta property="og:title" content="LoanGenius AI - Intelligent Commercial Lending Platform">
+    <meta property="og:description" content="Revolutionary AI-powered commercial lending platform for DSCR, Fix-and-Flip, Bridge, and Commercial loans.">
+    <meta property="og:image" content="https://loangenius.ai/og-image.jpg">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://loangenius.ai/">
+    <meta property="twitter:title" content="LoanGenius AI - Intelligent Commercial Lending Platform">
+    <meta property="twitter:description" content="Revolutionary AI-powered commercial lending platform for DSCR, Fix-and-Flip, Bridge, and Commercial loans.">
+    <meta property="twitter:image" content="https://loangenius.ai/og-image.jpg">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2563eb',
+                        secondary: '#1e40af',
+                        accent: '#3b82f6'
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Cookie Consent Script -->
+    <script>
+        // Cookie consent functionality
+        function setCookie(name, value, days) {
+            const expires = new Date();
+            expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
+            document.cookie = name + '=' + value + ';expires=' + expires.toUTCString() + ';path=/;SameSite=Strict';
+        }
+
+        function getCookie(name) {
+            const nameEQ = name + "=";
+            const ca = document.cookie.split(';');
+            for(let i = 0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+                if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+            }
+            return null;
+        }
+
+        function acceptCookies() {
+            setCookie('cookieConsent', 'accepted', 365);
+            document.getElementById('cookieConsent').style.display = 'none';
+            initializeAnalytics();
+        }
+
+        function rejectCookies() {
+            setCookie('cookieConsent', 'rejected', 365);
+            document.getElementById('cookieConsent').style.display = 'none';
+        }
+
+        function initializeAnalytics() {
+            // Initialize analytics only if cookies are accepted
+            if (getCookie('cookieConsent') === 'accepted') {
+                // Google Analytics or other tracking code would go here
+                console.log('Analytics initialized');
+            }
+        }
+
+        // Show cookie consent if not already set
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!getCookie('cookieConsent')) {
+                document.getElementById('cookieConsent').style.display = 'block';
+            } else if (getCookie('cookieConsent') === 'accepted') {
+                initializeAnalytics();
+            }
+        });
+    </script>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <h1 class="text-2xl font-bold text-primary">LoanGenius AI</h1>
+                    </div>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#features" class="text-gray-700 hover:text-primary px-3 py-2 rounded-md text-sm font-medium">Features</a>
+                        <a href="#pricing" class="text-gray-700 hover:text-primary px-3 py-2 rounded-md text-sm font-medium">Pricing</a>
+                        <a href="#contact" class="text-gray-700 hover:text-primary px-3 py-2 rounded-md text-sm font-medium">Contact</a>
+                        <a href="/privacy" class="text-gray-700 hover:text-primary px-3 py-2 rounded-md text-sm font-medium">Privacy</a>
+                        <a href="https://app.loangenius.ai" class="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-secondary">Login</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="bg-gradient-to-r from-primary to-secondary text-white py-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <h2 class="text-4xl md:text-6xl font-bold mb-6">
+                    Intelligent Commercial Lending
+                    <span class="text-blue-200">Powered by AI</span>
+                </h2>
+                <p class="text-xl md:text-2xl mb-8 text-blue-100">
+                    Streamline your loan origination process with revolutionary AI technology. 
+                    Process DSCR, Fix-and-Flip, Bridge, and Commercial loans faster than ever.
+                </p>
+                <div class="space-x-4">
+                    <a href="https://app.loangenius.ai" class="bg-white text-primary px-8 py-3 rounded-lg text-lg font-medium hover:bg-gray-100 transition-colors">
+                        Get Started Free
+                    </a>
+                    <a href="#features" class="border-2 border-white text-white px-8 py-3 rounded-lg text-lg font-medium hover:bg-white hover:text-primary transition-colors">
+                        Learn More
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h3 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                    Revolutionary Features
+                </h3>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    Our AI-powered platform transforms the commercial lending process with intelligent automation and advanced analytics.
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="text-center p-6 bg-gray-50 rounded-lg">
+                    <div class="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                    </div>
+                    <h4 class="text-xl font-semibold mb-2">AI-Powered Processing</h4>
+                    <p class="text-gray-600">Intelligent document processing and risk assessment using advanced machine learning algorithms.</p>
+                </div>
+                
+                <div class="text-center p-6 bg-gray-50 rounded-lg">
+                    <div class="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                    </div>
+                    <h4 class="text-xl font-semibold mb-2">Advanced Analytics</h4>
+                    <p class="text-gray-600">Comprehensive reporting and predictive analytics to optimize your lending decisions.</p>
+                </div>
+                
+                <div class="text-center p-6 bg-gray-50 rounded-lg">
+                    <div class="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                        </svg>
+                    </div>
+                    <h4 class="text-xl font-semibold mb-2">Enterprise Security</h4>
+                    <p class="text-gray-600">Bank-grade security with blockchain document verification and compliance monitoring.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Loan Types Section -->
+    <section class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h3 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                    Comprehensive Loan Solutions
+                </h3>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    Supporting all major commercial lending products with specialized AI workflows.
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="bg-white p-6 rounded-lg shadow-sm border">
+                    <h4 class="text-lg font-semibold mb-2 text-primary">DSCR Loans</h4>
+                    <p class="text-gray-600 text-sm">Debt Service Coverage Ratio loans for investment properties with automated income analysis.</p>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow-sm border">
+                    <h4 class="text-lg font-semibold mb-2 text-primary">Fix-and-Flip</h4>
+                    <p class="text-gray-600 text-sm">Short-term financing for property rehabilitation with ARV calculations and risk assessment.</p>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow-sm border">
+                    <h4 class="text-lg font-semibold mb-2 text-primary">Bridge Loans</h4>
+                    <p class="text-gray-600 text-sm">Transitional financing solutions with AI-powered exit strategy analysis.</p>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow-sm border">
+                    <h4 class="text-lg font-semibold mb-2 text-primary">Commercial Real Estate</h4>
+                    <p class="text-gray-600 text-sm">Full-scale commercial property financing with comprehensive market analysis.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-20 bg-primary text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h3 class="text-3xl md:text-4xl font-bold mb-6">
+                Ready to Transform Your Lending Process?
+            </h3>
+            <p class="text-xl mb-8 text-blue-100">
+                Join thousands of lenders who have revolutionized their operations with LoanGenius AI.
+            </p>
+            <a href="https://app.loangenius.ai" class="bg-white text-primary px-8 py-3 rounded-lg text-lg font-medium hover:bg-gray-100 transition-colors">
+                Start Your Free Trial
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-4 gap-8">
+                <div>
+                    <h4 class="text-2xl font-bold mb-4">LoanGenius AI</h4>
+                    <p class="text-gray-400">Intelligent commercial lending platform powered by artificial intelligence.</p>
+                </div>
+                
+                <div>
+                    <h5 class="text-lg font-semibold mb-4">Product</h5>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#features" class="hover:text-white">Features</a></li>
+                        <li><a href="#pricing" class="hover:text-white">Pricing</a></li>
+                        <li><a href="https://app.loangenius.ai" class="hover:text-white">Platform</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h5 class="text-lg font-semibold mb-4">Company</h5>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#contact" class="hover:text-white">Contact</a></li>
+                        <li><a href="/privacy" class="hover:text-white">Privacy Policy</a></li>
+                        <li><a href="/terms" class="hover:text-white">Terms of Service</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h5 class="text-lg font-semibold mb-4">Contact</h5>
+                    <ul class="space-y-2 text-gray-400">
+                        <li>support@loangenius.ai</li>
+                        <li>1-800-LOAN-AI</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
+                <p>&copy; 2025 LoanGenius AI. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Cookie Consent Popup -->
+    <div id="cookieConsent" class="fixed bottom-0 left-0 right-0 bg-gray-900 text-white p-4 shadow-lg z-50" style="display: none;">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between">
+            <div class="flex-1 mb-4 sm:mb-0">
+                <p class="text-sm">
+                    We use cookies to enhance your experience, analyze site traffic, and provide personalized content. 
+                    By clicking "Accept All", you consent to our use of cookies. 
+                    <a href="/privacy" class="text-blue-400 hover:text-blue-300 underline">Learn more in our Privacy Policy</a>
+                </p>
+            </div>
+            <div class="flex space-x-4">
+                <button 
+                    onclick="rejectCookies()" 
+                    class="px-4 py-2 text-gray-300 hover:text-white border border-gray-600 rounded-md text-sm transition-colors"
+                >
+                    Reject
+                </button>
+                <button 
+                    onclick="acceptCookies()" 
+                    class="px-4 py-2 bg-primary text-white rounded-md text-sm hover:bg-secondary transition-colors"
+                >
+                    Accept All
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LinkedIn App Notice -->
+    <div class="fixed top-4 right-4 bg-blue-50 border border-blue-200 rounded-lg p-4 shadow-lg max-w-sm z-40" id="linkedinNotice">
+        <div class="flex items-start">
+            <svg class="w-5 h-5 text-blue-600 mt-0.5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+            </svg>
+            <div class="flex-1">
+                <h4 class="text-sm font-semibold text-blue-900">LinkedIn Integration Available</h4>
+                <p class="text-xs text-blue-700 mt-1">
+                    Our platform integrates with LinkedIn to help you find and connect with real estate professionals.
+                </p>
+            </div>
+            <button onclick="document.getElementById('linkedinNotice').style.display='none'" class="text-blue-400 hover:text-blue-600 ml-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+</body>
+</html>
